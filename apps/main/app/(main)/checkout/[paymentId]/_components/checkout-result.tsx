@@ -4,7 +4,7 @@ import * as React from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { CircleCheck, CircleSlash, CircleX, Clock3 } from "lucide-react"
 import type { PaymentView } from "@repo/billing"
-import { formatCredits, formatMoney, PLANS } from "@repo/billing/plans"
+import { formatMoney, PLANS } from "@repo/billing/plans"
 import { AppLink } from "@repo/ui/components/app-link"
 import { Button } from "@repo/ui/components/ui/button"
 import { InlineLoader } from "@repo/ui/components/ui/inline-loader"
@@ -12,7 +12,8 @@ import { Page } from "@repo/ui/components/ui/page"
 import { PanelRow, PanelRows } from "@repo/ui/components/ui/section-panel"
 import { checkPayment } from "@/actions/billing.action"
 import { ROUTES } from "@/lib/navigation"
-import { BILLING_KEYS, formatBillingDate, PROVIDER_NAMES } from "../../../settings/billing/_components/billing-keys"
+import { formatDay as formatBillingDate, PLATFORM_KEYS, PROVIDER_NAMES } from "@/lib/platform-display"
+import { BALANCE_QUERY_KEY } from "@/components/shell/credits-chip"
 import { RESULT_DESCRIPTION, RESULT_TITLE } from "./checkout-result-skeleton"
 
 type View = "verifying" | "success" | "failed" | "cancelled" | "mismatch"
@@ -25,7 +26,7 @@ function viewOf(p: PaymentView, mismatch: boolean): View {
 }
 
 function whatFor(p: PaymentView): string {
-    if (p.kind === "credits") return `${formatCredits(p.credits ?? 0)} credits`
+    if (p.kind === "credits") return `${(p.credits ?? 0).toLocaleString("en-US")} credits`
     if (p.autoRenew || p.kind === "renewal") return `${PLANS.pro.name} plan, renews monthly`
     return `${PLANS.pro.name} plan, ${p.termMonths ?? 1} month${p.termMonths === 1 ? "" : "s"}`
 }
@@ -40,11 +41,11 @@ const MAX_AUTO_CHECKS = 6
 export function CheckoutResult({ initial, mismatch, verifyNote }: { initial: PaymentView; mismatch: boolean; verifyNote: "signature" | "later" | null }) {
     const queryClient = useQueryClient()
     const result = useQuery({
-        queryKey: BILLING_KEYS.payment(initial.id),
+        queryKey: ["billing", "payment", initial.id],
         queryFn: async () => {
             const r = await checkPayment(initial.id)
             if (!r.success) throw new Error(r.error ?? "The payment could not be checked.")
-            if (r.data.state === "paid") await queryClient.invalidateQueries({ queryKey: BILLING_KEYS.overview })
+            if (r.data.state === "paid") await Promise.all([queryClient.invalidateQueries({ queryKey: PLATFORM_KEYS.billing }), queryClient.invalidateQueries({ queryKey: BALANCE_QUERY_KEY })])
             return { payment: r.data.payment, mismatch: r.data.state === "mismatch" }
         },
         initialData: { payment: initial, mismatch },
@@ -57,7 +58,7 @@ export function CheckoutResult({ initial, mismatch, verifyNote }: { initial: Pay
     const view = viewOf(p, result.data.mismatch)
     const provider = PROVIDER_NAMES[p.provider] ?? p.provider
     // The result object has no update count in TanStack v5; the query's state does.
-    const autoDone = (queryClient.getQueryState(BILLING_KEYS.payment(initial.id))?.dataUpdateCount ?? 0) >= MAX_AUTO_CHECKS
+    const autoDone = (queryClient.getQueryState(["billing", "payment", initial.id])?.dataUpdateCount ?? 0) >= MAX_AUTO_CHECKS
 
     const copy: Record<View, { icon: React.ReactNode; title: string; body: string }> = {
         verifying: {
@@ -93,7 +94,7 @@ export function CheckoutResult({ initial, mismatch, verifyNote }: { initial: Pay
     const c = copy[view]
 
     return (
-        <Page title={RESULT_TITLE} description={RESULT_DESCRIPTION} back={{ href: ROUTES.settingsBilling, label: "Billing" }} body="page">
+        <Page title={RESULT_TITLE} description={RESULT_DESCRIPTION} back={{ href: ROUTES.billing, label: "Billing" }} body="page">
             <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-3 rounded-xl bg-white p-6 text-center shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:bg-neutral-900">
                 {c.icon}
                 <h2 className="text-base font-semibold text-neutral-900 dark:text-white" aria-live="polite">{c.title}</h2>
@@ -112,7 +113,7 @@ export function CheckoutResult({ initial, mismatch, verifyNote }: { initial: Pay
                         </Button>
                     ) : null}
                     <Button asChild className="cursor-pointer rounded-xl">
-                        <AppLink href={ROUTES.settingsBilling}>{view === "success" ? "Back to billing" : view === "verifying" ? "Billing" : "Try again"}</AppLink>
+                        <AppLink href={ROUTES.billing}>{view === "success" ? "Back to billing" : view === "verifying" ? "Billing" : "Try again"}</AppLink>
                     </Button>
                 </div>
                 {result.isError ? <p className="text-xs text-neutral-600 dark:text-neutral-400">The payment could not be checked just now. Try again in a minute.</p> : null}

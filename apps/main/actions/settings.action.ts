@@ -12,7 +12,6 @@ import { authErrorMessage } from "@repo/auth/errors"
 import { db, eq } from "@repo/db"
 import { account, notificationPreference, userSetting } from "@repo/db/schema"
 import { fail, failWith, ok, type ActionResult } from "@repo/errors"
-import { getAiUsage as readAiUsage, type AiUsageData } from "@/lib/usage"
 import {
     NOTIFICATION_TOPICS,
     SETTING_KEYS,
@@ -113,12 +112,3 @@ export async function resetNotificationPreferences(): Promise<ActionResult<null>
     }
 }
 
-/** The AI usage section's refetch (same shape as the page's initialData). */
-export async function getAiUsage(): Promise<ActionResult<AiUsageData>> {
-    try {
-        const session = await requireSession()
-        return ok(await readAiUsage(session.user.id))
-    } catch (err) {
-        return fail(err, "settings.usage")
-    }
-}

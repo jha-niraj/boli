@@ -11,9 +11,10 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { Skeleton } from "@repo/ui/components/ui/skeleton"
 import { toast } from "@repo/ui/components/ui/toast"
 import { getUserById, updateUserStatus } from "@/actions/user.action"
+import { getUserPlatform, revokeUserApiKey } from "@/actions/user-platform.action"
 import { useAdminAccess } from "@/context/admin-access-context"
 import { formatAdminRole } from "@/lib/permissions"
-import type { UserDetail, UserRow } from "@/types/admin"
+import type { AdminUserPlatform, UserDetail, UserRow } from "@/types/admin"
 import { formatDate, PersonAvatar, Pill } from "../../admins/_components/admin-bits"
 import { USER_KEYS } from "./users-query"
 
@@ -41,6 +42,29 @@ export function UserSheet({ row, open, onOpenChange, onExitComplete }: {
         queryKey: USER_KEYS.detail(row?.id ?? ""),
         queryFn: () => fetchDetail(row!.id),
         enabled: !!row && open,
+    })
+
+    const platform = useQuery({
+        queryKey: USER_KEYS.platform(row?.id ?? ""),
+        queryFn: async (): Promise<AdminUserPlatform> => {
+            const r = await getUserPlatform(row!.id)
+            if (!r.success) throw new Error(r.error ?? "Could not load API keys and usage")
+            return r.data
+        },
+        enabled: !!row && open,
+    })
+
+    const revokeKey = useMutation({
+        mutationFn: async (keyId: string) => {
+            if (!row) return
+            const r = await revokeUserApiKey(row.id, keyId)
+            if (!r.success) throw new Error(r.error ?? "Could not revoke the key")
+        },
+        onSuccess: async () => {
+            toast.success("Key revoked")
+            await queryClient.invalidateQueries({ queryKey: USER_KEYS.platform(row?.id ?? "") })
+        },
+        onError: (e) => toast.error(e instanceof Error ? e.message : "Could not revoke the key"),
     })
 
     const setActive = useMutation({
@@ -95,6 +119,14 @@ export function UserSheet({ row, open, onOpenChange, onExitComplete }: {
                                     <p className="whitespace-pre-wrap text-sm text-neutral-700 dark:text-neutral-300">{detail.data.bio}</p>
                                 </div>
                             ) : null}
+                            <PlatformSection
+                                data={platform.data}
+                                loading={platform.isPending}
+                                failed={platform.isError}
+                                canWrite={canWrite}
+                                revoking={revokeKey.isPending ? (revokeKey.variables ?? null) : null}
+                                onRevoke={(id) => revokeKey.mutateAsync(id)}
+                            />
                             {detail.isError ? (
                                 <p className="text-xs text-neutral-600 dark:text-neutral-400">Some details could not be loaded. Close and open the user again.</p>
                             ) : null}
@@ -127,5 +159,71 @@ export function UserSheet({ row, open, onOpenChange, onExitComplete }: {
                 ) : null}
             </SheetContent>
         </Sheet>
+    )
+}
+
+const credits = (micro: number) => (micro / 1_000_000).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+/** Boli platform: usage totals and the user's API keys (name, prefix, created, last used, status), revoke for users:write. */
+function PlatformSection({ data, loading, failed, canWrite, revoking, onRevoke }: {
+    data: AdminUserPlatform | undefined
+    loading: boolean
+    failed: boolean
+    canWrite: boolean
+    revoking: string | null
+    onRevoke: (id: string) => Promise<void>
+}) {
+    return (
+        <>
+            <div className="flex flex-col gap-1">
+                <h3 className="text-base font-semibold text-neutral-900 dark:text-white">Usage</h3>
+                <PanelRows>
+                    <PanelRow label="Requests, 30 days">{data ? data.last30.requests.toLocaleString("en-US") : <Skeleton className="h-4 w-16" />}</PanelRow>
+                    <PanelRow label="Credits spent, 30 days">{data ? credits(data.last30.costMicro) : <Skeleton className="h-4 w-16" />}</PanelRow>
+                    <PanelRow label="Requests, all time">{data ? data.allTime.requests.toLocaleString("en-US") : <Skeleton className="h-4 w-16" />}</PanelRow>
+                    <PanelRow label="Credits spent, all time">{data ? credits(data.allTime.costMicro) : <Skeleton className="h-4 w-16" />}</PanelRow>
+                </PanelRows>
+            </div>
+            <div className="flex flex-col gap-1">
+                <h3 className="text-base font-semibold text-neutral-900 dark:text-white">API keys</h3>
+                {failed ? (
+                    <p className="text-xs text-neutral-600 dark:text-neutral-400">API keys and usage could not be loaded. Close and open the user again.</p>
+                ) : loading || !data ? (
+                    <div className="flex flex-col gap-1">{Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-12 w-full rounded-lg" />)}</div>
+                ) : data.keys.length === 0 ? (
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400">No API keys.</p>
+                ) : (
+                    <ul className="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-800">
+                        {data.keys.map((k) => (
+                            <li key={k.id} className="flex min-w-0 items-center gap-3 py-2">
+                                <div className="min-w-0 flex-1">
+                                    <p className="flex min-w-0 items-center gap-2">
+                                        <span className="truncate text-sm font-medium text-neutral-900 dark:text-white">{k.name}</span>
+                                        {k.revokedAt ? <Pill>Revoked</Pill> : null}
+                                    </p>
+                                    <p className="truncate text-xs text-neutral-600 dark:text-neutral-400">
+                                        <span className="font-mono">{k.prefix}****</span> - created {formatDate(k.createdAt)} - last used {k.lastUsedAt ? formatDate(k.lastUsedAt, true) : "never"}
+                                    </p>
+                                </div>
+                                {canWrite && !k.revokedAt ? (
+                                    <ConfirmPopover
+                                        title={`Revoke "${k.name}"?`}
+                                        description="Apps using this key stop working at once. This cannot be undone."
+                                        confirmLabel="Revoke"
+                                        side="top"
+                                        onConfirm={() => onRevoke(k.id)}
+                                    >
+                                        <Button type="button" variant="outline" size="sm" disabled={revoking === k.id} className="shrink-0 cursor-pointer rounded-xl">
+                                            {revoking === k.id ? <InlineLoader size={14} label="Revoking" /> : null}
+                                            Revoke
+                                        </Button>
+                                    </ConfirmPopover>
+                                ) : null}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+        </>
     )
 }

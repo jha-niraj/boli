@@ -96,3 +96,20 @@ export interface UserStats {
     verified: number
     newLast30: number
 }
+
+/** Boli platform: one user's API keys (read-only for admins, plus revoke) and usage totals. Dates are ISO strings. */
+export interface AdminUserApiKey {
+    id: string
+    name: string
+    prefix: string
+    createdAt: string
+    lastUsedAt: string | null
+    revokedAt: string | null
+}
+
+export interface AdminUserPlatform {
+    keys: AdminUserApiKey[]
+    /** Last 30 days, every source (Kura + API). Credits in micro-credits. */
+    last30: { requests: number; costMicro: number }
+    allTime: { requests: number; costMicro: number }
+}

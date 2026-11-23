@@ -15,6 +15,7 @@ export const USER_KEYS = {
     list: (page: number, search: string, filters: UserFilters) => ["users", "list", { page, search, filters }] as const,
     stats: ["users", "stats"] as const,
     detail: (id: string) => ["users", "detail", id] as const,
+    platform: (id: string) => ["users", "platform", id] as const,
 }
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [

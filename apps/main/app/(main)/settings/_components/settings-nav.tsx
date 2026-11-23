@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { Bell, CreditCard, Gauge, Link2, Palette, UserRound, type LucideIcon } from "lucide-react"
+import { Bell, Link2, Palette, UserRound, type LucideIcon } from "lucide-react"
 import { AppLink, markNavPending } from "@repo/ui/components/app-link"
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@repo/ui/components/ui/select"
 import { cn } from "@repo/ui/lib/utils"
@@ -19,8 +19,6 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     { href: ROUTES.settingsNotifications, label: "Notifications", icon: Bell },
     { href: ROUTES.settingsAppearance, label: "Appearance", icon: Palette },
     { href: ROUTES.settingsAccounts, label: "Connected accounts", icon: Link2 },
-    { href: ROUTES.settingsUsage, label: "AI usage", icon: Gauge },
-    { href: ROUTES.settingsBilling, label: "Billing", icon: CreditCard },
 ]
 
 /** Lives elsewhere, listed under the sections so everything about "me" is one place away. */
