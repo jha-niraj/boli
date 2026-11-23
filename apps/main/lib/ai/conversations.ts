@@ -1,15 +1,16 @@
 import 'server-only'
-import { modelMessageSchema, type ModelMessage } from '@repo/ai'
-import { db, and, eq, asc, desc, gte, lt, count, sql } from '@repo/db'
-import { aiConversations, aiMessages, notes, session, user } from '@repo/db/schema'
+import { db, and, eq, asc, desc, isNull, count } from '@repo/db'
+import { aiConversations, aiMessages, apiKey } from '@repo/db/schema'
+import { BOLI_CHAT, MICRO_PER_CREDIT, formatCredits } from '@/lib/boli'
+import { ROUTES } from '@/lib/navigation'
+import { getBalanceMicro } from '@/lib/platform/credits'
 import { asParts } from './parts'
-import type { ChatViewMessage, ConversationRow, ConversationView, NeedsYouItem, NeedsYouList, UserPeekData } from './types'
-import { storageHref } from '@repo/storage'
-import { userPeekHref } from '@/lib/peeks/peek-routes'
+import { asKuraSettings } from './settings'
+import type { ChatViewMessage, ConversationRow, ConversationView, NeedsYouItem, NeedsYouList } from './types'
 
 /**
- * Server reads for the AI page. Every read filters by the signed-in person's id - a conversation id from the URL is
- * never trusted on its own. Called from page.tsx (server) and from the actions in actions/ai (which check the session).
+ * Server reads for Kura. Every read filters by the signed-in person's id - a conversation id from the URL is never
+ * trusted on its own. Called from the route's server half and from actions/ai (which check the session).
  */
 
 export async function listConversationsFor(userId: string): Promise<ConversationRow[]> {
@@ -22,18 +23,18 @@ export async function listConversationsFor(userId: string): Promise<Conversation
     return rows.map((r) => ({ id: r.id, title: r.title, updatedAt: r.updatedAt.toISOString() }))
 }
 
-type MessageRow = typeof aiMessages.$inferSelect
+export type MessageRow = typeof aiMessages.$inferSelect
 
-export async function conversationRows(userId: string, conversationId: string): Promise<{ title: string; rows: MessageRow[] } | null> {
+export async function conversationRows(userId: string, conversationId: string): Promise<{ title: string; settings: unknown; rows: MessageRow[] } | null> {
     const [conv, rows] = await db.batch([
-        db.select({ title: aiConversations.title }).from(aiConversations)
+        db.select({ title: aiConversations.title, settings: aiConversations.settings }).from(aiConversations)
             .where(and(eq(aiConversations.id, conversationId), eq(aiConversations.userId, userId))).limit(1),
         db.select().from(aiMessages)
             .where(and(eq(aiMessages.conversationId, conversationId), eq(aiMessages.userId, userId)))
             .orderBy(asc(aiMessages.createdAt)),
     ])
     const c = conv[0]
-    return c ? { title: c.title, rows } : null
+    return c ? { title: c.title, settings: c.settings, rows } : null
 }
 
 export function toView(rows: MessageRow[]): ChatViewMessage[] {
@@ -44,101 +45,95 @@ export function toView(rows: MessageRow[]): ChatViewMessage[] {
 
 export async function loadConversationView(userId: string, conversationId: string): Promise<ConversationView | null> {
     const found = await conversationRows(userId, conversationId)
-    return found ? { id: conversationId, title: found.title, messages: toView(found.rows) } : null
+    return found
+        ? { id: conversationId, title: found.title, messages: toView(found.rows), settings: asKuraSettings(found.settings) }
+        : null
 }
 
-const storedMessages = modelMessageSchema.array()
-/** History kept to the most recent rows. Trimming moves the prefix (one cache rewrite), so it is generous. */
-const MAX_HISTORY_ROWS = 80
+/** A new chat's title: the first message, one line, cut at 60 characters. No model call. */
+export function titleFrom(text: string): string {
+    const one = text.replace(/\s+/g, ' ').trim()
+    return one.length > 60 ? `${one.slice(0, 57).trimEnd()}...` : one || 'New chat'
+}
+
+export type HistoryMessage = { role: 'user' | 'assistant'; content: string }
+
+/** A rough token count (about 3 characters per token for English and Romanized Nepali on Gemma's tokenizer). */
+const estimateTokens = (text: string) => Math.ceil(text.length / 3)
 
 /**
- * The model history, rebuilt from stored rows: user messages with their own context block after them, assistant turns
- * replayed from the provider-shaped messages stored with them (tool calls and results included, byte for byte).
+ * The model history: user text and assistant reply text (thinking is never replayed). Kept inside the model's context
+ * window: the oldest turns drop first, so system prompt + history + the new message + the reply budget fit.
  */
-export function buildHistory(rows: MessageRow[]): ModelMessage[] {
-    const out: ModelMessage[] = []
-    for (const r of rows.slice(-MAX_HISTORY_ROWS)) {
-        if (r.role === 'user') {
-            out.push({ role: 'user', content: r.content })
-            if (r.context) out.push({ role: 'system', content: r.context })
-        } else {
-            const parsed = storedMessages.safeParse(r.modelMessages)
-            if (parsed.success && parsed.data.length) out.push(...parsed.data)
-            else if (r.content) out.push({ role: 'assistant', content: r.content })
-        }
+export function buildHistory(rows: MessageRow[], budget: { systemPrompt: string; message: string; maxTokens: number }): HistoryMessage[] {
+    const all: HistoryMessage[] = []
+    for (const r of rows) {
+        if (r.role === 'user') all.push({ role: 'user', content: r.content })
+        else if (r.content.trim()) all.push({ role: 'assistant', content: r.content })
     }
-    // A mid-conversation system message must be followed by an assistant turn (or be last). Drop a context block whose
-    // turn has no stored reply (a failed turn), and never start with one.
-    while (out[0] && out[0].role !== 'user') out.shift()
-    return out.filter((m, i) => m.role !== 'system' || i === out.length - 1 || out[i + 1]?.role === 'assistant')
+    let room = BOLI_CHAT.contextTokens - budget.maxTokens - estimateTokens(budget.systemPrompt) - estimateTokens(budget.message) - 64
+    const kept: HistoryMessage[] = []
+    for (let i = all.length - 1; i >= 0 && room > 0; i--) {
+        const m = all[i]!
+        const cost = estimateTokens(m.content) + 4
+        if (cost > room) break
+        room -= cost
+        kept.unshift(m)
+    }
+    // Start on a user turn, and never put two user turns side by side (a failed turn stored no reply).
+    while (kept[0] && kept[0].role !== 'user') kept.shift()
+    return kept.filter((m, i) => !(m.role === 'user' && kept[i + 1]?.role === 'user'))
 }
 
-// ─── Needs you (one free read, no model call) ─────────────────────────────────
+// ─── Needs you (cheap reads, no model call) ───────────────────────────────────
+
+/** Below this many credits the list says they are running low. */
+const LOW_BALANCE_MICRO = 10 * MICRO_PER_CREDIT
 
 /**
- * EXAMPLE sources a project replaces with what its people must act on. Each source has its own try/catch, so one
- * failure marks the list partial instead of hiding it.
+ * What a Boli person should act on. Each source has its own try/catch, so one failure marks the list partial instead
+ * of hiding it.
  */
-export async function needsYouFor(viewer: { id: string; role: string; emailVerified: boolean }): Promise<NeedsYouList> {
+export async function needsYouFor(viewer: { id: string; emailVerified: boolean }): Promise<NeedsYouList> {
     const items: NeedsYouItem[] = []
     const failed: string[] = []
 
     if (!viewer.emailVerified) {
-        items.push({ id: 'self-verify', group: 'now', title: 'Verify your email', detail: 'Open the link we sent you to finish signing up.', href: userPeekHref(viewer.id) })
+        items.push({
+            id: 'verify-email',
+            group: 'now',
+            title: 'Verify your email',
+            detail: 'Open the link we sent you - your free credits arrive when it is verified.',
+            href: ROUTES.profile,
+            action: 'Open profile',
+        })
     }
 
-    if (viewer.role === 'ADMIN') {
-        try {
-            const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
-            const rows = await db
-                .select({ id: user.id, name: user.name, email: user.email, createdAt: user.createdAt })
-                .from(user)
-                .where(and(eq(user.emailVerified, false), lt(user.createdAt, dayAgo)))
-                .orderBy(desc(user.createdAt))
-                .limit(20)
-            for (const r of rows) {
-                items.push({
-                    id: `unverified-${r.id}`,
-                    group: 'today',
-                    title: r.name,
-                    detail: `${r.email} - signed up ${r.createdAt.toISOString().slice(0, 10)}, email not verified`,
-                    href: userPeekHref(r.id),
-                })
-            }
-        } catch (err) {
-            console.error('[ai] needs-you: unverified users failed', err instanceof Error ? err.message : err)
-            failed.push('people who never verified their email')
-        }
-    }
-    return { items, failed }
-}
-
-// ─── Peek: one person ─────────────────────────────────────────────────────────
-
-/** A person's quick look. Admins see anyone; everyone else only themselves (null = not found or not allowed). */
-export async function userPeekFor(viewer: { id: string; role: string }, targetId: string): Promise<UserPeekData | null> {
-    if (viewer.role !== 'ADMIN' && viewer.id !== targetId) return null
-    const DAY = 24 * 60 * 60 * 1000
-    const now = Date.now()
-    const [found, signIns, noteCount] = await db.batch([
-        db.select({ id: user.id, name: user.name, email: user.email, image: user.image, emailVerified: user.emailVerified, createdAt: user.createdAt })
-            .from(user).where(eq(user.id, targetId)).limit(1),
-        db.select({
-            last7: sql<number>`count(*) filter (where ${session.createdAt} >= ${new Date(now - 7 * DAY)})`.mapWith(Number),
-            last30: sql<number>`count(*) filter (where ${session.createdAt} >= ${new Date(now - 30 * DAY)})`.mapWith(Number),
-        }).from(session).where(and(eq(session.userId, targetId), gte(session.createdAt, new Date(now - 30 * DAY)))),
-        db.select({ n: count() }).from(notes).where(eq(notes.userId, targetId)),
+    const [balance, keys] = await Promise.allSettled([
+        getBalanceMicro(viewer.id),
+        db.select({ n: count() }).from(apiKey).where(and(eq(apiKey.userId, viewer.id), isNull(apiKey.revokedAt))),
     ])
-    const u = found[0]
-    if (!u) return null
-    return {
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        image: storageHref(u.image ?? null),
-        emailVerified: u.emailVerified,
-        joinedAt: u.createdAt.toISOString(),
-        signIns: { last7: signIns[0]?.last7 ?? 0, last30: signIns[0]?.last30 ?? 0 },
-        notes: noteCount[0]?.n ?? 0,
+
+    if (balance.status === 'fulfilled') {
+        const micro = balance.value
+        if (micro <= 0) {
+            items.push({ id: 'credits-out', group: 'now', title: 'You are out of credits', detail: 'Kura and the API stop until you add credits.', href: ROUTES.billing, action: 'Add credits' })
+        } else if (micro < LOW_BALANCE_MICRO) {
+            items.push({ id: 'credits-low', group: 'today', title: 'Credits running low', detail: `${formatCredits(micro)} credits left.`, href: ROUTES.billing, action: 'Add credits' })
+        }
+    } else {
+        console.error('[kura] needs-you: balance failed', balance.reason instanceof Error ? balance.reason.message : balance.reason)
+        failed.push('your credit balance')
     }
+
+    if (keys.status === 'fulfilled') {
+        if ((keys.value[0]?.n ?? 0) === 0) {
+            items.push({ id: 'first-key', group: 'later', title: 'Create your first API key', detail: 'Call boli-chat from your own code with the same model.', href: ROUTES.keys, action: 'API keys' })
+        }
+    } else {
+        console.error('[kura] needs-you: api keys failed', keys.reason instanceof Error ? keys.reason.message : keys.reason)
+        failed.push('your API keys')
+    }
+
+    return { items, failed }
 }

@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: SITE.name,
         short_name: SITE.name,
         description: SITE.description,
-        start_url: "/ai",
+        start_url: "/kura",
         display: "standalone",
         background_color: "#ffffff",
         theme_color: "#ffffff",

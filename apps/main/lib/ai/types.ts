@@ -1,16 +1,15 @@
-// Types shared by the AI page's server code and its client components. Pure - no imports that pull in server code.
-import type { CardState, MessagePart } from '@repo/ai/protocol'
+// Types shared by Kura's server code and its client components. Pure - no imports that pull in server code.
+import type { KuraSettings } from '@/lib/boli'
+import type { KuraPart } from './protocol'
 
 export interface ChatViewMessage {
     id: string
     role: 'user' | 'assistant'
     /** User rows: the bubble text. Assistant rows: unused (the text lives in `parts`). */
     text: string
-    parts: MessagePart[]
+    parts: KuraPart[]
     /** Still streaming. */
     pending?: boolean
-    /** Tool calls running right now (shown live in the steps). */
-    runningTools?: string[]
     /** A thinking block is streaming right now. */
     thinking?: boolean
 }
@@ -19,6 +18,7 @@ export interface ConversationView {
     id: string
     title: string
     messages: ChatViewMessage[]
+    settings: KuraSettings
 }
 
 export interface ConversationRow {
@@ -35,8 +35,10 @@ export interface NeedsYouItem {
     group: NeedsYouGroup
     title: string
     detail: string
-    /** `/peek/...` opens a quick look; anything else is a page. */
+    /** A page (a route constant). */
     href?: string
+    /** The button label for `href`. */
+    action?: string
 }
 
 export interface NeedsYouList {
@@ -45,25 +47,9 @@ export interface NeedsYouList {
     failed: string[]
 }
 
-export interface UserPeekData {
-    id: string
-    name: string
-    email: string
-    image: string | null
-    emailVerified: boolean
-    /** ISO instant. */
-    joinedAt: string
-    signIns: { last7: number; last30: number }
-    notes: number
-}
-
 export interface ChatRequestBody {
     conversationId?: string | null
-    /** What the model reads. */
     message: string
-    /** What the bubble shows, when it differs. */
-    display?: string
-    /** A card answer: the card id and what was decided. */
-    answerTo?: string
-    decision?: Exclude<CardState, 'open'>
+    /** The settings this turn runs with (the page's current ones); stored on the conversation. */
+    settings: KuraSettings
 }
