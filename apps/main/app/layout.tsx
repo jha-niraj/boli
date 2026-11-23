@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next"
-import "@repo/ui/styles/globals.css"
+import "./boli.css"
 import { SITE } from "@repo/core/site"
-import { geistMono, geistSans } from "./fonts"
+import { geistMono, instrumentSerif, interSans } from "./fonts"
 import { Providers } from "./providers"
 
 export const metadata: Metadata = {
@@ -32,15 +32,15 @@ export const viewport: Viewport = {
     // The phone tab bar pads itself by env(safe-area-inset-bottom); that needs viewport-fit=cover.
     viewportFit: "cover",
     themeColor: [
-        { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+        { media: "(prefers-color-scheme: light)", color: "#f7f5f3" },
         { media: "(prefers-color-scheme: dark)", color: "#121314" },
     ],
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
-        <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable}`}>
-            <body className="bg-white font-sans text-neutral-900 antialiased dark:bg-[#121314] dark:text-neutral-100">
+        <html lang="en" suppressHydrationWarning className={`${interSans.variable} ${instrumentSerif.variable} ${geistMono.variable}`}>
+            <body className="bg-background font-sans text-foreground antialiased dark:bg-[#121314] dark:text-neutral-100">
                 <Providers>{children}</Providers>
             </body>
         </html>

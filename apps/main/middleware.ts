@@ -6,12 +6,12 @@ import { isSignedIn, matchesRoute, sessionCookieNames, signInRedirectUrl, signed
  * Node `proxy.ts`. Everything is protected except the public routes below and `/api/*` (each route checks its own).
  */
 const SIGN_IN = '/signin'
-const HOME = '/ai'
+const HOME = '/kura'
 
 /** Signed-in visitors are sent on to HOME (or their returnTo). */
 const AUTH_ONLY = ['/signin', '/signup', '/forgotpassword', '/resetpassword']
 /** Open to everyone, signed in or not. `/verifyemail` stays reachable while signed in (the link lands there). */
-const PUBLIC = ['/', '/verifyemail', '/terms', '/privacy', '/opengraph-image']
+const PUBLIC = ['/', '/about', '/docs', '/verifyemail', '/terms', '/privacy', '/opengraph-image']
 
 export function middleware(request: NextRequest) {
     const { pathname, searchParams } = request.nextUrl
@@ -39,6 +39,7 @@ function expireSessionCookies(res: NextResponse): NextResponse {
 }
 
 export const config = {
-    // Not /api (every route checks its own session), not Next's assets, not files with an extension.
-    matcher: ['/((?!api/|_next/static|_next/image|.*\\.[a-zA-Z0-9]+$).*)'],
+    // Not /api (every route checks its own session), not /v1 (the public API; rewritten to /api/v1 AFTER middleware runs,
+    // and it checks its own API key), not Next's assets, not files with an extension.
+    matcher: ['/((?!api/|v1/|_next/static|_next/image|.*\\.[a-zA-Z0-9]+$).*)'],
 }

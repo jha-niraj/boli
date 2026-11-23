@@ -13,9 +13,9 @@ function siteUrl(): string {
 }
 
 export const SITE = {
-    name: 'Basecode',
-    tagline: 'Start from a working product',
-    description: 'A starter with sign-in, an AI workspace and an admin console, ready to build on.',
+    name: 'Boli',
+    tagline: 'Open AI for Nepal',
+    description: 'Boli runs open AI models for Nepal: chat in English, Romanized Nepali or both, and an OpenAI-compatible API with 100 free credits.',
     url: siteUrl(),
 } as const;
 

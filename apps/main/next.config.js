@@ -53,12 +53,20 @@ const nextConfig = {
     },
     async rewrites() {
         // Sign-out: worker.ts answers POST /api/sign-out before Next in production; under `next dev` the auth route does.
-        return [{ source: '/api/sign-out', destination: '/api/auth/app-sign-out' }];
+        // The public API (OpenAI-compatible): /v1/* is served by ONE dispatcher route, app/api/v1/[...path]/route.ts. The
+        // middleware skips /api/, and the route checks its own API key.
+        return [
+            { source: '/api/sign-out', destination: '/api/auth/app-sign-out' },
+            { source: '/v1/:path*', destination: '/api/v1/:path*' },
+        ];
     },
     async redirects() {
-        // A quick look's address (`/peek/<kind>/<id>`) is not a page: pressed in the app it opens in place; typed or
-        // shared, it opens beside the AI page.
-        return [{ source: '/peek/:path*', destination: '/ai?peek=:path*', permanent: false }];
+        return [
+            // The chat moved from /ai to /kura (Boli, 2026-11-24).
+            { source: '/ai', destination: '/kura', permanent: true },
+            { source: '/ai/:id', destination: '/kura/:id', permanent: true },
+            { source: '/help', destination: '/docs', permanent: false },
+        ];
     },
 };
 

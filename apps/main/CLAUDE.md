@@ -1,8 +1,32 @@
-# apps/main - the product
+# apps/main - Boli, the product
 
-The signed-in app. After sign-in people land on the AI page `/ai` (full-page chat with a right column). Public pages:
-`/` (landing), the auth pages, `/terms`, `/privacy`. Port 3100. The root `AGENTS.md` holds every general rule; this file
-is only what is specific to this app.
+Boli: open AI for Nepal. People sign up, get 100 free credits, chat with our own open model in **Kura** (`/kura`, where
+they land after sign-in) and call an OpenAI-compatible API (`/v1/chat/completions`) with their own API keys. Public
+pages: `/` (landing), `/about` (with contact), `/docs/*`, `/terms`, `/privacy`, the auth pages. Port 3100. The root
+`AGENTS.md` holds the general rules; this file is what is specific to this app, and **where the two differ for Boli,
+this file wins**. The build plan: `plan/main/platform/platform-v0.md`. The shared constants: `lib/boli.ts`.
+
+## Boli rules (owner decisions, 2026-11-24)
+
+- **Only our own open models.** Nothing in this app may call Claude, OpenAI or any closed model: Kura and the API run on
+  `boli-chat` (llama-server, `LLAMA_BASE_URL`). Boli sells open inference; a closed model behind it would be a lie.
+- **Names.** Product: Boli. Tagline: "Open AI for Nepal". The chat is **Kura** (कुरा, conversation) - in the UI, in
+  routes (`/kura`) and in public copy, with the subtitle "Chat with Boli's model in Nepali, English or both". The model
+  id is `boli-chat`, labelled "Gemma 4 E4B, 4-bit".
+- **Credits.** 1 credit = Rs 1 (NPR). Stored in integer micro-credits (`balance_micro`, `amount_micro`, `cost_micro`);
+  shown with 2 decimals via `formatCredits`. Prices, limits and copy come from `lib/boli.ts` - never a literal.
+- **Fonts.** Instrument Serif for display headings (h1/h2 on public pages, big numbers), Inter for all UI and body
+  text, Geist Mono for code. Loaded with `next/font/local` in `app/fonts.ts`.
+- **Colour.** Warm off-white ground, near-black ink, one Nepal crimson accent used sparingly (primary buttons on public
+  pages, the active rail item marker, key highlights), deep blue as a secondary for links and charts. Tokens live in
+  `app/boli.css`; use the Tailwind classes it maps (`bg-background`, `text-foreground`, `text-boli-crimson`, ...),
+  never hand-picked hex values in components.
+- **Pills.** Buttons, inputs, select triggers and textareas are fully rounded in this app (overrides the base
+  `rounded-xl` rule below; `app/boli.css` enforces it). Cards and sheets keep their normal radius.
+- **Public pages** (landing, about, docs, legal, auth) are light-first and must read as a professional product: real
+  typographic hierarchy, generous spacing, the pixel-Himalaya and line ornaments from `components/brand/`.
+- **Dashboard** keeps light and dark.
+- **API calls store metadata only** (no prompts or answers). Kura conversations are stored (they are the user's own).
 
 ## Layout
 
@@ -25,7 +49,7 @@ doubles it.
 - `<Page width="reading">`: header and content in one max-w-3xl column (forms, Profile, settings sections).
 - `<Page width="full">`: lifts the cap (a board, a split editor). Still padded.
 - `<Page bleed>` (or `data-page-bleed` on any page root): takes the whole box - no padding, the full height, to the
-  right edge - for a workspace that lays out its own columns. The AI page uses it.
+  right edge - for a workspace that lays out its own columns. Kura uses it.
 
 ## Typography and density
 
@@ -35,7 +59,7 @@ doubles it.
 | Page description | `text-xs`, one line, full text in a tooltip |
 | Section heading / `CardTitle` / `SheetTitle` | `text-base font-semibold` |
 | Header buttons | `size="sm"`, icons `h-3.5 w-3.5` |
-| Inputs, selects | `h-9 text-sm`, `rounded-xl` |
+| Inputs, selects | `h-9 text-sm`, pill (see Boli rules) |
 | Body, table cells | `text-sm` |
 | Meta lines | `text-xs` |
 | Stat value | `text-base` to `text-xl`, `font-semibold` |
@@ -43,8 +67,8 @@ doubles it.
 `font-semibold` is the ceiling on every heading (no `font-bold`). Nothing below `text-xs`. A displayed VALUE (a name, a
 figure) may be larger; this governs headings. `text-md` is not a Tailwind class.
 
-Radius: `rounded-xl` on every Button, Input, SelectTrigger, Textarea. `rounded-full` only for real shapes (avatars,
-dots, chips, round icon buttons). The shell itself is square.
+Radius (Boli): Button, Input, SelectTrigger and Textarea are pills (`rounded-full`, enforced by `app/boli.css`).
+Cards, sheets, dialogs and tables keep `rounded-xl`/`rounded-2xl`. The shell itself is square.
 
 ## Sheets
 

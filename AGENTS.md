@@ -8,6 +8,10 @@ New to this repo? Read `docs/README.md` first - it is the map; this file is the 
 
 Plain hyphens (-) everywhere - code, comments, docs, UI copy. Never em or en dashes.
 
+**Boli exceptions:** `apps/main` is the Boli product and has owner decisions that override parts of this file (pill
+controls, Instrument Serif + Inter fonts, a crimson accent, only our own open models). Read `apps/main/CLAUDE.md` before
+touching that app.
+
 ---
 
 ## 1. Working with the owner

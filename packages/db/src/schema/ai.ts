@@ -1,5 +1,5 @@
-// AI tables: conversations and messages of the AI page. (The `note` table the example `saveNote` / `listNotes` tools
-// use lives in `notes.ts`.) Every row carries `userId` and every query filters by it.
+// AI tables: conversations and messages of Kura (the chat page, apps/main/app/(main)/kura). Every row carries `userId`
+// and every query filters by it.
 import { pgTable, text, timestamp, jsonb, index } from 'drizzle-orm/pg-core'
 import { user } from './core'
 
@@ -9,6 +9,11 @@ export const aiConversations = pgTable(
         id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
         userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
         title: text('title').notNull().default('New chat'),
+        /**
+         * Kura settings for this conversation: { systemPrompt, temperature, maxTokens, topP, topK, think }. Null = the
+         * defaults in apps/main/lib/boli.ts (KURA_DEFAULTS).
+         */
+        settings: jsonb('settings'),
         createdAt: timestamp('created_at').notNull().defaultNow(),
         updatedAt: timestamp('updated_at').notNull().defaultNow(),
     },

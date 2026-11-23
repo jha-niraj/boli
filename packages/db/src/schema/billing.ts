@@ -1,6 +1,6 @@
 // Billing tables: one usage row per model call, priced by @repo/billing's meter (ai_usage_log), and below it the
 // billing account, subscription, payment and credit ledger tables.
-import { pgTable, text, timestamp, integer, jsonb, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, integer, bigint, jsonb, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core'
 import { user } from './core'
 
 export const aiUsageLogs = pgTable(
@@ -39,7 +39,8 @@ export const aiUsageLogs = pgTable(
 )
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Plans, payments and credits (@repo/billing). Money is integer MINOR units (paisa / cents); credits are whole numbers.
+// Plans, payments and credits (@repo/billing). Money is integer MINOR units (paisa / cents); credits are stored as
+// integer MICRO-credits (Boli: 1 credit = Rs 1 = 1,000,000 micro-credits).
 //
 // The billing OWNER is a pair (`ownerType`, `ownerId`): today every account is `('user', user.id)`. A later workspace
 // owner drops in as `('workspace', workspace.id)` with no new table - every other billing row points at the account.
@@ -64,8 +65,11 @@ export const billingAccount = pgTable(
         ownerId: text('owner_id').notNull(),
         /** Who gets billing emails (the user today; a workspace's billing contact later). */
         contactUserId: text('contact_user_id').references(() => user.id, { onDelete: 'set null' }),
-        /** Cached sum of credit_ledger.amount for this account - moved only in the same statement as a ledger insert. */
-        creditBalance: integer('credit_balance').notNull().default(0),
+        /**
+         * Cached sum of credit_ledger.amount_micro for this account, in MICRO-credits (Boli: 1 credit = Rs 1 =
+         * 1,000,000 micro-credits, so a 0.0036-credit call is exact). Moved only in the same statement as a ledger insert.
+         */
+        balanceMicro: bigint('balance_micro', { mode: 'number' }).notNull().default(0),
         /** The currency the owner last chose (NPR / INR / USD). */
         currency: text('currency'),
         createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -118,7 +122,11 @@ export const payment = pgTable(
     {
         /** OUR reference, sent to the gateway (eSewa transaction_uuid, Khalti purchase_order_id, Cashfree order_id...). */
         id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-        accountId: text('account_id').notNull().references(() => billingAccount.id, { onDelete: 'cascade' }),
+        /**
+         * Null once the owner deleted their account: completed payments are KEPT de-identified for accounting (owner,
+         * 2026-11-24), while the balance and ledger go with the billing account.
+         */
+        accountId: text('account_id').references(() => billingAccount.id, { onDelete: 'set null' }),
         /** Who pressed Pay (null for a renewal the gateway charged on its own). */
         userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
         kind: text('kind').$type<PaymentKind>().notNull(),
@@ -165,8 +173,8 @@ export const creditLedger = pgTable(
         id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
         accountId: text('account_id').notNull().references(() => billingAccount.id, { onDelete: 'cascade' }),
         kind: text('kind').$type<CreditEntryKind>().notNull(),
-        /** Signed whole credits: + for grant / purchase / refund, - for spend / expiry. */
-        amount: integer('amount').notNull(),
+        /** Signed MICRO-credits: + for grant / purchase / refund, - for spend / expiry. */
+        amountMicro: bigint('amount_micro', { mode: 'number' }).notNull(),
         /** One row per real-world event: `purchase:<paymentId>`, `spend:<messageId>`, `grant:<uuid>`. */
         idempotencyKey: text('idempotency_key').notNull(),
         /** What it was for, in words ("Pro plan, 3 months", "AI chat turn"). */

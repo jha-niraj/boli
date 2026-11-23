@@ -1,0 +1,74 @@
+/*
+ * Boli's design layer for apps/main (owner decisions, 2026-11-24; apps/main/CLAUDE.md "Boli rules").
+ * It imports the shared base and then sets Boli's tokens on top, so the admin app is untouched.
+ *
+ * Use the utilities this file adds, never hex values in components:
+ *   bg-boli-ground  text-boli-ink  text-boli-text  bg-boli-crimson  text-boli-crimson-ink  bg-boli-blue  text-boli-blue
+ *   border-boli-line  bg-boli-sand  font-serif (Instrument Serif)
+ */
+@import "@repo/ui/styles/globals.css";
+
+@theme {
+    --font-serif: var(--font-boli-serif, Georgia), "Iowan Old Style", Georgia, serif;
+
+    /* Warm off-white ground (Sarvam-like), near-black ink. */
+    --color-boli-ground: #f7f5f3;
+    --color-boli-sand: #efebe6;
+    --color-boli-line: #e6e1db;
+    --color-boli-ink: #141414;
+    --color-boli-text: #3a3a3a;
+    --color-boli-muted: #6b6560;
+    /* Nepal crimson: the fill for primary public CTAs; `-ink` is the darker shade that passes contrast as TEXT on the ground. */
+    --color-boli-crimson: #c8102e;
+    --color-boli-crimson-ink: #a50e26;
+    --color-boli-crimson-soft: #fbe9ec;
+    /* Deep blue (the flag's border): links, charts, the secondary accent. */
+    --color-boli-blue: #1f3f8f;
+    --color-boli-blue-soft: #e8edf8;
+    /* Himalaya snow and sky for illustrations. */
+    --color-boli-sky: #cfe0f3;
+    --color-boli-snow: #ffffff;
+    /* Pixel-Himalaya palette (components/brand/pixel-himalaya.tsx): sky steps, rock, forest, terraces, brick, gold. */
+    --color-boli-sky-deep: #a9c6e8;
+    --color-boli-haze: #e9eef4;
+    --color-boli-rock: #8d94a3;
+    --color-boli-rock-soft: #b9bfcb;
+    --color-boli-rock-deep: #5d6474;
+    --color-boli-pine: #3f6b4a;
+    --color-boli-pine-deep: #2c4f37;
+    --color-boli-field: #8db560;
+    --color-boli-field-soft: #b5cf7e;
+    --color-boli-earth: #9a6b43;
+    --color-boli-brick: #b5543a;
+    --color-boli-wood: #6b3f26;
+    --color-boli-gold: #d9a521;
+}
+
+/* Light: the page ground is the warm off-white; cards stay white so they lift off it. Dark keeps the base palette. */
+:root:not(.dark) {
+    --background: #f7f5f3;
+    --foreground: #141414;
+    --primary: #141414;
+    --primary-foreground: #ffffff;
+    --ring: #a50e26;
+}
+
+/*
+ * Pills (owner, Q25). Unlayered on purpose: unlayered CSS beats Tailwind's layered utilities, so `rounded-xl` written
+ * inside a shared component cannot undo it. Multi-line textareas get a large radius instead of a full pill.
+ */
+[data-slot="button"],
+[role="combobox"],
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([data-no-pill]) {
+    border-radius: 9999px;
+}
+
+textarea:not([data-no-pill]) {
+    border-radius: 1.25rem;
+}
+
+/* Text selection in the brand colour. */
+::selection {
+    background: #fbe9ec;
+    color: #141414;
+}
