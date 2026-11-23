@@ -57,7 +57,7 @@ export function ChatCompletions() {
         ["model", "string, required", `The model id. Today: ${MODELS.map((m) => m.id).join(", ")}.`, "-"],
         ["messages", "array, required", "The conversation so far: objects with role (system, developer, user or assistant) and content (a string, or text parts). Up to 200.", "-"],
         ["temperature", `number, ${KURA_LIMITS.temperature.min} to ${KURA_LIMITS.temperature.max}`, "Randomness. Lower is steadier, higher is more varied.", `model default (${KURA.name}: ${KURA_DEFAULTS.temperature})`],
-        ["max_tokens", `integer, ${KURA_LIMITS.maxTokens.min} to ${KURA_LIMITS.maxTokens.max}`, "Most tokens the answer may use, thinking included. max_completion_tokens is accepted as a synonym.", String(KURA_LIMITS.maxTokens.max)],
+        ["max_tokens", `integer, 1 to ${KURA_LIMITS.maxTokens.max}`, "Most tokens the answer may use, thinking included. max_completion_tokens is accepted as a synonym.", String(KURA_DEFAULTS.maxTokens)],
         ["top_p", `number, ${KURA_LIMITS.topP.min} to ${KURA_LIMITS.topP.max}`, "Nucleus sampling: only the most likely tokens that add up to this share are considered.", `model default (${KURA.name}: ${KURA_DEFAULTS.topP})`],
         ["top_k", `integer, ${KURA_LIMITS.topK.min} to ${KURA_LIMITS.topK.max}`, "Only the k most likely next tokens are considered. Not in the OpenAI spec: in the Python SDK pass it in extra_body.", `model default (${KURA.name}: ${KURA_DEFAULTS.topK})`],
         ["stream", "boolean", "Send the answer as server-sent events while it is written.", "false"],

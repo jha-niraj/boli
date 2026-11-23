@@ -24,8 +24,8 @@ How the pieces fit. Rules live in [`AGENTS.md`](../AGENTS.md); this file says wh
 
 | App | Owns | Key files | Depends on |
 |---|---|---|---|
-| `apps/main` (port 3100, cookie prefix `main`) | The product: landing `/`, auth pages, legal pages, `/welcome`, `/ai`, `/home`, `/notes`, `/profile`, `/settings/*`, `/notifications`, `/help`, `/checkout/*`; API routes for auth, AI chat, cron, documents, payments | `worker.ts`, `middleware.ts`, `next.config.js`, `wrangler.jsonc`, `app/(main)/layout.tsx`, `lib/navigation.ts`, `lib/session.ts`, `lib/ai/*`, `actions/*.action.ts` | ai, auth, billing, core, cron, db, email, erasure, errors, legal, payments, pdf, sarvamai, storage, ui, webdata |
-| `apps/admin` (port 3101, cookie prefix `admin`) | Internal console: sign-in at `/`, invitations at `/join`, pages under `app/(main)/` | `worker.ts`, `middleware.ts`, `lib/permissions.ts`, `lib/admin-session.ts`, `lib/navigation.ts`, `actions/*.action.ts`, `actions/guard.ts` | auth, billing, core, db, email, errors, ui; tiptap (announcement editor), recharts, TanStack |
+| `apps/main` (port 3100, cookie prefix `boli`) | The product: landing `/`, auth pages, legal pages, `/welcome`, `/ai`, `/home`, `/notes`, `/profile`, `/settings/*`, `/notifications`, `/help`, `/checkout/*`; API routes for auth, AI chat, cron, documents, payments | `worker.ts`, `middleware.ts`, `next.config.js`, `wrangler.jsonc`, `app/(main)/layout.tsx`, `lib/navigation.ts`, `lib/session.ts`, `lib/ai/*`, `actions/*.action.ts` | ai, auth, billing, core, cron, db, email, erasure, errors, legal, payments, pdf, sarvamai, storage, ui, webdata |
+| `apps/admin` (port 3101, cookie prefix `boliadmin`) | Internal console: sign-in at `/`, invitations at `/join`, pages under `app/(main)/` | `worker.ts`, `middleware.ts`, `lib/permissions.ts`, `lib/admin-session.ts`, `lib/navigation.ts`, `actions/*.action.ts`, `actions/guard.ts` | auth, billing, core, db, email, errors, ui; tiptap (announcement editor), recharts, TanStack |
 
 Both apps: Next 16.4.6 built with webpack (`next dev --webpack`, `next build --webpack`), `patches/next@16.4.6.patch`
 applied through root `pnpm.patchedDependencies`, React 19.3.1 pinned by `pnpm.overrides`, one zod 4.6.7.
@@ -101,7 +101,7 @@ Routes Next itself serves under `/api`: see [`modules.md`](modules.md#api-routes
 
 - **One better-auth instance** in `packages/auth/src/server.ts`, drizzle adapter on `user` / `session` / `account` /
   `verification` with `transaction: false` (neon-http). Apps import only `@repo/auth*`.
-- **Cookie prefix per app**: `next.config.js` `env: { AUTH_COOKIE_PREFIX: 'main' | 'admin' }` is inlined everywhere;
+- **Cookie prefix per app**: `next.config.js` `env: { AUTH_COOKIE_PREFIX: 'boli' | 'boliadmin' } (Boli: unique names so other local projects on localhost never share a session cookie)` is inlined everywhere;
   `advanced.cookiePrefix` uses it. Readers accept `<prefix>.session_token` and `__Secure-<prefix>.session_token`.
   Default `app` when unset. Rail cookies are also per app (`app_rail_hidden`, `admin_rail_hidden`, plus `_w` width).
 - **Methods**: email + password (`requireEmailVerification`, min 8 / max 128, `revokeSessionsOnPasswordReset`, reset

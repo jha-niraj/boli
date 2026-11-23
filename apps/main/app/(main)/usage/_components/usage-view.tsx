@@ -107,7 +107,7 @@ export function UsageView({ initialData }: { initialData: UsageData }) {
 
                 <div className={cn("flex min-w-0 flex-col gap-4 transition-opacity", dimmed && "opacity-60")}>
                     <ChartPanel title="Credits spent per day" hint={`Last ${days} days, ${sourceWord}`}>
-                        <SpendChart days={data.daily} source={source} emptyMessage={`No requests in the last ${days} days`} />
+                        <SpendChart days={data.daily} source={source} emptyMessage={`No credits spent in the last ${days} days`} />
                     </ChartPanel>
 
                     <section className="min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">

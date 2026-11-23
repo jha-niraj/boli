@@ -43,7 +43,7 @@ export const DOCS_PAGES = [
 ] as const
 
 /** The rail pin cookie ("1" = unpinned). Each app has its own name: localhost cookies ignore the port. */
-export const MAIN_RAIL_COOKIE = "app_rail_hidden"
+export const MAIN_RAIL_COOKIE = "boli_rail_hidden"
 
 /**
  * The rail.

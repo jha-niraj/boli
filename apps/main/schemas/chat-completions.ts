@@ -1,6 +1,8 @@
 import { z } from "zod"
 import { KURA_LIMITS, MODELS } from "@/lib/boli"
 
+const API_MAX_TOKENS = { min: 1, max: KURA_LIMITS.maxTokens.max }
+
 /**
  * The body of `POST /v1/chat/completions` we accept (OpenAI-compatible subset). Unknown fields are dropped, never
  * forwarded. Ranges come from KURA_LIMITS so the API and Kura agree. `think` is Boli's extension (thinking on/off).
@@ -33,8 +35,9 @@ export const chatCompletionSchema = z.object({
     temperature: range("temperature", KURA_LIMITS.temperature).optional(),
     top_p: range("top_p", KURA_LIMITS.topP).optional(),
     top_k: intRange("top_k", KURA_LIMITS.topK).optional(),
-    max_tokens: intRange("max_tokens", KURA_LIMITS.maxTokens).optional(),
-    max_completion_tokens: intRange("max_completion_tokens", KURA_LIMITS.maxTokens).optional(),
+    // API callers may ask for as little as 1 token (a one-word label); Kura's slider keeps its own minimum.
+    max_tokens: intRange("max_tokens", API_MAX_TOKENS).optional(),
+    max_completion_tokens: intRange("max_completion_tokens", API_MAX_TOKENS).optional(),
     stream: z.boolean().optional(),
     stream_options: z.object({ include_usage: z.boolean().optional() }).optional(),
     stop: z.union([z.string().max(100), z.array(z.string().max(100)).max(4)]).optional(),

@@ -18,7 +18,7 @@ const securityHeaders = [
 const nextConfig = {
     // This app's session cookie prefix, inlined into the server, the middleware and @repo/auth alike (packages/auth/src/
     // cookies.ts). Two apps on localhost share cookies by host, so each needs its own; never reuse one across apps.
-    env: { AUTH_COOKIE_PREFIX: 'main' },
+    env: { AUTH_COOKIE_PREFIX: 'boli' },
     // A page reached by a click is reused for 60s (back is instant), a prefetched shell for 180s. Every mutation still
     // refreshes at once (query invalidation / revalidatePath).
     experimental: {

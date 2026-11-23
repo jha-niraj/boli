@@ -30,7 +30,7 @@ export const ROUTES = {
 } as const
 
 /** The rail pin cookie ("1" = unpinned). Admin's own name: localhost cookies ignore the port. */
-export const ADMIN_RAIL_COOKIE = "admin_rail_hidden"
+export const ADMIN_RAIL_COOKIE = "boliadmin_rail_hidden"
 
 type NavDef = ShellNavItem & { permission?: AdminPermission }
 

@@ -86,7 +86,7 @@ export function HomeView({ initialData }: { initialData: HomeData }) {
                                     {data.recent.map((r) => {
                                         const Icon = r.kind === "kura" ? MessagesSquare : Terminal
                                         const title = r.kind === "kura" ? (r.title || "Untitled chat") : (r.request.keyName ?? "Deleted key")
-                                        const meta = r.kind === "kura" ? "Kura" : `API - ${formatCredits(r.request.costMicro)} cr`
+                                        const meta = r.kind === "kura" ? "Kura" : r.request.status === "error" ? `API - failed${r.request.errorCode ? ` (${r.request.errorCode})` : ""}` : `API - ${formatCredits(r.request.costMicro)} cr`
                                         const active = sheetOpen && selected?.kind === r.kind && selected.id === r.id
                                         return (
                                             <li key={`${r.kind}-${r.id}`}>
