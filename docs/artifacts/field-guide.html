@@ -1,0 +1,699 @@
+<title>Boli Field Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martel:wght@600;800&family=Mukta:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a single long reference page with a sticky section bar; diagrams sit on fixed white sheets so their black text reads in both themes. Colours borrow the Nepal flag: crimson + deep blue. */
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --sunken: #eaeef3;
+  --fg: #13202c;
+  --muted: #566577;
+  --line: #d9dfe6;
+  --crimson: #b4232c;
+  --crimson-soft: #fbe9ea;
+  --blue: #1d3a8a;
+  --blue-soft: #e7ecf8;
+  --ok: #1f7a4a;
+  --ok-soft: #e3f3ea;
+  --warn: #9a5b00;
+  --warn-soft: #fbf0dc;
+  --sheet: #ffffff;
+  --sheet-line: #cfd6df;
+  --font-display: "Martel", "Noto Serif Devanagari", Georgia, serif;
+  --font-body: "Mukta", "Noto Sans Devanagari", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e141b; --surface: #161f29; --sunken: #1d2834; --fg: #e6ebf1; --muted: #9caab8; --line: #2a3644;
+    --crimson: #f0606a; --crimson-soft: #3a1c20; --blue: #8fb0ff; --blue-soft: #1c2742;
+    --ok: #5fd197; --ok-soft: #173326; --warn: #f2b45a; --warn-soft: #3a2c14;
+    --sheet: #ffffff; --sheet-line: #3a4756;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e141b; --surface: #161f29; --sunken: #1d2834; --fg: #e6ebf1; --muted: #9caab8; --line: #2a3644;
+  --crimson: #f0606a; --crimson-soft: #3a1c20; --blue: #8fb0ff; --blue-soft: #1c2742;
+  --ok: #5fd197; --ok-soft: #173326; --warn: #f2b45a; --warn-soft: #3a2c14;
+  --sheet: #ffffff; --sheet-line: #3a4756;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16.5px; line-height: 1.6; margin: 0; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+.gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.inner { max-width: 1080px; margin: 0 auto; }
+
+.hero { padding-block: 40px 28px; border-bottom: 1px solid var(--line); background: var(--surface); position: relative; }
+.hero::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 4px; background: linear-gradient(90deg, var(--crimson) 0 50%, var(--blue) 50% 100%); }
+.hero .inner { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 820px) { .hero .inner { grid-template-columns: minmax(0, 1fr); } }
+.eyebrow { font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--crimson); font-weight: 700; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(2rem, 5vw, 3.1rem); line-height: 1.1; margin: 6px 0 10px; text-wrap: balance; }
+h1 .dev { color: var(--crimson); }
+.lede { font-size: 1.12rem; color: var(--fg); max-width: 60ch; margin: 0 0 14px; }
+.claim { border-left: 3px solid var(--blue); padding: 8px 14px; background: var(--blue-soft); border-radius: 0 8px 8px 0; font-size: .97rem; max-width: 62ch; }
+.claim b { display: block; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--blue); }
+.now { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 10px; }
+.now h2 { font-size: 1rem; margin: 0; font-family: var(--font-body); font-weight: 700; }
+.now ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: .95rem; }
+.now .next { background: var(--crimson-soft); color: var(--crimson); border-radius: 8px; padding: 8px 12px; font-weight: 600; font-size: .95rem; }
+.now .next code { color: inherit; }
+
+nav.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+nav.bar .inner { display: flex; gap: 4px; overflow-x: auto; padding-block: 8px; scrollbar-width: none; }
+nav.bar a { flex: none; color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: .9rem; transition: background-color .15s, color .15s; }
+nav.bar a:hover, nav.bar a:focus-visible { background: var(--sunken); color: var(--fg); outline: none; }
+
+main { padding-block: 12px 64px; }
+section.block { padding-block: 36px 8px; display: grid; gap: 16px; }
+h2.sec { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.4rem, 3vw, 1.9rem); margin: 0; line-height: 1.2; text-wrap: balance; }
+h2.sec small { display: block; font-family: var(--font-body); font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+h3 { font-size: 1.1rem; margin: 8px 0 0; }
+p { margin: 0; max-width: 68ch; }
+.intro { color: var(--muted); }
+code { font-family: var(--font-mono); font-size: .86em; background: var(--sunken); padding: 1px 6px; border-radius: 4px; overflow-wrap: anywhere; }
+a { color: var(--blue); }
+
+.sheet { background: var(--sheet); color: #000000; border: 1px solid var(--sheet-line); border-radius: 12px; padding: 18px; overflow-x: auto; }
+.sheet .cap { font-size: .8rem; color: #3b4652; margin-top: 8px; font-family: var(--font-body); }
+.sheet pre.mermaid { margin: 0; background: transparent; display: flex; justify-content: center; min-width: 560px; }
+.howread { font-size: .92rem; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: .85rem; color: #1f2933; margin-top: 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid; display: inline-block; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.card h3 { margin: 0; font-size: 1.02rem; line-height: 1.3; }
+.card p { font-size: .95rem; }
+.card .fix { font-size: .9rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 8px; }
+.card .fix b { color: var(--fg); }
+.sev { justify-self: start; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 10px; border-radius: 999px; }
+.sev.high { background: var(--crimson-soft); color: var(--crimson); }
+.sev.med { background: var(--warn-soft); color: var(--warn); }
+
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); background: var(--sunken); white-space: nowrap; }
+td.nowrap { white-space: nowrap; }
+td small { color: var(--muted); display: block; }
+.pill { display: inline-block; font-size: .76rem; font-weight: 700; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+.pill.go { background: var(--ok-soft); color: var(--ok); }
+.pill.ref { background: var(--warn-soft); color: var(--warn); }
+.pill.no { background: var(--crimson-soft); color: var(--crimson); }
+.pill.info { background: var(--blue-soft); color: var(--blue); }
+.mx td.c { text-align: center; white-space: nowrap; font-weight: 600; }
+.mx .seen { color: var(--crimson); }
+.mx .likely { color: var(--warn); }
+.mx .unk { color: var(--muted); }
+.mx .clean { color: var(--ok); }
+
+.check { display: grid; gap: 18px; }
+.phase { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 10px; }
+.phase header { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: baseline; }
+.phase header h3 { margin: 0; }
+.phase .count { font-size: .9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar2 { height: 6px; background: var(--sunken); border-radius: 999px; overflow: hidden; }
+.bar2 i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .25s; }
+.task { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; padding: 8px 6px; border-radius: 8px; align-items: start; cursor: pointer; }
+.task:hover { background: var(--sunken); }
+.task input { width: 18px; height: 18px; margin-top: 4px; accent-color: var(--ok); cursor: pointer; }
+.task .t { font-size: .97rem; }
+.task .t .id { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); margin-right: 6px; }
+.task.learn .t::before { content: "You"; font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: var(--crimson-soft); color: var(--crimson); padding: 1px 7px; border-radius: 999px; margin-right: 8px; }
+.task.gate .t { font-weight: 600; }
+.task.gate .t::before { content: "Gate"; font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: var(--blue-soft); color: var(--blue); padding: 1px 7px; border-radius: 999px; margin-right: 8px; }
+.task input:checked + .t { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
+.savestate { font-size: .85rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.dot.live { background: var(--ok); }
+.dot.local { background: var(--warn); }
+
+.learn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.learn-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.learn-card h3 { margin: 0; }
+.learn-card .lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+.learn-card ul { margin: 0; padding-left: 1.1em; display: grid; gap: 3px; font-size: .94rem; }
+.learn-card .know { background: var(--ok-soft); color: var(--fg); border-radius: 8px; padding: 8px 12px; font-size: .92rem; }
+.learn-card .know b { color: var(--ok); }
+details.later { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+details.later summary { cursor: pointer; font-weight: 600; }
+details.later[open] summary { margin-bottom: 10px; }
+
+dl.gloss { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; margin: 0; }
+dl.gloss div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+dl.gloss dt { font-weight: 700; }
+dl.gloss dt span { font-weight: 400; color: var(--muted); font-size: .85rem; margin-left: 6px; }
+dl.gloss dd { margin: 4px 0 0; font-size: .94rem; }
+
+.cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.cta p { flex: 1 1 320px; }
+.btn { font: inherit; font-weight: 600; border-radius: 8px; padding: 10px 16px; border: 1px solid var(--blue); background: var(--blue); color: var(--surface); text-decoration: none; display: inline-flex; gap: 6px; align-items: center; }
+.btn:focus-visible { outline: 3px solid var(--crimson); outline-offset: 2px; }
+footer { color: var(--muted); font-size: .85rem; padding-block: 24px; border-top: 1px solid var(--line); }
+</style>
+
+<header class="hero gutter">
+  <div class="inner">
+    <div>
+      <div class="eyebrow">Project guide · Phase 0 and Phase 1</div>
+      <h1>Boli <span class="dev">बोली</span></h1>
+      <p class="lede">A Nepali speech-to-text and text-to-speech API that runs open Nepali models on servers we control. Developers get a Sarvam-style API, playground and docs. Audio and text never go to another AI company.</p>
+      <div class="claim"><b>What we can honestly promise in v1</b>"Your audio is processed only by models we run ourselves. It is never sent to Sarvam, Google, OpenAI or any other AI provider. Infrastructure is currently hosted in Singapore/Mumbai; a Nepal-hosted and on-premises option is on the roadmap."</div>
+    </div>
+    <aside class="now" aria-label="Where we are">
+      <h2>Where we are (20 Oct 2026)</h2>
+      <ul>
+        <li>All three planning docs read; every "verify" item checked at the source</li>
+        <li>Plan for Phase 0 and 1 approved, decisions recorded</li>
+        <li>uv, ffmpeg and just installed; <code>ml/</code> project on Python 3.12</li>
+        <li>600 original recording sentences + consent form written</li>
+      </ul>
+      <div class="next">Your next step: write <code>audio_info</code> in <code>ml/boli_ml/audio.py</code> until <code>uv run pytest</code> shows 4 passed.</div>
+    </aside>
+  </div>
+</header>
+
+<nav class="bar gutter" aria-label="Sections">
+  <div class="inner">
+    <a href="#how">How it works</a>
+    <a href="#phases">Phases</a>
+    <a href="#harness">Eval harness</a>
+    <a href="#decisions">Decisions</a>
+    <a href="#risks">Risks</a>
+    <a href="#models">Models</a>
+    <a href="#data">Datasets</a>
+    <a href="#checklist">Checklist</a>
+    <a href="#learning">Learning</a>
+    <a href="#recording">Recording</a>
+    <a href="#glossary">Glossary</a>
+    <a href="#files">Repo files</a>
+  </div>
+</nav>
+
+<main class="gutter">
+<div class="inner">
+
+<section class="block" id="how">
+  <h2 class="sec"><small>Big picture</small>How one request travels through Boli</h2>
+  <p class="intro">Read it left to right. A developer's audio goes through our gateway to our own server, where an open Nepali model turns it into text. The red box is the hard rule: nothing ever goes to an outside AI company.</p>
+  <div class="sheet">
+<pre class="mermaid">
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Mukta, Arial, sans-serif","fontSize":"15px","primaryTextColor":"#000000","textColor":"#000000","lineColor":"#334155","edgeLabelBackground":"#ffffff","clusterBkg":"#f8fafc","clusterBorder":"#94a3b8","titleColor":"#000000"}}}%%
+flowchart LR
+  DEV["Developer app<br/>or browser playground"]:::user
+  subgraph EDGE["Cloudflare, the front door"]
+    GW["Gateway Worker<br/>checks API key,<br/>rate limit, logs usage"]:::edge
+  end
+  DB[("Neon Postgres<br/>users, API keys,<br/>usage")]:::data
+  subgraph HOST["Our own server"]
+    API["Boli API<br/>Node + Hono"]:::svc
+    FF["ffmpeg<br/>any audio to<br/>16 kHz mono"]:::svc
+    ASR["Speech to text model<br/>ONNX, Kriti family"]:::model
+    TTS["Text to speech model<br/>ONNX, Matcha or Kala"]:::model
+  end
+  ML["ml/ folder, Python<br/>offline only: eval,<br/>export, fine-tune"]:::offline
+  BAN["Sarvam, Google, OpenAI,<br/>ElevenLabs, Deepgram ...<br/>NEVER CALLED"]:::ban
+  DEV -->|"audio or text"| GW
+  GW -->|"usage row"| DB
+  GW -->|"signed request"| API
+  API --> FF --> ASR
+  API --> TTS
+  ASR -->|"transcript"| API
+  TTS -->|"audio"| API
+  API -->|"response"| GW -->|"response"| DEV
+  ML -.->|"ships tested models"| ASR
+  ML -.->|"ships tested models"| TTS
+  API ~~~ BAN
+  classDef user fill:#ffffff,stroke:#334155,color:#000000,stroke-width:1.5px
+  classDef edge fill:#fff7e6,stroke:#b45309,color:#000000,stroke-width:1.5px
+  classDef data fill:#e6f4ea,stroke:#1f7a4a,color:#000000,stroke-width:1.5px
+  classDef svc fill:#e7ecf8,stroke:#1d3a8a,color:#000000,stroke-width:1.5px
+  classDef model fill:#dfe7fb,stroke:#1d3a8a,color:#000000,stroke-width:2.5px
+  classDef offline fill:#f1f5f9,stroke:#64748b,color:#000000,stroke-dasharray:5 4
+  classDef ban fill:#fde2e4,stroke:#b4232c,color:#000000,stroke-width:2px,stroke-dasharray:6 4
+</pre>
+    <div class="legend">
+      <span><i style="background:#fff7e6;border-color:#b45309"></i>Cloudflare edge</span>
+      <span><i style="background:#e7ecf8;border-color:#1d3a8a"></i>Our server (TypeScript)</span>
+      <span><i style="background:#dfe7fb;border-color:#1d3a8a"></i>Model running in our server</span>
+      <span><i style="background:#e6f4ea;border-color:#1f7a4a"></i>Database</span>
+      <span><i style="background:#f1f5f9;border-color:#64748b"></i>Offline Python tools</span>
+      <span><i style="background:#fde2e4;border-color:#b4232c"></i>Forbidden</span>
+    </div>
+  </div>
+  <p class="howread">Why two languages: the request path is TypeScript, which you already know. Python only lives in <code>ml/</code>, because model evaluation, export and training tools are Python-only. A model reaches TypeScript by being exported to <b>ONNX</b>, a portable model file that Node can run with <code>sherpa-onnx</code> or <code>onnxruntime-node</code>.</p>
+</section>
+
+<section class="block" id="phases">
+  <h2 class="sec"><small>Roadmap</small>Eight phases, each with a gate</h2>
+  <p class="intro">We never start a phase until the one before has met its "done when" gate and is written up in the journal. We are at Phase 0 (red). Phase 1 decides which models we serve, so it comes before any API code.</p>
+  <div class="sheet">
+<pre class="mermaid">
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Mukta, Arial, sans-serif","fontSize":"15px","primaryTextColor":"#000000","textColor":"#000000","lineColor":"#334155","edgeLabelBackground":"#ffffff"}}}%%
+flowchart TD
+  P0["Phase 0 - Foundations<br/>Python basics, repo scaffold"]:::now
+  P1["Phase 1 - Evaluation harness<br/>measure every model honestly"]:::next
+  P2["Phase 2 - Speech to text API<br/>export spike first"]:::later
+  P3["Phase 3 - Text to speech API"]:::later
+  P4["Phase 4 - Platform<br/>sign-up, keys, playground, docs"]:::later
+  P5["Phase 5 - Live streaming STT"]:::later
+  P6["Phase 6 - Our own data<br/>first fine-tune"]:::later
+  P7["Phase 7 - On-prem package<br/>Nepal hosting"]:::later
+  P8["Phase 8+ - Only with users<br/>diarization, translation ..."]:::later
+  P0 -->|"gate: just dev works,<br/>audio script prints duration"| P1
+  P1 -->|"gate: REPORT.md + model choice,<br/>you can explain WER"| P2
+  P2 -->|"gate: curl returns a transcript<br/>under 2x real time"| P3
+  P3 -->|"gate: type Nepali, hear it"| P4
+  P4 -->|"gate: a stranger signs up<br/>and calls the API"| P5
+  P5 -->|"gate: live words while<br/>you speak"| P6
+  P6 -->|"gate: our model beats<br/>the open baseline"| P7
+  P7 -->|"gate: runs offline<br/>on a laptop"| P8
+  classDef now fill:#fde2e4,stroke:#b4232c,color:#000000,stroke-width:3px
+  classDef next fill:#e7ecf8,stroke:#1d3a8a,color:#000000,stroke-width:2px
+  classDef later fill:#ffffff,stroke:#94a3b8,color:#000000,stroke-width:1.5px
+</pre>
+    <div class="cap">Arrow labels are the "done when" gates from the project brief, shortened.</div>
+  </div>
+</section>
+
+<section class="block" id="harness">
+  <h2 class="sec"><small>Phase 1 in one picture</small>How the evaluation harness turns audio into a decision</h2>
+  <p class="intro">This is the measuring stick nobody in Nepal has published. Every model hears the same audio, every transcript goes through the same normaliser, and every number comes with an error range and a contamination flag.</p>
+  <div class="sheet">
+<pre class="mermaid">
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Mukta, Arial, sans-serif","fontSize":"15px","primaryTextColor":"#000000","textColor":"#000000","lineColor":"#334155","edgeLabelBackground":"#ffffff","clusterBkg":"#f8fafc","clusterBorder":"#94a3b8","titleColor":"#000000"}}}%%
+flowchart LR
+  subgraph SETS["1. Test audio"]
+    N["NepTel<br/>75 real phone clips"]:::data
+    F["FLEURS test<br/>726 read clips"]:::data
+    C["Common Voice<br/>Nepali"]:::data
+    O["Our own recordings<br/>600 sentences"]:::own
+  end
+  D["2. download.py<br/>16 kHz manifests"]:::step
+  subgraph RUN["3. One runner per model family"]
+    R1["Kriti V1"]:::model
+    R2["IndicConformer-ne"]:::model
+    R3["Reference-only<br/>models"]:::ref
+  end
+  NORM["4. normalise_devanagari<br/>same rules for reference<br/>and model output"]:::you
+  SCORE["5. Score<br/>WER + CER<br/>with 95% error range"]:::step
+  CONT["6. Contamination check<br/>did the model train<br/>on this set?"]:::step
+  REP["7. REPORT.md<br/>pick primary + fallback<br/>for ASR and TTS"]:::out
+  SETS --> D --> RUN --> NORM --> SCORE --> CONT --> REP
+  classDef data fill:#e6f4ea,stroke:#1f7a4a,color:#000000,stroke-width:1.5px
+  classDef own fill:#e6f4ea,stroke:#1f7a4a,color:#000000,stroke-width:3px
+  classDef step fill:#e7ecf8,stroke:#1d3a8a,color:#000000,stroke-width:1.5px
+  classDef model fill:#dfe7fb,stroke:#1d3a8a,color:#000000,stroke-width:2px
+  classDef ref fill:#fff7e6,stroke:#b45309,color:#000000,stroke-width:1.5px
+  classDef you fill:#fde2e4,stroke:#b4232c,color:#000000,stroke-width:2.5px
+  classDef out fill:#ffffff,stroke:#000000,color:#000000,stroke-width:2.5px
+</pre>
+    <div class="cap">Red box = a function you write yourself. Thick green box = the only test set no model has seen.</div>
+  </div>
+  <h3>What happens after Phase 1: the export gate</h3>
+  <p class="intro">Phase 2 starts by proving the TypeScript serving path works for the chosen model. If it does not, the public API stays the same and a small Python worker hides behind it.</p>
+  <div class="sheet">
+<pre class="mermaid">
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Mukta, Arial, sans-serif","fontSize":"15px","primaryTextColor":"#000000","textColor":"#000000","lineColor":"#334155","edgeLabelBackground":"#ffffff"}}}%%
+flowchart TD
+  A["Model chosen in REPORT.md"]:::step --> B["Export it to ONNX<br/>Python, ml/export/"]:::step
+  B --> C{"Same transcripts as the<br/>Python model on 50 clips?"}:::q
+  C -->|"yes"| D["Serve from Node<br/>with sherpa-onnx"]:::good
+  C -->|"no"| E["Try the fallback model"]:::step
+  E --> F{"Fallback exports<br/>cleanly?"}:::q
+  F -->|"yes"| D
+  F -->|"no"| G["Python worker on the same server,<br/>TypeScript API stays in front"]:::warn
+  classDef step fill:#e7ecf8,stroke:#1d3a8a,color:#000000,stroke-width:1.5px
+  classDef q fill:#ffffff,stroke:#000000,color:#000000,stroke-width:2px
+  classDef good fill:#e6f4ea,stroke:#1f7a4a,color:#000000,stroke-width:2.5px
+  classDef warn fill:#fff7e6,stroke:#b45309,color:#000000,stroke-width:2px
+</pre>
+  </div>
+</section>
+
+<section class="block" id="decisions">
+  <h2 class="sec"><small>Agreed on 19 Oct 2026</small>Decisions</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Topic</th><th>Decision</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td class="nowrap">Repo shape</td><td>Merge into this Turborepo: add <code>apps/api</code> (Hono), <code>apps/gateway</code> (Worker), <code>packages/shared</code>. <code>packages/db</code> is the Neon schema. <code>apps/main</code> becomes the Phase 4 site. <code>ml/</code> sits outside the pnpm workspace.</td><td>Reuses the auth, admin and database work you already have.</td></tr>
+      <tr><td class="nowrap">Package names</td><td>Rename <code>@repo/*</code> to <code>@boli/*</code> now</td><td>One mechanical rename before anything is built on top.</td></tr>
+      <tr><td class="nowrap">CLAUDE.md</td><td>Merge: working agreement and hard rules on top, starter conventions below</td><td>Keeps the useful starter docs.</td></tr>
+      <tr><td class="nowrap">Toolchain</td><td>uv, ffmpeg, just, Node 22 LTS, Python 3.12, Hono</td><td>Python 3.14 is too new for torch/NeMo. Hono also runs in the Cloudflare gateway, so one framework to learn.</td></tr>
+      <tr><td class="nowrap">Eval compute</td><td>Mac CPU only. Budget is $0 for Phases 0-1.</td><td>The 119M models run fine on CPU. The 2B Qwen model runs on CPU if feasible, otherwise waits for Phase 2.</td></tr>
+      <tr><td class="nowrap">Restricted models</td><td>NepaliConformer, Kriti Telephony, Qwen3-ASR-Nepali, MMS-1B are evaluated as <b>reference only</b></td><td>Their licences block or cloud commercial use, but they show where we stand.</td></tr>
+      <tr><td class="nowrap">Own test set</td><td>You record about 1 hour from the 600 sentences in <code>docs/recording/</code></td><td>The only audio no model has trained on, including code-mixed speech.</td></tr>
+      <tr><td class="nowrap">Common Voice</td><td>You create a Mozilla Data Collective account and download it</td><td>Small, CC0 and probably unseen by these models.</td></tr>
+      <tr><td class="nowrap">Training lineage</td><td>Models trained on Google or Gemini output are allowed; lineage noted in <code>LICENSES.md</code></td><td>No API is called at runtime, but the legal reader needs to know.</td></tr>
+      <tr><td class="nowrap">Local Whisper</td><td>Only as an offline tool inside <code>ml/eval</code></td><td>Never a baseline, never in the request path.</td></tr>
+      <tr><td class="nowrap">Third-party benchmarks</td><td>Not done</td><td>The hard rule says "anywhere, ever".</td></tr>
+      <tr><td class="nowrap">Order</td><td>Learning first: Python basics before the scaffold</td><td>Your choice.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="block" id="risks">
+  <h2 class="sec"><small>Read before trusting any number</small>The five biggest risks</h2>
+  <div class="cards">
+    <article class="card"><span class="sev high">High</span><h3>1. Almost no clean, large test set</h3><p>NepTel is only 75 clips (about 31 minutes). Kriti trained on nearly all of FLEURS Nepali, including the test split, and on almost all of OpenSLR-54. NepTel's transcripts started as Google Chirp-2 drafts, which favours Ampixa's models.</p><p class="fix"><b>Fix:</b> a contamination table, 95% error ranges on every number, and our own recordings.</p></article>
+    <article class="card"><span class="sev high">High</span><h3>2. Licences shrink the list of models we can sell</h3><p>Only Kriti V1 and its parent IndicConformer-ne are clearly commercial for speech to text, and they are really the same model. For text to speech, Matcha-Nepali (CC-BY-4.0) is the cleanest. Kala's weights are share-alike and include a Gemini-synthesised speaker.</p><p class="fix"><b>Fix:</b> <code>LICENSES.md</code> gate, a human legal read before launch, a fallback per modality.</p></article>
+    <article class="card"><span class="sev med">Medium-high</span><h3>3. The TypeScript serving path is unproven</h3><p>sherpa-onnx has no ready Nepali speech-to-text model, and Kriti needs AI4Bharat's own NeMo fork. <code>sherpa-onnx-node</code> runs on CPU only. Kala needs its own Python text-to-pronunciation step.</p><p class="fix"><b>Fix:</b> measure CPU speed in Phase 1 (a GPU may not be needed at all), export spike with parity tests in Phase 2, Python worker as the fallback.</p></article>
+    <article class="card"><span class="sev high">High</span><h3>4. Real-world accuracy is about 35-40% WER</h3><p>On NepTel: Kriti 40.6%, Kriti Telephony 34.5%, NepaliConformer 36.3% (its card still claims 33.8%, which the authors corrected). Kriti's famous 24.08% is on a dev set also used to pick the model.</p><p class="fix"><b>Fix:</b> position v1 for error-tolerant uses (search, drafts, keyword spotting) and improve with our own data in Phase 6.</p></article>
+    <article class="card"><span class="sev med">Medium</span><h3>5. Tooling friction on this Mac</h3><p>Apple Silicon with no NVIDIA GPU, system Python 3.14, Kriti pins old library versions, NepaliConformer needs a different NeMo. This is the most likely place to get stuck and lose energy early.</p><p class="fix"><b>Fix:</b> one isolated uv environment per model family, so one model's libraries never break another's.</p></article>
+  </div>
+</section>
+
+<section class="block" id="models">
+  <h2 class="sec"><small>Checked at the source on 19 Oct 2026</small>Candidate models and their licences</h2>
+  <p class="intro">"Candidate" can be served commercially if Phase 1 numbers are good. "Reference only" is measured for comparison but never served. Every row still needs a human legal read before launch.</p>
+  <h3>Speech to text</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Model</th><th>Size and type</th><th>Licence</th><th>Known number</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td><b>Kriti V1</b><small>Naamche Labs</small></td><td>119M Conformer-RNNT, <code>.nemo</code>, needs AI4Bharat NeMo fork</td><td>MIT</td><td>40.6% NepTel<small>24.08% on its own dev set</small></td><td><span class="pill go">Candidate</span></td></tr>
+      <tr><td><b>IndicConformer-ne</b><small>AI4Bharat</small></td><td>Hybrid CTC + RNNT large, <code>.nemo</code>; Kriti's parent</td><td>MIT (click-through)</td><td>Same dev score as Kriti</td><td><span class="pill go">Candidate</span></td></tr>
+      <tr><td><b>Kriti Telephony</b><small>Naamche Labs</small></td><td>Phone-audio version of Kriti</td><td>MIT label, but distilled from a CC-BY-NC model</td><td>34.5% NepTel</td><td><span class="pill ref">Reference only</span></td></tr>
+      <tr><td><b>NepaliConformer</b><small>Ampixa Labs</small></td><td>121M hybrid, offline + the only open streaming model</td><td>CC-BY-NC-4.0, manual approval</td><td>36.3% NepTel</td><td><span class="pill ref">Reference only</span></td></tr>
+      <tr><td><b>Qwen3-ASR-Nepali</b><small>sidskarki</small></td><td>About 2B params, 4 GB</td><td>Custom: free under USD 100k revenue, share-alike</td><td>41.4% average on its own sets</td><td><span class="pill ref">Reference only</span></td></tr>
+      <tr><td><b>MMS-1B-all (npi)</b><small>Meta</small></td><td>1B wav2vec2-CTC</td><td>CC-BY-NC-4.0</td><td>45.5% average</td><td><span class="pill ref">Reference only</span></td></tr>
+      <tr><td><b>Whisper large-v3</b><small>OpenAI</small></td><td>1.5B</td><td>MIT</td><td>94-106% WER on Nepali</td><td><span class="pill no">Excluded</span></td></tr>
+    </tbody>
+  </table></div>
+  <h3>Text to speech</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Model</th><th>Format</th><th>Licence</th><th>Notes</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td><b>Matcha-TTS Nepali</b><small>sandipghimire</small></td><td>ONNX available, 2 voices, 22.05 kHz</td><td>CC-BY-4.0 (data: Rasa, CC-BY-4.0)</td><td>Cleanest licence of the group</td><td><span class="pill go">Candidate</span></td></tr>
+      <tr><td><b>Kala v0.2 / v0.4</b><small>Ampixa Labs</small></td><td>ONNX, 5 public voices, needs its own G2P</td><td>Weights CC-BY-SA-4.0; code and G2P MIT</td><td>Share-alike matters for on-prem; a Gemini-synthesised speaker in training</td><td><span class="pill go">Candidate</span></td></tr>
+      <tr><td><b>Piper ne_NP google x_low</b></td><td>ONNX, ready in sherpa-onnx</td><td>CC-BY-SA-4.0, eSpeak (GPL) for pronunciation</td><td>Easy to run, robotic</td><td><span class="pill ref">Reference only</span></td></tr>
+      <tr><td><b>sanoTTS Nepali</b><small>Ampixa Labs</small></td><td>Tiny custom format, not ONNX</td><td>GPL-3.0 (PyPI says MIT)</td><td>Nepali voice only on GitHub</td><td><span class="pill ref">Reference only</span></td></tr>
+      <tr><td><b>F5-TTS OpenBible Nepali</b></td><td>PyTorch only, voice cloning</td><td>CC-BY-SA-4.0, base may be non-commercial</td><td>Bible read speech only</td><td><span class="pill ref">Reference only</span></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="block" id="data">
+  <h2 class="sec"><small>What we test on</small>Datasets and contamination</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Dataset</th><th>Size</th><th>Licence</th><th>Watch out for</th></tr></thead>
+    <tbody>
+      <tr><td><b>NepTel</b><small>Ampixa</small></td><td>75 scored clips, about 31 min, 22.05 kHz</td><td>CC-BY-4.0</td><td>Small. Transcripts started as Google Chirp-2 drafts. Their README says 8 kHz, the files are 22.05 kHz.</td></tr>
+      <tr><td><b>FLEURS ne_np test</b><small>Google</small></td><td>726 clips, read speech</td><td>CC-BY-4.0</td><td>Kriti trained on almost all FLEURS Nepali clips.</td></tr>
+      <tr><td><b>Common Voice Nepali</b><small>Mozilla</small></td><td>About 40 MB</td><td>CC0</td><td>Only from Mozilla Data Collective now; terms not yet read.</td></tr>
+      <tr><td><b>Our own recordings</b></td><td>600 sentences, about 1 hour</td><td>Consented, private</td><td>Needs native review of the scripts before recording.</td></tr>
+      <tr><td><b>OpenSLR-54</b></td><td>About 157k clips</td><td>CC-BY-SA-4.0</td><td>Kriti used about 153k of them, so there is no real held-out slice.</td></tr>
+      <tr><td><b>NepTTS-Bench</b><small>Ampixa</small></td><td>365 sentences + human ratings</td><td>MIT</td><td>Contains audio from commercial TTS systems; we use only the sentences.</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Which model may have heard which test set</h3>
+  <p class="intro">A model scores better on audio it trained on, so a number on a "seen" set does not count in the comparison. This is a first draft; task 1.4 confirms each cell from the model cards.</p>
+  <div class="table-wrap"><table class="mx">
+    <thead><tr><th>Model</th><th>NepTel</th><th>FLEURS test</th><th>Common Voice</th><th>Own recordings</th></tr></thead>
+    <tbody>
+      <tr><td>Kriti V1</td><td class="c clean">Clean</td><td class="c seen">Seen</td><td class="c unk">Unknown</td><td class="c clean">Clean</td></tr>
+      <tr><td>IndicConformer-ne</td><td class="c clean">Clean</td><td class="c unk">Unknown</td><td class="c unk">Unknown</td><td class="c clean">Clean</td></tr>
+      <tr><td>Kriti Telephony</td><td class="c likely">Biased</td><td class="c seen">Seen</td><td class="c unk">Unknown</td><td class="c clean">Clean</td></tr>
+      <tr><td>NepaliConformer</td><td class="c likely">Biased</td><td class="c unk">Unknown</td><td class="c unk">Unknown</td><td class="c clean">Clean</td></tr>
+      <tr><td>Qwen3-ASR-Nepali</td><td class="c clean">Clean</td><td class="c unk">Unknown</td><td class="c unk">Unknown</td><td class="c clean">Clean</td></tr>
+      <tr><td>MMS-1B-all</td><td class="c clean">Clean</td><td class="c unk">Unknown</td><td class="c unk">Unknown</td><td class="c clean">Clean</td></tr>
+    </tbody>
+  </table></div>
+  <p class="howread"><b>Biased</b> means the model learned from Chirp-2 labels, the same source as NepTel's draft transcripts, so it may match NepTel's wording more easily.</p>
+</section>
+
+<section class="block" id="checklist">
+  <h2 class="sec"><small>Tick as you go</small>Phase 0 and Phase 1 checklist</h2>
+  <p class="savestate"><span class="dot" id="dot"></span><span id="saveText">Connecting...</span></p>
+  <div class="check" id="check"></div>
+</section>
+
+<section class="block" id="learning">
+  <h2 class="sec"><small>The learning expedition</small>What you learn, and what you write yourself</h2>
+  <p class="intro">Each week you write one or two small functions with a test and a hint; Claude reviews them. Depth beats breadth: a few good resources, read properly.</p>
+  <div class="learn-grid">
+    <article class="learn-card">
+      <h3>Phase 0 · Python, properly but fast</h3>
+      <div><div class="lbl">Learn</div><ul>
+        <li>Syntax: <code>def</code>, type hints, f-strings, comprehensions</li>
+        <li><code>with</code> (context managers), exceptions, <code>pathlib</code>, <code>dataclasses</code></li>
+        <li>What uv does, what <code>pyproject.toml</code> is, how <code>import</code> finds things</li>
+        <li>pytest, and writing the test before the function</li>
+        <li>Reading a stack trace calmly</li>
+      </ul></div>
+      <div><div class="lbl">You write</div><ul>
+        <li><code>audio_info(path)</code>: sample rate, channels, duration</li>
+        <li><code>resample_to_16k_mono(path_in, path_out)</code></li>
+      </ul></div>
+      <div><div class="lbl">Resources</div><ul>
+        <li><a href="https://docs.python.org/3/tutorial/">Python tutorial, chapters 1-9</a></li>
+        <li><a href="https://automatetheboringstuff.com/">Automate the Boring Stuff</a> (for feel)</li>
+        <li><a href="https://docs.astral.sh/uv/">uv docs</a> · <a href="https://docs.pytest.org/en/stable/getting-started.html">pytest getting started</a></li>
+      </ul></div>
+      <div class="know"><b>You know it when</b> you can write a 40-line script with a function, a dataclass and a test, and run it with <code>uv run pytest</code> without asking what any line does.</div>
+    </article>
+    <article class="learn-card">
+      <h3>Phase 1 · Audio and ASR basics, via the harness</h3>
+      <div><div class="lbl">Learn</div><ul>
+        <li>Digital audio: sample rate, bit depth, mono vs stereo, why ASR wants 16 kHz mono</li>
+        <li>Spectrograms and mel filterbanks: what the model actually "sees"</li>
+        <li>WER and CER, why CER matters for Devanagari, why normalisation changes the number</li>
+        <li>Encoder + decoder; the three decoder families: CTC, RNN-Transducer, attention</li>
+        <li>Why Whisper fails on Nepali; reading model cards and licences critically</li>
+        <li>Hugging Face Hub and the <code>datasets</code> library</li>
+      </ul></div>
+      <div><div class="lbl">You write</div><ul>
+        <li><code>normalise_devanagari(text)</code>: the project's one normaliser</li>
+        <li><code>wer_table(results)</code>: the Markdown table in REPORT.md</li>
+      </ul></div>
+      <div><div class="lbl">Resources</div><ul>
+        <li><a href="https://huggingface.co/learn/audio-course">Hugging Face Audio Course, units 1-5</a></li>
+        <li><a href="https://distill.pub/2017/ctc/">Sequence Modeling with CTC</a> (Distill)</li>
+        <li><a href="https://web.stanford.edu/~jurafsky/slp3/">Jurafsky and Martin, ASR and TTS chapter</a></li>
+        <li><a href="https://github.com/jitsi/jiwer">jiwer</a> · <a href="https://huggingface.co/datasets/ampixa/neptel">NepTel card</a> · <a href="https://github.com/Ampixa/nepaliconformer">NepaliConformer README</a></li>
+      </ul></div>
+      <div class="know"><b>You know it when</b> you can sketch why a streaming model needs a transducer rather than an attention decoder, and why Kriti's 24% on its dev set becomes 40% on NepTel.</div>
+    </article>
+  </div>
+  <details class="later">
+    <summary>Later phases: what you will write yourself</summary>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Phase</th><th>You write</th><th>Main concepts</th></tr></thead>
+      <tbody>
+        <tr><td class="nowrap">2-3 Serving</td><td><code>transcodeToPcm16k</code> (TS), <code>nepaliNumberToWords</code> (TS), <code>export_check.py</code></td><td>ONNX export, parity tests, worker_threads, ffmpeg, Docker, G2P, real-time factor</td></tr>
+        <tr><td class="nowrap">4 Platform</td><td><code>hash_api_key</code> / <code>verify_api_key</code>, the usage-per-day SQL</td><td>Hashed keys, rate limiting, Workers, MediaRecorder</td></tr>
+        <tr><td class="nowrap">5 Streaming</td><td><code>chunk_pcm(stream, ms=320)</code></td><td>WebSockets, voice activity detection, latency percentiles</td></tr>
+        <tr><td class="nowrap">6 Fine-tuning</td><td><code>build_manifest(dir)</code></td><td>Consent, splits without leakage, forced alignment, catastrophic forgetting</td></tr>
+      </tbody>
+    </table></div>
+  </details>
+  <div class="cards">
+    <article class="card"><h3>Weekly rhythm</h3><p>Two building sessions with Claude (2-3 h each), one solo session on your function and its test (1-2 h), and a 30-minute reading block plus a 10-minute journal entry.</p></article>
+    <article class="card"><h3>Habits</h3><p>Journal every session. One named concept per week. Numbers over adjectives: say "40.6% WER on NepTel", never "the model is good". Ship the phase demo, then rest.</p></article>
+  </div>
+</section>
+
+<section class="block" id="recording">
+  <h2 class="sec"><small>Our own test set</small>Recording 600 original sentences</h2>
+  <p class="intro">Every sentence was written fresh, so no model has trained on it. About 30% mix Nepali and English the way people actually talk, for example "म आज meeting मा late हुन्छु।"</p>
+  <div class="sheet">
+<pre class="mermaid">
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Mukta, Arial, sans-serif","fontSize":"15px","primaryTextColor":"#000000","textColor":"#000000","lineColor":"#334155","edgeLabelBackground":"#ffffff"}}}%%
+flowchart LR
+  A["1. Read the part aloud<br/>fix anything unnatural"]:::you --> B["2. Speaker signs<br/>CONSENT.md"]:::step
+  B --> C["3. Record with the<br/>Recording Desk open"]:::you
+  C --> D["4. Save as<br/>part01_s01_quiet.wav"]:::step
+  C -.->|"flag odd sentences"| E["Claude reads the flags<br/>and fixes the script"]:::claude
+  D --> F["5. Cut into clips,<br/>fill the manifest"]:::step
+  F --> G["6. New test set<br/>in the harness"]:::out
+  classDef you fill:#fde2e4,stroke:#b4232c,color:#000000,stroke-width:2px
+  classDef step fill:#e7ecf8,stroke:#1d3a8a,color:#000000,stroke-width:1.5px
+  classDef claude fill:#fff7e6,stroke:#b45309,color:#000000,stroke-width:1.5px
+  classDef out fill:#e6f4ea,stroke:#1f7a4a,color:#000000,stroke-width:2.5px
+</pre>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Part</th><th>Theme</th><th>Read time</th></tr></thead>
+    <tbody>
+      <tr><td>01</td><td>Everyday life and family</td><td>~6 min</td></tr>
+      <tr><td>02</td><td>Banking and money</td><td>~6 min</td></tr>
+      <tr><td>03</td><td>Telecom and customer support</td><td>~6 min</td></tr>
+      <tr><td>04</td><td>Numbers, dates, times, prices, phone numbers</td><td>~6 min</td></tr>
+      <tr><td>05</td><td>Travel, places and addresses</td><td>~6 min</td></tr>
+      <tr><td>06</td><td>Health and government services</td><td>~6 min</td></tr>
+      <tr><td>07</td><td>Work, tech and office talk (heavy code-mixing)</td><td>~6 min</td></tr>
+      <tr><td>08</td><td>Food, shopping and market</td><td>~6 min</td></tr>
+      <tr><td>09</td><td>Questions, commands, short replies (IVR style)</td><td>~4 min</td></tr>
+      <tr><td>10</td><td>Longer conversational sentences</td><td>~8 min</td></tr>
+    </tbody>
+  </table></div>
+  <div class="cta">
+    <p><b>Recording Desk</b> shows one sentence at a time in large type, tracks each speaker's progress per part, locks until consent is ticked, and saves flagged sentences so Claude can fix them. It does not record audio itself; use your phone or laptop recorder alongside it.</p>
+    <a class="btn" href="https://claude.ai/artifact/WDJj7WHKXWAK46KsoUpj73" target="_blank" rel="noopener">Open Recording Desk</a>
+  </div>
+</section>
+
+<section class="block" id="glossary">
+  <h2 class="sec"><small>Words you will meet</small>Glossary</h2>
+  <dl class="gloss">
+    <div><dt>WER <span>word error rate</span></dt><dd>Substitutions + deletions + insertions, divided by the number of words in the correct transcript. 40% WER means roughly 4 in 10 words are wrong. Lower is better.</dd></div>
+    <div><dt>CER <span>character error rate</span></dt><dd>The same idea counted in characters. Fairer for Devanagari, where one wrong matra makes a whole word "wrong" in WER.</dd></div>
+    <div><dt>Normaliser</dt><dd>Rules applied to both the correct text and the model output before scoring (Unicode NFC, danda, nukta, invisible joiners). It changes WER as much as the model does.</dd></div>
+    <div><dt>NFC <span>Unicode normal form</span></dt><dd>The same Devanagari letter can be stored as different byte sequences. NFC picks one, so identical-looking text compares equal.</dd></div>
+    <div><dt>Contamination <span>train/test leakage</span></dt><dd>A model tested on audio it trained on scores unfairly well. The reason we track which model saw which dataset.</dd></div>
+    <div><dt>95% error range <span>bootstrap confidence interval</span></dt><dd>Resample the test clips many times and recompute WER to see how much the number could move. Vital for a 75-clip set like NepTel.</dd></div>
+    <div><dt>Sample rate</dt><dd>Measurements of the sound wave per second. ASR models want 16,000 (16 kHz). NepTel files are 22,050, so we convert.</dd></div>
+    <div><dt>Mel spectrogram</dt><dd>A picture of which frequencies are loud over time, on a scale that matches human hearing. This is the model's actual input.</dd></div>
+    <div><dt>Conformer</dt><dd>An encoder that mixes convolution (local sound patterns) with self-attention (longer context). Used by Kriti and NepaliConformer.</dd></div>
+    <div><dt>CTC</dt><dd>A simple decoder that labels each audio frame and merges repeats. Fast, but each frame decides on its own.</dd></div>
+    <div><dt>RNN-Transducer <span>RNN-T</span></dt><dd>A decoder that also looks at the text so far. Good for streaming. Kriti uses it.</dd></div>
+    <div><dt>ONNX</dt><dd>A portable model file format. Exporting to ONNX is how a Python-trained model gets to run inside Node.</dd></div>
+    <div><dt>sherpa-onnx</dt><dd>A ready-made runtime for speech models in ONNX, with a Node package. Currently CPU-only from npm.</dd></div>
+    <div><dt>Parity test</dt><dd>Run the Python model and the exported ONNX model on the same clips and check the transcripts match.</dd></div>
+    <div><dt>VITS</dt><dd>A text-to-speech model that goes from text all the way to a waveform in one network. Kala and Piper use it.</dd></div>
+    <div><dt>G2P <span>grapheme to phoneme</span></dt><dd>Turns written text into pronunciation symbols before speech is generated. Kala has its own Nepali G2P.</dd></div>
+    <div><dt>Real-time factor <span>RTF</span></dt><dd>Processing time divided by audio length. 0.1 means 10 seconds of audio takes 1 second to process.</dd></div>
+    <div><dt>Code-mixing</dt><dd>Mixing Nepali and English in one sentence. It is how most people talk, so the test set must include it.</dd></div>
+    <div><dt>uv and virtual environment</dt><dd>uv is Python's pnpm. A virtual environment (<code>.venv</code>) is the project's private set of packages, like <code>node_modules</code>.</dd></div>
+    <div><dt>dataclass</dt><dd>A typed Python record, like a TypeScript interface that also builds the object for you.</dd></div>
+    <div><dt>Test-driven development</dt><dd>Write the test first, watch it fail (red), then write the code until it passes (green).</dd></div>
+    <div><dt>CC-BY-NC / CC-BY-SA</dt><dd>NC: non-commercial use only. SA: share-alike, so anything you build from it must use the same licence.</dd></div>
+  </dl>
+</section>
+
+<section class="block" id="files">
+  <h2 class="sec"><small>Where everything lives</small>Repo files</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>File</th><th>What it holds</th></tr></thead>
+    <tbody>
+      <tr><td class="nowrap"><code>docs/00-PROJECT-BRIEF.md</code></td><td>Scope, hard rules, architecture, phases and gates. The source of truth.</td></tr>
+      <tr><td class="nowrap"><code>docs/01-RESEARCH-DOSSIER.md</code></td><td>Nepali speech landscape, competitors, every model and dataset.</td></tr>
+      <tr><td class="nowrap"><code>docs/02-LEARNING-ROADMAP.md</code></td><td>What you learn per phase and the functions you write.</td></tr>
+      <tr><td class="nowrap"><code>docs/PLAN-phase-0-1.md</code></td><td>The approved plan and the decisions table.</td></tr>
+      <tr><td class="nowrap"><code>docs/journal/2026-10-19.md</code></td><td>Session journal: what was built, what broke, one concept, next step.</td></tr>
+      <tr><td class="nowrap"><code>docs/recording/</code></td><td>Recording protocol, consent form, 10 parts of sentences, manifest template.</td></tr>
+      <tr><td class="nowrap"><code>docs/ARTIFACT-BRIEF.md</code></td><td>Instructions for rebuilding these pages from another session.</td></tr>
+      <tr><td class="nowrap"><code>docs/artifacts/</code></td><td>Source of this guide and the Recording Desk, plus the script that rebuilds the desk from the part files.</td></tr>
+      <tr><td class="nowrap"><code>ml/boli_ml/audio.py</code></td><td>Your first exercise, <code>audio_info</code>.</td></tr>
+      <tr><td class="nowrap"><code>ml/tests/test_audio.py</code></td><td>The tests your function must pass.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+</div>
+</main>
+<footer class="gutter"><div class="inner">Boli field guide · facts checked against Hugging Face, GitHub, PyPI and npm on 19 Oct 2026 · update by asking Claude in the project session.</div></footer>
+
+<script>
+const PHASES = [
+  { id: "p0", name: "Phase 0 · Foundations", tasks: [
+    ["0.1", "Toolchain: uv, ffmpeg, just; .nvmrc for Node 22; Python 3.12 pinned in ml/"],
+    ["0.2", "Python tutorial chapters 1-9, uv docs, pytest getting started", "learn"],
+    ["0.3", "Write audio_info(path) until uv run pytest shows 4 passed", "learn"],
+    ["0.4", "Write resample_to_16k_mono(path_in, path_out)", "learn"],
+    ["0.5", "Scaffold apps/api (Hono, /healthz), packages/shared, apps/gateway stub, Dockerfile, pre-commit, just dev; rename to @boli/*"],
+    ["0.6", "Merge CLAUDE.md; create LICENSES.md from the 19 Oct verification"],
+    ["0.7", "Start docs/infrastructure.md; try sherpa-onnx-node on the Mac"],
+    ["0.8", "Clone, just dev, /healthz returns 200, pytest green, audio script prints duration. Journal.", "gate"],
+  ]},
+  { id: "p1", name: "Phase 1 · Evaluation harness", tasks: [
+    ["1.1", "Hugging Face Audio Course units 1-2", "learn"],
+    ["1.2", "LICENSES.md rows, then download.py for FLEURS test, NepTel, Common Voice and Ampixa's published outputs"],
+    ["1.3", "Review and record the 600 sentences in parts", "learn"],
+    ["1.4", "CONTAMINATION.md: which model trained on which dataset"],
+    ["1.5", "Write normalise_devanagari against the spec and test table", "learn"],
+    ["1.6", "Scorer with WER, CER and 95% error ranges; reproduce Ampixa's NepTel numbers first"],
+    ["1.7", "Runners: one uv environment per model family, cached outputs"],
+    ["1.8", "Kriti V1 with its danda head; CPU speed. Read the Distill CTC article", "learn"],
+    ["1.9", "IndicConformer-ne, CTC vs RNN-T"],
+    ["1.10", "Reference-only models (Qwen on CPU if feasible)"],
+    ["1.11", "Write wer_table(results)", "learn"],
+    ["1.12", "Stop and review the first numbers together"],
+    ["1.13", "TTS: speed, round-trip WER, blind listening on 20 sentences"],
+    ["1.14", "just eval reproduces every number with one command"],
+    ["1.15", "REPORT.md with error ranges, contamination flags, licences and the model choice"],
+    ["1.16", "You can explain WER and why NepTel is harder than FLEURS. Journal.", "gate"],
+  ]},
+];
+
+let done = {};
+let db = null;
+let writing = Promise.resolve();
+
+function readLocal() {
+  try { return JSON.parse(localStorage.getItem("boli-guide:done") || "{}"); } catch { return {}; }
+}
+function writeLocal() {
+  try { localStorage.setItem("boli-guide:done", JSON.stringify(done)); } catch {}
+}
+function setSave(kind, text) {
+  document.getElementById("dot").className = "dot " + kind;
+  document.getElementById("saveText").textContent = text;
+}
+
+function render() {
+  const root = document.getElementById("check");
+  root.replaceChildren(...PHASES.map((phase) => {
+    const box = document.createElement("div");
+    box.className = "phase";
+    const n = phase.tasks.filter(([id]) => done[id]).length;
+    const head = document.createElement("header");
+    const h = document.createElement("h3"); h.textContent = phase.name;
+    const c = document.createElement("span"); c.className = "count"; c.textContent = `${n} / ${phase.tasks.length} done`;
+    head.append(h, c);
+    const bar = document.createElement("div"); bar.className = "bar2";
+    const fill = document.createElement("i"); fill.style.width = (100 * n / phase.tasks.length) + "%"; bar.appendChild(fill);
+    box.append(head, bar);
+    phase.tasks.forEach(([id, text, kind]) => {
+      const label = document.createElement("label");
+      label.className = "task" + (kind ? " " + kind : "");
+      const input = document.createElement("input");
+      input.type = "checkbox"; input.id = "task-" + id.replace(".", "-"); input.checked = !!done[id];
+      input.addEventListener("change", () => toggle(id, input.checked));
+      const t = document.createElement("span"); t.className = "t";
+      const idEl = document.createElement("span"); idEl.className = "id"; idEl.textContent = id;
+      t.append(idEl, document.createTextNode(text));
+      label.append(input, t);
+      box.appendChild(label);
+    });
+    return box;
+  }));
+}
+
+function toggle(id, value) {
+  if (value) done[id] = true; else delete done[id];
+  render();
+  writeLocal();
+  if (db) {
+    const snapshot = { ...done };
+    writing = writing.then(() => db.doc("checklist/phase-0-1").set({ done: snapshot, updatedAt: new Date().toISOString() }))
+      .catch((e) => { console.error(e); setSave("local", "Could not save to the guide. Saved in this browser."); });
+  }
+}
+
+done = readLocal();
+render();
+setSave("local", "Saved in this browser");
+
+(async () => {
+  try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch { db = null; }
+  if (!db) return;
+  setSave("live", "Ticks are saved to the guide, so Claude can see your progress");
+  db.doc("checklist/phase-0-1").onSnapshot((snap) => {
+    if (snap.exists) {
+      done = { ...((snap.data() || {}).done || {}) };
+      writeLocal();
+      render();
+    }
+  }, (e) => { console.error(e); setSave("local", "Live sync stopped. Reload the page."); });
+})();
+</script>

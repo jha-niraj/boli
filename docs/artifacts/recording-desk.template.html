@@ -1,0 +1,580 @@
+<title>Boli Recording Desk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martel:wght@600;800&family=Mukta:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a prompter desk - settings rail on the left, one huge sentence in the middle, parts below. Colours borrow the Nepal flag: crimson + deep blue. */
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --sunken: #eaeef3;
+  --fg: #13202c;
+  --muted: #566577;
+  --line: #d9dfe6;
+  --crimson: #b4232c;
+  --crimson-soft: #fbe9ea;
+  --blue: #1d3a8a;
+  --blue-soft: #e7ecf8;
+  --ok: #1f7a4a;
+  --ok-soft: #e3f3ea;
+  --warn: #9a5b00;
+  --warn-soft: #fbf0dc;
+  --font-display: "Martel", "Noto Serif Devanagari", Georgia, serif;
+  --font-body: "Mukta", "Noto Sans Devanagari", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e141b; --surface: #161f29; --sunken: #1d2834; --fg: #e6ebf1; --muted: #9caab8; --line: #2a3644;
+    --crimson: #f0606a; --crimson-soft: #3a1c20; --blue: #8fb0ff; --blue-soft: #1c2742;
+    --ok: #5fd197; --ok-soft: #173326; --warn: #f2b45a; --warn-soft: #3a2c14;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e141b; --surface: #161f29; --sunken: #1d2834; --fg: #e6ebf1; --muted: #9caab8; --line: #2a3644;
+  --crimson: #f0606a; --crimson-soft: #3a1c20; --blue: #8fb0ff; --blue-soft: #1c2742;
+  --ok: #5fd197; --ok-soft: #173326; --warn: #f2b45a; --warn-soft: #3a2c14;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 20px; }
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.6rem, 3vw, 2.2rem); margin: 0; line-height: 1.1; text-wrap: balance; }
+h1 span { color: var(--crimson); }
+.sub { color: var(--muted); margin: 4px 0 0; max-width: 62ch; }
+.status { font-size: .85rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.dot.live { background: var(--ok); }
+.dot.local { background: var(--warn); }
+
+.grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.field { display: grid; gap: 6px; }
+select, textarea, input[type="text"] {
+  font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%;
+}
+textarea { min-height: 72px; resize: vertical; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--sunken); padding: 4px; border-radius: 9px; }
+.seg button { border: 0; background: transparent; padding: 6px 4px; border-radius: 6px; font: inherit; font-size: .9rem; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--fg); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.consent { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border-radius: 8px; background: var(--warn-soft); font-size: .9rem; }
+.consent.ok { background: var(--ok-soft); }
+.consent input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--ok); flex: none; }
+.filename { display: flex; gap: 8px; align-items: center; }
+.filename code { font-family: var(--font-mono); font-size: .85rem; background: var(--sunken); padding: 6px 8px; border-radius: 6px; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.howto ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: .92rem; }
+.howto li::marker { color: var(--crimson); font-weight: 700; }
+
+.btn { font: inherit; font-weight: 600; border-radius: 8px; padding: 10px 16px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background-color .15s, border-color .15s; }
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: var(--blue); border-color: var(--blue); color: var(--surface); }
+.btn.flag { color: var(--crimson); }
+.btn.small { padding: 6px 10px; font-size: .85rem; }
+.btn:focus-visible, .seg button:focus-visible, .part:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+kbd { font-family: var(--font-mono); font-size: .75rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; color: var(--muted); }
+
+.stage { display: grid; gap: 18px; }
+.prompter { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: clamp(18px, 4vw, 36px); display: grid; gap: 20px; position: relative; overflow: hidden; }
+.prompter::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: linear-gradient(90deg, var(--crimson) 0 50%, var(--blue) 50% 100%); }
+.meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: center; }
+.uid { font-family: var(--font-mono); font-weight: 600; color: var(--blue); font-size: .95rem; }
+.cue { display: inline-flex; align-items: baseline; gap: 8px; background: var(--crimson-soft); color: var(--crimson); border-radius: 999px; padding: 4px 14px; font-weight: 600; }
+.cue b { font-family: var(--font-display); font-size: 1.4rem; }
+.sentence { font-family: var(--font-body); font-weight: 500; font-size: clamp(1.6rem, 4.2vw, 2.7rem); line-height: 1.6; margin: 0; min-height: 3.2em; text-wrap: pretty; overflow-wrap: anywhere; }
+.sentence .latin { color: var(--blue); }
+.next { color: var(--muted); font-size: 1.05rem; border-top: 1px dashed var(--line); padding-top: 12px; }
+.next .label { display: block; margin-bottom: 2px; }
+.badge { font-size: .78rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; }
+.badge.done { background: var(--ok-soft); color: var(--ok); }
+.badge.todo { background: var(--sunken); color: var(--muted); }
+.badge.flagged { background: var(--crimson-soft); color: var(--crimson); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.controls .spacer { flex: 1; }
+.bar { height: 6px; background: var(--sunken); border-radius: 999px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--ok); width: 0; transition: width .25s; }
+.progress-row { display: flex; justify-content: space-between; font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.flagbox { display: grid; gap: 8px; background: var(--crimson-soft); border-radius: 10px; padding: 12px; }
+.flagbox p { margin: 0; font-size: .9rem; }
+.existing { font-size: .9rem; display: grid; gap: 4px; }
+
+.parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.part { text-align: left; font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; cursor: pointer; display: grid; gap: 6px; transition: border-color .15s; }
+.part:hover { border-color: var(--muted); }
+.part[aria-current="true"] { border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); }
+.part .num { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); }
+.part .ttl { font-weight: 600; line-height: 1.25; }
+.part .cnt { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs button { font: inherit; border: 0; background: transparent; color: var(--muted); padding: 6px 12px; border-radius: 999px; cursor: pointer; font-weight: 600; }
+.tabs button[aria-selected="true"] { background: var(--fg); color: var(--bg); }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.mono { font-family: var(--font-mono); font-size: .82rem; white-space: nowrap; }
+.empty { color: var(--muted); padding: 18px; text-align: center; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 8px 16px; border-radius: 999px; font-size: .9rem; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.toast.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Recording <span>Desk</span></h1>
+      <p class="sub">Read each sentence aloud while your phone or laptop records. Say the number first, pause, read, leave a 1 second gap. One audio file per part.</p>
+    </div>
+    <div class="status" id="status"><span class="dot" id="statusDot"></span><span id="statusText">Connecting to saved progress...</span></div>
+  </header>
+
+  <div class="grid">
+    <aside class="panel" aria-label="Session settings">
+      <div class="field">
+        <label class="label" for="speaker">Speaker</label>
+        <select id="speaker"></select>
+      </div>
+      <div class="field">
+        <span class="label" id="condLabel">Condition</span>
+        <div class="seg" role="group" aria-labelledby="condLabel" id="conditions">
+          <button type="button" data-cond="quiet" aria-pressed="true">Quiet</button>
+          <button type="button" data-cond="noisy" aria-pressed="false">Noisy</button>
+          <button type="button" data-cond="phone" aria-pressed="false">Phone</button>
+        </div>
+      </div>
+      <label class="consent" id="consentBox">
+        <input type="checkbox" id="consent">
+        <span id="consentText">This speaker has read and signed <b>CONSENT.md</b>. Recording stays locked until this is ticked.</span>
+      </label>
+      <div class="field">
+        <span class="label">Save the audio file as</span>
+        <div class="filename"><code id="filename">part01_s01_quiet.wav</code><button type="button" class="btn small" id="copyName">Copy</button></div>
+      </div>
+      <div class="howto">
+        <span class="label">How a part works</span>
+        <ol>
+          <li>Start your recorder (Voice Memos, QuickTime or any phone recorder). No noise reduction.</li>
+          <li>For each sentence, say the number shown in red, pause, then read the sentence naturally.</li>
+          <li>Press <kbd>Space</kbd> or <b>Done</b> to move on. Stumbled? Say the number and read it again.</li>
+          <li>Press <kbd>F</kbd> to flag a sentence that sounds unnatural, with a suggested fix.</li>
+          <li>Stop the recorder after the last sentence. Save it with the name above into <code>ml/eval/datasets/own/raw/</code>.</li>
+        </ol>
+      </div>
+    </aside>
+
+    <main class="stage">
+      <section class="prompter" aria-live="polite">
+        <div class="meta">
+          <span class="uid" id="uid">01-001</span>
+          <span class="cue">Say <b id="cue">१</b></span>
+          <span class="badge todo" id="badge">Not read yet</span>
+        </div>
+        <p class="sentence" id="sentence" lang="ne"></p>
+        <div class="next"><span class="label">Next</span><span id="next" lang="ne"></span></div>
+        <div class="flagbox" id="flagbox" hidden>
+          <p><b>Flag this sentence.</b> Say what sounds wrong, and write how you would say it. Claude reads these flags and fixes the script.</p>
+          <label class="label" for="flagNote">Note or suggested rewrite</label>
+          <textarea id="flagNote" lang="ne" placeholder="उदाहरण: 'गर्दैछु' भन्दा 'गर्दै छु' बढी स्वाभाविक"></textarea>
+          <div class="controls"><button type="button" class="btn primary small" id="saveFlag">Save flag</button><button type="button" class="btn small" id="cancelFlag">Cancel</button></div>
+          <div class="existing" id="existingFlags"></div>
+        </div>
+        <div class="controls">
+          <button type="button" class="btn" id="back"><kbd>←</kbd> Back</button>
+          <button type="button" class="btn flag" id="flag"><kbd>F</kbd> Flag</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn primary" id="done">Done, next <kbd>Space</kbd></button>
+        </div>
+        <div>
+          <div class="progress-row"><span id="partName">Part 01</span><span id="partCount">0 / 60 read</span></div>
+          <div class="bar"><i id="partBar"></i></div>
+        </div>
+      </section>
+
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" aria-selected="true" data-tab="parts">Parts</button>
+        <button type="button" role="tab" aria-selected="false" data-tab="flags">Flagged sentences <span id="flagCount"></span></button>
+        <button type="button" role="tab" aria-selected="false" data-tab="list">All sentences in this part</button>
+      </div>
+      <section id="tab-parts" class="parts" aria-label="Parts"></section>
+      <section id="tab-flags" class="panel" hidden>
+        <div class="table-wrap"><table><thead><tr><th>ID</th><th>Sentence</th><th>Note</th><th>Speaker</th><th></th></tr></thead><tbody id="flagRows"></tbody></table></div>
+      </section>
+      <section id="tab-list" class="panel" hidden>
+        <div class="table-wrap"><table><thead><tr><th>ID</th><th>Sentence</th><th>Status</th></tr></thead><tbody id="listRows"></tbody></table></div>
+      </section>
+    </main>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const PARTS = /*__PARTS__*/[];
+const SPEAKERS = ["s01", "s02", "s03", "s04", "s05", "s06", "s07", "s08"];
+const DEV_DIGITS = "०१२३४५६७८९";
+const toDev = (n) => String(n).replace(/[0-9]/g, (d) => DEV_DIGITS[d]);
+const $ = (id) => document.getElementById(id);
+
+const state = {
+  speaker: "s01",
+  cond: "quiet",
+  part: 0,
+  index: 0,
+  progress: {},   // key -> Set of done ids
+  consent: {},    // speaker -> bool
+  flags: [],      // [{id, utt, speaker, note, at}]
+  flagOpen: false,
+};
+
+const progressKey = (speaker, cond, partIdx) => `${speaker}_${cond}_part${PARTS[partIdx].num}`;
+const doneSet = (partIdx = state.part) => state.progress[progressKey(state.speaker, state.cond, partIdx)] || new Set();
+const currentPart = () => PARTS[state.part];
+const currentSentence = () => currentPart().sentences[state.index];
+
+// Storage: the artifact db when available (Claude can read flags from it), otherwise this browser only.
+const store = {
+  db: null,
+  mode: "local",
+  writeChain: Promise.resolve(),
+  local(key, value) {
+    try {
+      if (value === undefined) return JSON.parse(localStorage.getItem("boli-desk:" + key) || "null");
+      localStorage.setItem("boli-desk:" + key, JSON.stringify(value));
+    } catch { return null; }
+  },
+  write(fn) {
+    this.writeChain = this.writeChain.then(fn).catch((e) => {
+      console.error(e);
+      toast(e && e.code === "invalid_argument" ? "You can view this desk but not save to it." : "Could not save. Try again in a moment.");
+    });
+    return this.writeChain;
+  },
+};
+
+async function saveProgress(partIdx) {
+  const key = progressKey(state.speaker, state.cond, partIdx);
+  const done = [...(state.progress[key] || new Set())].sort();
+  if (store.mode === "db") {
+    await store.write(() => store.db.doc("progress/" + key).set({ speaker: state.speaker, condition: state.cond, part: PARTS[partIdx].num, done, updatedAt: new Date().toISOString() }));
+  } else {
+    const all = store.local("progress") || {};
+    all[key] = done;
+    store.local("progress", all);
+  }
+}
+
+async function saveConsent(speaker, value) {
+  if (store.mode === "db") {
+    await store.write(() => store.db.doc("speakers/" + speaker).set({ consentSigned: value, updatedAt: new Date().toISOString() }));
+  } else {
+    const all = store.local("consent") || {};
+    all[speaker] = value;
+    store.local("consent", all);
+  }
+}
+
+async function addFlag(note) {
+  const s = currentSentence();
+  const flag = { utt: s.id, speaker: state.speaker, condition: state.cond, text: s.text, note, at: new Date().toISOString() };
+  if (store.mode === "db") {
+    await store.write(() => store.db.collection("flags").add(flag));
+  } else {
+    flag.id = s.id + "_" + Date.now();
+    state.flags.push(flag);
+    store.local("flags", state.flags);
+    renderFlags();
+    render();
+  }
+}
+
+async function removeFlag(id) {
+  if (store.mode === "db") {
+    await store.write(() => store.db.doc("flags/" + id).delete());
+  } else {
+    state.flags = state.flags.filter((f) => f.id !== id);
+    store.local("flags", state.flags);
+    renderFlags();
+    render();
+  }
+}
+
+function loadLocal() {
+  const p = store.local("progress") || {};
+  for (const [k, ids] of Object.entries(p)) state.progress[k] = new Set(ids);
+  state.consent = store.local("consent") || {};
+  state.flags = store.local("flags") || [];
+  const ui = store.local("ui");
+  if (ui) Object.assign(state, { speaker: ui.speaker || "s01", cond: ui.cond || "quiet", part: ui.part || 0, index: ui.index || 0 });
+}
+
+function rememberUi() {
+  store.local("ui", { speaker: state.speaker, cond: state.cond, part: state.part, index: state.index });
+}
+
+async function connect() {
+  let db = null;
+  try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch { db = null; }
+  if (!db) {
+    setStatus("local", "Saved in this browser only");
+    return;
+  }
+  store.db = db;
+  store.mode = "db";
+  setStatus("live", "Progress and flags saved to the desk");
+  const fail = (e) => { console.error(e); setStatus("local", "Live sync stopped. Reload the page."); };
+  db.collection("progress").onSnapshot((snap) => {
+    const next = {};
+    snap.docs.forEach((d) => { next[d.id] = new Set((d.data() || {}).done || []); });
+    state.progress = next;
+    render();
+  }, fail);
+  db.collection("speakers").onSnapshot((snap) => {
+    const next = {};
+    snap.docs.forEach((d) => { next[d.id] = !!(d.data() || {}).consentSigned; });
+    state.consent = next;
+    render();
+  }, fail);
+  db.collection("flags").onSnapshot((snap) => {
+    state.flags = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderFlags();
+    render();
+  }, fail);
+}
+
+function setStatus(kind, text) {
+  $("statusDot").className = "dot " + kind;
+  $("statusText").textContent = text;
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+function highlightLatin(text) {
+  const frag = document.createDocumentFragment();
+  text.split(/([A-Za-z][A-Za-z0-9'&.\-]*(?:\s+[A-Za-z][A-Za-z0-9'&.\-]*)*)/).forEach((chunk, i) => {
+    if (!chunk) return;
+    if (i % 2 === 1) {
+      const span = document.createElement("span");
+      span.className = "latin";
+      span.lang = "en";
+      span.textContent = chunk;
+      frag.appendChild(span);
+    } else {
+      frag.appendChild(document.createTextNode(chunk));
+    }
+  });
+  return frag;
+}
+
+function render() {
+  const part = currentPart();
+  const s = currentSentence();
+  const done = doneSet();
+  const consented = !!state.consent[state.speaker];
+
+  $("uid").textContent = s.id;
+  $("cue").textContent = toDev(parseInt(s.id.slice(3), 10));
+  const sentenceEl = $("sentence");
+  sentenceEl.replaceChildren(highlightLatin(s.text));
+  const nxt = part.sentences[state.index + 1];
+  $("next").textContent = nxt ? `${nxt.id}  ${nxt.text}` : "End of this part. Stop the recorder and save the file.";
+
+  const flagged = state.flags.some((f) => f.utt === s.id);
+  const badge = $("badge");
+  if (flagged) { badge.className = "badge flagged"; badge.textContent = "Flagged"; }
+  else if (done.has(s.id)) { badge.className = "badge done"; badge.textContent = "Read"; }
+  else { badge.className = "badge todo"; badge.textContent = "Not read yet"; }
+
+  $("partName").textContent = `Part ${part.num} · ${part.title}`;
+  $("partCount").textContent = `${done.size} / ${part.sentences.length} read`;
+  $("partBar").style.width = (100 * done.size / part.sentences.length) + "%";
+
+  $("consent").checked = consented;
+  $("consentBox").classList.toggle("ok", consented);
+  $("consentText").replaceChildren();
+  $("consentText").append(...(consented
+    ? [`Consent recorded for ${state.speaker}.`]
+    : ["This speaker has read and signed ", Object.assign(document.createElement("b"), { textContent: "CONSENT.md" }), ". Recording stays locked until this is ticked."]));
+  $("done").disabled = !consented;
+  $("back").disabled = state.index === 0;
+  $("filename").textContent = `part${part.num}_${state.speaker}_${state.cond}.wav`;
+  document.querySelectorAll("#conditions button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.cond === state.cond)));
+  $("speaker").value = state.speaker;
+
+  const existing = state.flags.filter((f) => f.utt === s.id);
+  $("existingFlags").replaceChildren(...existing.map((f) => {
+    const div = document.createElement("div");
+    div.textContent = `Already flagged by ${f.speaker}: ${f.note}`;
+    return div;
+  }));
+
+  renderParts();
+  renderList();
+  rememberUi();
+}
+
+function renderParts() {
+  $("tab-parts").replaceChildren(...PARTS.map((p, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "part";
+    b.setAttribute("aria-current", String(i === state.part));
+    const n = doneSet(i).size;
+    const num = document.createElement("span"); num.className = "num"; num.textContent = `Part ${p.num} · ${p.readTime}`;
+    const ttl = document.createElement("span"); ttl.className = "ttl"; ttl.textContent = p.title;
+    const cnt = document.createElement("span"); cnt.className = "cnt"; cnt.textContent = `${n} / ${p.sentences.length} read`;
+    const bar = document.createElement("div"); bar.className = "bar";
+    const fill = document.createElement("i"); fill.style.width = (100 * n / p.sentences.length) + "%"; bar.appendChild(fill);
+    b.append(num, ttl, cnt, bar);
+    b.addEventListener("click", () => {
+      state.part = i;
+      const d = doneSet(i);
+      const firstTodo = p.sentences.findIndex((s) => !d.has(s.id));
+      state.index = firstTodo === -1 ? 0 : firstTodo;
+      closeFlag();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    return b;
+  }));
+}
+
+function renderList() {
+  const part = currentPart();
+  const done = doneSet();
+  $("listRows").replaceChildren(...part.sentences.map((s, i) => {
+    const tr = document.createElement("tr");
+    const id = document.createElement("td"); id.className = "mono"; id.textContent = s.id;
+    const tx = document.createElement("td"); tx.lang = "ne"; tx.textContent = s.text;
+    const st = document.createElement("td");
+    const flagged = state.flags.some((f) => f.utt === s.id);
+    const badge = document.createElement("span");
+    badge.className = "badge " + (flagged ? "flagged" : done.has(s.id) ? "done" : "todo");
+    badge.textContent = flagged ? "Flagged" : done.has(s.id) ? "Read" : "To do";
+    st.appendChild(badge);
+    tr.append(id, tx, st);
+    tr.style.cursor = "pointer";
+    tr.addEventListener("click", () => { state.index = i; closeFlag(); render(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+    return tr;
+  }));
+}
+
+function renderFlags() {
+  $("flagCount").textContent = state.flags.length ? `(${state.flags.length})` : "";
+  const rows = [...state.flags].sort((a, b) => a.utt.localeCompare(b.utt));
+  if (!rows.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 5; td.className = "empty";
+    td.textContent = "No flagged sentences yet. Press F on any sentence that sounds unnatural.";
+    tr.appendChild(td);
+    $("flagRows").replaceChildren(tr);
+    return;
+  }
+  $("flagRows").replaceChildren(...rows.map((f) => {
+    const tr = document.createElement("tr");
+    const cells = [[f.utt, "mono"], [f.text, ""], [f.note, ""], [f.speaker, "mono"]];
+    cells.forEach(([v, cls]) => { const td = document.createElement("td"); td.textContent = v || ""; if (cls) td.className = cls; td.lang = cls ? "en" : "ne"; tr.appendChild(td); });
+    const td = document.createElement("td");
+    const del = document.createElement("button");
+    del.type = "button"; del.className = "btn small"; del.textContent = "Remove";
+    del.addEventListener("click", () => removeFlag(f.id));
+    td.appendChild(del);
+    tr.appendChild(td);
+    return tr;
+  }));
+}
+
+async function markDoneAndNext() {
+  if (!state.consent[state.speaker]) { toast("Tick the consent box first."); return; }
+  const s = currentSentence();
+  const key = progressKey(state.speaker, state.cond, state.part);
+  if (!state.progress[key]) state.progress[key] = new Set();
+  const changed = !state.progress[key].has(s.id);
+  state.progress[key].add(s.id);
+  const partIdx = state.part;
+  if (state.index < currentPart().sentences.length - 1) state.index += 1;
+  else toast("Part finished. Stop the recorder and save the file.");
+  closeFlag();
+  render();
+  if (changed) saveProgress(partIdx);
+}
+
+function back() {
+  if (state.index > 0) { state.index -= 1; closeFlag(); render(); }
+}
+
+function openFlag() {
+  state.flagOpen = true;
+  $("flagbox").hidden = false;
+  $("flagNote").value = "";
+  $("flagNote").focus();
+}
+function closeFlag() {
+  state.flagOpen = false;
+  $("flagbox").hidden = true;
+}
+
+$("speaker").replaceChildren(...SPEAKERS.map((s) => Object.assign(document.createElement("option"), { value: s, textContent: s })));
+$("speaker").addEventListener("change", (e) => { state.speaker = e.target.value; render(); });
+document.querySelectorAll("#conditions button").forEach((b) => b.addEventListener("click", () => { state.cond = b.dataset.cond; render(); }));
+$("consent").addEventListener("change", (e) => {
+  state.consent[state.speaker] = e.target.checked;
+  render();
+  saveConsent(state.speaker, e.target.checked);
+});
+$("copyName").addEventListener("click", async () => {
+  const text = $("filename").textContent;
+  try { await navigator.clipboard.writeText(text); toast("File name copied"); }
+  catch {
+    const r = document.createRange(); r.selectNodeContents($("filename"));
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    toast("Selected. Press Cmd+C to copy.");
+  }
+});
+$("done").addEventListener("click", markDoneAndNext);
+$("back").addEventListener("click", back);
+$("flag").addEventListener("click", () => (state.flagOpen ? closeFlag() : openFlag()));
+$("cancelFlag").addEventListener("click", closeFlag);
+$("saveFlag").addEventListener("click", async () => {
+  const note = $("flagNote").value.trim();
+  if (!note) { toast("Write what sounds wrong first."); return; }
+  closeFlag();
+  await addFlag(note);
+  toast("Flag saved");
+});
+document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+  ["parts", "flags", "list"].forEach((t) => { $("tab-" + t).hidden = t !== b.dataset.tab; });
+}));
+document.addEventListener("keydown", (e) => {
+  const typing = ["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement && document.activeElement.tagName);
+  if (typing) { if (e.key === "Escape") closeFlag(); return; }
+  if (e.key === " " || e.key === "ArrowRight") { e.preventDefault(); markDoneAndNext(); }
+  else if (e.key === "ArrowLeft") { e.preventDefault(); back(); }
+  else if (e.key === "f" || e.key === "F") { e.preventDefault(); state.flagOpen ? closeFlag() : openFlag(); }
+});
+
+loadLocal();
+if (state.part >= PARTS.length) state.part = 0;
+if (state.index >= currentPart().sentences.length) state.index = 0;
+renderFlags();
+render();
+connect();
+</script>

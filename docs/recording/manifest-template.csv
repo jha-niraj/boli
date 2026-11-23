@@ -1,0 +1,2 @@
+utterance_id,part,text,speaker_id,condition,audio_file,start_s,end_s,notes
+01-001,01,बिहान उठेर मैले सबैभन्दा पहिले आमाका लागि चिया बनाएँ।,s01,quiet,part01_s01_quiet.wav,2.35,6.10,

@@ -41,3 +41,19 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# Python (ml/)
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Datasets and audio never go in git
+ml/eval/datasets/
+*.wav
+*.flac
+*.m4a
+*.mp3
+
+# Downloaded model weights
+ml/models/

@@ -1,0 +1,580 @@
+<title>Boli Recording Desk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martel:wght@600;800&family=Mukta:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a prompter desk - settings rail on the left, one huge sentence in the middle, parts below. Colours borrow the Nepal flag: crimson + deep blue. */
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --sunken: #eaeef3;
+  --fg: #13202c;
+  --muted: #566577;
+  --line: #d9dfe6;
+  --crimson: #b4232c;
+  --crimson-soft: #fbe9ea;
+  --blue: #1d3a8a;
+  --blue-soft: #e7ecf8;
+  --ok: #1f7a4a;
+  --ok-soft: #e3f3ea;
+  --warn: #9a5b00;
+  --warn-soft: #fbf0dc;
+  --font-display: "Martel", "Noto Serif Devanagari", Georgia, serif;
+  --font-body: "Mukta", "Noto Sans Devanagari", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e141b; --surface: #161f29; --sunken: #1d2834; --fg: #e6ebf1; --muted: #9caab8; --line: #2a3644;
+    --crimson: #f0606a; --crimson-soft: #3a1c20; --blue: #8fb0ff; --blue-soft: #1c2742;
+    --ok: #5fd197; --ok-soft: #173326; --warn: #f2b45a; --warn-soft: #3a2c14;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e141b; --surface: #161f29; --sunken: #1d2834; --fg: #e6ebf1; --muted: #9caab8; --line: #2a3644;
+  --crimson: #f0606a; --crimson-soft: #3a1c20; --blue: #8fb0ff; --blue-soft: #1c2742;
+  --ok: #5fd197; --ok-soft: #173326; --warn: #f2b45a; --warn-soft: #3a2c14;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 20px; }
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.6rem, 3vw, 2.2rem); margin: 0; line-height: 1.1; text-wrap: balance; }
+h1 span { color: var(--crimson); }
+.sub { color: var(--muted); margin: 4px 0 0; max-width: 62ch; }
+.status { font-size: .85rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.dot.live { background: var(--ok); }
+.dot.local { background: var(--warn); }
+
+.grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.field { display: grid; gap: 6px; }
+select, textarea, input[type="text"] {
+  font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%;
+}
+textarea { min-height: 72px; resize: vertical; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--sunken); padding: 4px; border-radius: 9px; }
+.seg button { border: 0; background: transparent; padding: 6px 4px; border-radius: 6px; font: inherit; font-size: .9rem; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--fg); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.consent { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border-radius: 8px; background: var(--warn-soft); font-size: .9rem; }
+.consent.ok { background: var(--ok-soft); }
+.consent input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--ok); flex: none; }
+.filename { display: flex; gap: 8px; align-items: center; }
+.filename code { font-family: var(--font-mono); font-size: .85rem; background: var(--sunken); padding: 6px 8px; border-radius: 6px; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.howto ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: .92rem; }
+.howto li::marker { color: var(--crimson); font-weight: 700; }
+
+.btn { font: inherit; font-weight: 600; border-radius: 8px; padding: 10px 16px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background-color .15s, border-color .15s; }
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: var(--blue); border-color: var(--blue); color: var(--surface); }
+.btn.flag { color: var(--crimson); }
+.btn.small { padding: 6px 10px; font-size: .85rem; }
+.btn:focus-visible, .seg button:focus-visible, .part:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+kbd { font-family: var(--font-mono); font-size: .75rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; color: var(--muted); }
+
+.stage { display: grid; gap: 18px; }
+.prompter { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: clamp(18px, 4vw, 36px); display: grid; gap: 20px; position: relative; overflow: hidden; }
+.prompter::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: linear-gradient(90deg, var(--crimson) 0 50%, var(--blue) 50% 100%); }
+.meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: center; }
+.uid { font-family: var(--font-mono); font-weight: 600; color: var(--blue); font-size: .95rem; }
+.cue { display: inline-flex; align-items: baseline; gap: 8px; background: var(--crimson-soft); color: var(--crimson); border-radius: 999px; padding: 4px 14px; font-weight: 600; }
+.cue b { font-family: var(--font-display); font-size: 1.4rem; }
+.sentence { font-family: var(--font-body); font-weight: 500; font-size: clamp(1.6rem, 4.2vw, 2.7rem); line-height: 1.6; margin: 0; min-height: 3.2em; text-wrap: pretty; overflow-wrap: anywhere; }
+.sentence .latin { color: var(--blue); }
+.next { color: var(--muted); font-size: 1.05rem; border-top: 1px dashed var(--line); padding-top: 12px; }
+.next .label { display: block; margin-bottom: 2px; }
+.badge { font-size: .78rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; }
+.badge.done { background: var(--ok-soft); color: var(--ok); }
+.badge.todo { background: var(--sunken); color: var(--muted); }
+.badge.flagged { background: var(--crimson-soft); color: var(--crimson); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.controls .spacer { flex: 1; }
+.bar { height: 6px; background: var(--sunken); border-radius: 999px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--ok); width: 0; transition: width .25s; }
+.progress-row { display: flex; justify-content: space-between; font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.flagbox { display: grid; gap: 8px; background: var(--crimson-soft); border-radius: 10px; padding: 12px; }
+.flagbox p { margin: 0; font-size: .9rem; }
+.existing { font-size: .9rem; display: grid; gap: 4px; }
+
+.parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.part { text-align: left; font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; cursor: pointer; display: grid; gap: 6px; transition: border-color .15s; }
+.part:hover { border-color: var(--muted); }
+.part[aria-current="true"] { border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); }
+.part .num { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); }
+.part .ttl { font-weight: 600; line-height: 1.25; }
+.part .cnt { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs button { font: inherit; border: 0; background: transparent; color: var(--muted); padding: 6px 12px; border-radius: 999px; cursor: pointer; font-weight: 600; }
+.tabs button[aria-selected="true"] { background: var(--fg); color: var(--bg); }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.mono { font-family: var(--font-mono); font-size: .82rem; white-space: nowrap; }
+.empty { color: var(--muted); padding: 18px; text-align: center; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 8px 16px; border-radius: 999px; font-size: .9rem; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.toast.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Recording <span>Desk</span></h1>
+      <p class="sub">Read each sentence aloud while your phone or laptop records. Say the number first, pause, read, leave a 1 second gap. One audio file per part.</p>
+    </div>
+    <div class="status" id="status"><span class="dot" id="statusDot"></span><span id="statusText">Connecting to saved progress...</span></div>
+  </header>
+
+  <div class="grid">
+    <aside class="panel" aria-label="Session settings">
+      <div class="field">
+        <label class="label" for="speaker">Speaker</label>
+        <select id="speaker"></select>
+      </div>
+      <div class="field">
+        <span class="label" id="condLabel">Condition</span>
+        <div class="seg" role="group" aria-labelledby="condLabel" id="conditions">
+          <button type="button" data-cond="quiet" aria-pressed="true">Quiet</button>
+          <button type="button" data-cond="noisy" aria-pressed="false">Noisy</button>
+          <button type="button" data-cond="phone" aria-pressed="false">Phone</button>
+        </div>
+      </div>
+      <label class="consent" id="consentBox">
+        <input type="checkbox" id="consent">
+        <span id="consentText">This speaker has read and signed <b>CONSENT.md</b>. Recording stays locked until this is ticked.</span>
+      </label>
+      <div class="field">
+        <span class="label">Save the audio file as</span>
+        <div class="filename"><code id="filename">part01_s01_quiet.wav</code><button type="button" class="btn small" id="copyName">Copy</button></div>
+      </div>
+      <div class="howto">
+        <span class="label">How a part works</span>
+        <ol>
+          <li>Start your recorder (Voice Memos, QuickTime or any phone recorder). No noise reduction.</li>
+          <li>For each sentence, say the number shown in red, pause, then read the sentence naturally.</li>
+          <li>Press <kbd>Space</kbd> or <b>Done</b> to move on. Stumbled? Say the number and read it again.</li>
+          <li>Press <kbd>F</kbd> to flag a sentence that sounds unnatural, with a suggested fix.</li>
+          <li>Stop the recorder after the last sentence. Save it with the name above into <code>ml/eval/datasets/own/raw/</code>.</li>
+        </ol>
+      </div>
+    </aside>
+
+    <main class="stage">
+      <section class="prompter" aria-live="polite">
+        <div class="meta">
+          <span class="uid" id="uid">01-001</span>
+          <span class="cue">Say <b id="cue">१</b></span>
+          <span class="badge todo" id="badge">Not read yet</span>
+        </div>
+        <p class="sentence" id="sentence" lang="ne"></p>
+        <div class="next"><span class="label">Next</span><span id="next" lang="ne"></span></div>
+        <div class="flagbox" id="flagbox" hidden>
+          <p><b>Flag this sentence.</b> Say what sounds wrong, and write how you would say it. Claude reads these flags and fixes the script.</p>
+          <label class="label" for="flagNote">Note or suggested rewrite</label>
+          <textarea id="flagNote" lang="ne" placeholder="उदाहरण: 'गर्दैछु' भन्दा 'गर्दै छु' बढी स्वाभाविक"></textarea>
+          <div class="controls"><button type="button" class="btn primary small" id="saveFlag">Save flag</button><button type="button" class="btn small" id="cancelFlag">Cancel</button></div>
+          <div class="existing" id="existingFlags"></div>
+        </div>
+        <div class="controls">
+          <button type="button" class="btn" id="back"><kbd>←</kbd> Back</button>
+          <button type="button" class="btn flag" id="flag"><kbd>F</kbd> Flag</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn primary" id="done">Done, next <kbd>Space</kbd></button>
+        </div>
+        <div>
+          <div class="progress-row"><span id="partName">Part 01</span><span id="partCount">0 / 60 read</span></div>
+          <div class="bar"><i id="partBar"></i></div>
+        </div>
+      </section>
+
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" aria-selected="true" data-tab="parts">Parts</button>
+        <button type="button" role="tab" aria-selected="false" data-tab="flags">Flagged sentences <span id="flagCount"></span></button>
+        <button type="button" role="tab" aria-selected="false" data-tab="list">All sentences in this part</button>
+      </div>
+      <section id="tab-parts" class="parts" aria-label="Parts"></section>
+      <section id="tab-flags" class="panel" hidden>
+        <div class="table-wrap"><table><thead><tr><th>ID</th><th>Sentence</th><th>Note</th><th>Speaker</th><th></th></tr></thead><tbody id="flagRows"></tbody></table></div>
+      </section>
+      <section id="tab-list" class="panel" hidden>
+        <div class="table-wrap"><table><thead><tr><th>ID</th><th>Sentence</th><th>Status</th></tr></thead><tbody id="listRows"></tbody></table></div>
+      </section>
+    </main>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const PARTS = [{"sentences": [{"id": "01-001", "text": "बिहान उठेर मैले सबैभन्दा पहिले आमाका लागि चिया बनाएँ।"}, {"id": "01-002", "text": "हाम्रो घरमा आज साँझ मामा र माइजू खाना खान आउनुहुन्छ, त्यसैले आमा व्यस्त हुनुहुन्छ।"}, {"id": "01-003", "text": "मेरो सानो भाइ बिहान स्कुल जाने बेलामा सधैं जुत्ताको तुना खोज्दै बस्छ।"}, {"id": "01-004", "text": "दिदी, तपाईं आज कति बजे अफिसबाट फर्किनुहुन्छ?"}, {"id": "01-005", "text": "बुबाले घर पछाडिको बारीमा यस पटक रायोको साग र मुला रोप्नुभएको छ।"}, {"id": "01-006", "text": "हजुरआमा जाडो महिनामा हरेक बिहान छतमा बसेर घाम ताप्नुहुन्छ।"}, {"id": "01-007", "text": "मेरी छोरीले आज पहिलो पटक कसैको सहारा नलिई आफैं साइकल चलाई।"}, {"id": "01-008", "text": "साँझ खाना खाइसकेपछि हामी सबै मिलेर बैठक कोठामा टिभी हेर्छौं।"}, {"id": "01-009", "text": "पानी पर्ला जस्तो छ, छाता लिएर जाऊ।"}, {"id": "01-010", "text": "सुमनको बिहे आउने महिना हुँदैछ रे, तर निम्तो अझै आएको छैन।"}, {"id": "01-011", "text": "आज बेलुका घरमा बत्ती गएकाले हामीले मैनबत्ती बालेर पढ्यौं।"}, {"id": "01-012", "text": "काकाको छोरा अहिले पोखरामा डेरा लिएर इन्जिनियरिङ पढ्दैछ।"}, {"id": "01-013", "text": "मलाई जाडोको बिहानको चिसो हावा र तातो चिया एकदमै मन पर्छ।"}, {"id": "01-014", "text": "ए, ढोका बन्द गरेर आइज त।"}, {"id": "01-015", "text": "हजुरबुबाले पुराना दिनका कथा सुनाउँदा हामी चुपचाप सुन्थ्यौं।"}, {"id": "01-016", "text": "आज घरका सबैको लुगा धुने पालो मेरो हो, त्यसैले चाँडै उठेँ।"}, {"id": "01-017", "text": "छिमेकीको कुकुरले रातभरि भुकेर हामी कसैलाई राम्ररी सुत्न दिएन।"}, {"id": "01-018", "text": "बहिनीको birthday मा हामी सबैले मिलेर केक काट्यौं।"}, {"id": "01-019", "text": "आमा, भोलि बिदा भएकाले म अलि ढिलो उठ्छु है।"}, {"id": "01-020", "text": "छिमेकी अंकलले बिग्रिएको हाम्रो फलामे गेट आफैं मर्मत गरिदिनुभयो।"}, {"id": "01-021", "text": "हाम्रो टोलमा बिहान सात बजे नै दूधवाला साइकलमा आइपुग्छ।"}, {"id": "01-022", "text": "हामी सानो छँदा आमाले कथा सुनाएर सुताउनुहुन्थ्यो।"}, {"id": "01-023", "text": "आज शनिबार भएकाले बजारमा साँझसम्मै निकै धेरै भीड थियो।"}, {"id": "01-024", "text": "रमिलाले आफ्नो सानो भाइलाई गृहकार्यमा सघाइरहेकी छे।"}, {"id": "01-025", "text": "हाम्रो घरको छतबाट घाम लागेको दिन हिमाल प्रस्टै देखिन्छ।"}, {"id": "01-026", "text": "हाम्रो परिवार अलि ठूलो छ, तर सबै जना एउटै घरमा मिलेर बस्छौं।"}, {"id": "01-027", "text": "तिमीले बिहानदेखि मैले गरेको फोन किन उठाएनौ?"}, {"id": "01-028", "text": "Weekend मा हामी सबै cousin हरू भेट्ने plan छ।"}, {"id": "01-029", "text": "हजुरआमाको घुँडा दुख्न थालेपछि उहाँ धेरै हिँड्न सक्नुहुन्न।"}, {"id": "01-030", "text": "भान्सामा अझै बेलुकाका भाँडा माझ्न बाँकी छ, आज कसको पालो हो?"}, {"id": "01-031", "text": "आज बेलुकाको खाना मेरो श्रीमानले पकाउनुहुन्छ।"}, {"id": "01-032", "text": "बच्चाहरू स्कुलबाट आएपछि आँगनमा लुकामारी खेल्दैछन्।"}, {"id": "01-033", "text": "मलाई त सपनामा पनि आफ्नो गाउँको खोला याद आउँछ।"}, {"id": "01-034", "text": "आज morning walk मा जाँदा पुरानो साथीसँग भेट भयो।"}, {"id": "01-035", "text": "दाइ विदेशबाट तीन वर्षपछि दसैं मनाउन घर फर्किँदैछन्।"}, {"id": "01-036", "text": "तपाईंको घरमा अहिले जम्मा कति जना हुनुहुन्छ?"}, {"id": "01-037", "text": "हामीले कोठाको पुरानो दराज बेचेर अलि ठूलो नयाँ दराज किन्ने सोचेका छौं।"}, {"id": "01-038", "text": "लुगा सुकाउन बाहिर राखेको थिएँ, हावाले उडाएर लग्यो।"}, {"id": "01-039", "text": "स्कुल बस छुट्यो भने बाटोमा एक्लै नहिँडी सिधै बाबालाई फोन गर्नू।"}, {"id": "01-040", "text": "भोलि बिहान सबेरै सबै मिलेर डाँडातिर हिँड्न जाने कुरा भएको छ।"}, {"id": "01-041", "text": "हाम्रो गाउँमा अझै पनि धेरैजसो घरमा गाईभैंसी र बाख्रा पालिन्छ।"}, {"id": "01-042", "text": "मेरी आमा अहिले पनि जाडो लाग्नुअघि हातले नै सबैका लागि स्वेटर बुन्नुहुन्छ।"}, {"id": "01-043", "text": "Mobile धेरै नचलाऊ, आँखा बिग्रिन्छ, बरु बाहिर गएर खेल।"}, {"id": "01-044", "text": "छोराको result आएपछि घरमा सबै खुसी भए र आमाले मिठाई बाँड्नुभयो।"}, {"id": "01-045", "text": "ल, खाना तयार भयो, सबै आउनुहोस्।"}, {"id": "01-046", "text": "हाम्रो बिरालोले आज फेरि भान्साको दूधको भाँडो पल्टाइदियो।"}, {"id": "01-047", "text": "हामी हरेक वर्ष दसैंमा टीका लगाउन गाउँ जान्छौं।"}, {"id": "01-048", "text": "आजको दिन कामको भागदौडले निकै थकाइलाग्दो भयो।"}, {"id": "01-049", "text": "तिमी बजारबाट आउँदा मेरा लागि एउटा निलो कलम ल्याइदेऊ न।"}, {"id": "01-050", "text": "मेरो सानो भतिजा अहिले भर्खर बोल्न सिक्दैछ, सबैलाई मामा मात्र भन्छ।"}, {"id": "01-051", "text": "बैठक कोठाको भित्ता रंगाउने काम अर्को हप्तादेखि सुरु हुन्छ।"}, {"id": "01-052", "text": "बाबा, आज म साथीको घरमा बस्छु, चिन्ता नगर्नुहोला।"}, {"id": "01-053", "text": "हाम्रो घरको धारामा बिहान एक घण्टा मात्र पानी आउँछ।"}, {"id": "01-054", "text": "Online class सकिएपछि मात्र म खाना खान तल आउँछु।"}, {"id": "01-055", "text": "हिजो राति अचानक हावाहुरी आएर आँगनको रूख ढल्यो।"}, {"id": "01-056", "text": "फुपूले हामी सबै भाइबहिनीलाई नयाँ वर्षमा उपहार पठाउनुभयो।"}, {"id": "01-057", "text": "भोलि बिहान परीक्षा भएकाले म आज अलि चाँडै सुत्छु।"}, {"id": "01-058", "text": "बाहिर धेरै जाडो छ, बाक्लो ज्याकेट र टोपी लगाएर मात्र जाऊ।"}, {"id": "01-059", "text": "हाम्रो परिवारको group chat मा दिनभरि फोटो आइरहन्छन्।"}, {"id": "01-060", "text": "सबै जना सकुशल घर पुग्नुभयो भने मलाई खबर गर्नुहोला।"}], "num": "01", "title": "Everyday life and family", "readTime": "~6 minutes"}, {"sentences": [{"id": "02-001", "text": "हजुर, मेरो बचत खातामा अहिले कति ब्यालेन्स बाँकी छ?"}, {"id": "02-002", "text": "मलाई आज नै पाँच हजार रुपैयाँ गाउँमा आमाको खातामा पठाउनु छ।"}, {"id": "02-003", "text": "ATM ले पैसा पनि दिएन र कार्ड पनि फिर्ता दिएन, अब के गर्ने?"}, {"id": "02-004", "text": "बैंकमा नयाँ बचत खाता खोल्न के के कागजात चाहिन्छ?"}, {"id": "02-005", "text": "मैले गएको महिना घर बनाउन बैंकबाट दस वर्षका लागि ऋण लिएँ।"}, {"id": "02-006", "text": "हजुर, मेरो डेबिट कार्ड हराएको छ, कृपया ब्लक गरिदिनुहोस्।"}, {"id": "02-007", "text": "Mobile wallet बाट घरको बिजुलीको बिल तिर्न धेरै सजिलो हुन्छ।"}, {"id": "02-008", "text": "ब्याजदर फेरि बढ्यो भने किस्ता तिर्न गाह्रो हुन्छ।"}, {"id": "02-009", "text": "यो महिनाको तलब अझै खातामा आएको छैन, घरभाडा कसरी तिर्ने?"}, {"id": "02-010", "text": "पसलमा साथीलाई QR code scan गरेर तुरुन्तै पैसा पठाइदिएँ।"}, {"id": "02-011", "text": "Fixed deposit मा पैसा राख्दा कति प्रतिशत ब्याज पाइन्छ?"}, {"id": "02-012", "text": "बैंकको लाइन यति लामो थियो कि दुई घण्टा लाग्यो।"}, {"id": "02-013", "text": "मेरो PIN तीन पटक गलत भएपछि कार्ड बन्द भयो।"}, {"id": "02-014", "text": "कृपया मलाई पछिल्लो तीन महिनाको बैंक स्टेटमेन्ट दिनुहोस्।"}, {"id": "02-015", "text": "विदेशमा काम गर्ने दाइले पठाएको पैसा आज बिहान खातामा आइपुग्यो।"}, {"id": "02-016", "text": "Wallet मा load गरेको पैसा बैंकमा फिर्ता लैजान मिल्छ?"}, {"id": "02-017", "text": "अर्को बैंकको चेक साटेर खातामा पैसा आउन कति दिन लाग्छ?"}, {"id": "02-018", "text": "म हरेक महिना तलबको केही भाग छुट्टै खातामा बचत गर्छु।"}, {"id": "02-019", "text": "Transaction fail भयो भन्यो, तर खाताबाट पैसा भने काटियो।"}, {"id": "02-020", "text": "ऋणको किस्ता हरेक महिनाको पन्ध्र गते तिर्नुपर्छ।"}, {"id": "02-021", "text": "सहकारीमा पैसा राख्नु सुरक्षित हो कि होइन, मलाई थाहा छैन।"}, {"id": "02-022", "text": "नगद निकाल्न यहाँबाट सबैभन्दा नजिकको एटिएम कहाँ छ?"}, {"id": "02-023", "text": "मैले हतारमा गल्तीले अर्कै नम्बरमा दुई हजार रुपैयाँ पठाएँ।"}, {"id": "02-024", "text": "हाम्रो बैंकले नयाँ mobile banking app ल्याएको छ, चलाउन सजिलो छ।"}, {"id": "02-025", "text": "खाता बन्द गर्न शाखामै जानुपर्छ कि अनलाइनबाट हुन्छ?"}, {"id": "02-026", "text": "विद्यार्थी खातामा न्यूनतम मौज्दात राख्नैपर्छ भन्ने छैन रे।"}, {"id": "02-027", "text": "मलाई गाडी किन्न सवारी ऋणबारे जानकारी चाहियो।"}, {"id": "02-028", "text": "बैंकबाट फोन गरेको भन्दै कसैले सोधे पनि OTP नभन्नुहोस्।"}, {"id": "02-029", "text": "हिजो किनमेल गर्दा कार्डबाट तिरेँ, नगद चाहिएन।"}, {"id": "02-030", "text": "हाम्रो नजिकको बैंकको शाखा शनिबार र सार्वजनिक बिदामा बन्द हुन्छ।"}, {"id": "02-031", "text": "सुनिताले पसल विस्तार गर्न जग्गा धितो राखेर ऋण लिइन्।"}, {"id": "02-032", "text": "खातामा तलब जम्मा भयो भनेर बिहानै SMS आयो।"}, {"id": "02-033", "text": "पानी र बिजुलीको बिल भुक्तानी गर्दा service charge कति लाग्छ?"}, {"id": "02-034", "text": "मैले आफ्नै खाता नम्बर बिर्सेँ, अब कसरी पत्ता लगाउने होला?"}, {"id": "02-035", "text": "पैसा बचत गर्ने बानी सानैदेखि बसाल्नुपर्छ भनेर बुबा भन्नुहुन्छ।"}, {"id": "02-036", "text": "डिजिटल वालेटबाट मोबाइल रिचार्ज गर्दा थोरै छुट पाइन्छ।"}, {"id": "02-037", "text": "बैंकका कर्मचारीले फारम भर्न मलाई धेरै सघाउनुभयो।"}, {"id": "02-038", "text": "Credit card को बिल समयमै तिरिएन भने जरिवाना लाग्छ।"}, {"id": "02-039", "text": "पैसा पठाउँदा पाउने व्यक्तिको नाम राम्ररी जाँच्नुहोस्।"}, {"id": "02-040", "text": "बैंकबाट फोन आयो, मेरो KYC form update गर्नुपर्ने रहेछ।"}, {"id": "02-041", "text": "म घरभाडा हरेक महिना घरबेटीको खातामा बैंकबाटै तिर्छु।"}, {"id": "02-042", "text": "बुबाको पेन्सन खाता गाउँ नजिकको अर्को बैंकमा सार्नुपर्नेछ।"}, {"id": "02-043", "text": "मैले शेयर बजारमा थोरै पैसा लगानी गरेको छु, तर अझै नाफा भएको छैन।"}, {"id": "02-044", "text": "ठूलो रकम जम्मा गर्दा बैंकले पैसाको स्रोत सोध्न सक्छ।"}, {"id": "02-045", "text": "हजुर, ऋणको बाँकी रकम कति छ, बताइदिनुहोस् न।"}, {"id": "02-046", "text": "वालेटमा भर्खर गरेको भुक्तानीको cashback आयो कि आएन, हेर त।"}, {"id": "02-047", "text": "पसलेले QR बाट लिँदिनँ, नगद मात्र लिन्छु भन्यो।"}, {"id": "02-048", "text": "म यो महिना कहाँ कति खर्च भयो भनेर हिसाब निकाल्दैछु।"}, {"id": "02-049", "text": "हराएको कार्डबाट कसैले पैसा झिक्यो कि भनेर डर लाग्यो।"}, {"id": "02-050", "text": "धेरै पर्खाइपछि बैंकले मेरो ऋणको आवेदन स्वीकृत गरिदियो।"}, {"id": "02-051", "text": "ऋण लिनुअघि Interest कति लाग्छ भनेर पहिल्यै सोध्नुपर्छ।"}, {"id": "02-052", "text": "पैसा transfer गरिसकेपछि कृपया एउटा screenshot पठाइदिनुहोला।"}, {"id": "02-053", "text": "सानो व्यवसाय सुरु गर्न बैंकबाट कतिसम्म ऋण पाइन्छ?"}, {"id": "02-054", "text": "कार्डको म्याद सकिन लागेको छ, नयाँ कहिले आउँछ?"}, {"id": "02-055", "text": "मैले साथीसँग लिएको सापटी अझै तिर्न बाँकी छ।"}, {"id": "02-056", "text": "नयाँ खाता खोल्दा nominee को नाम र नाता पनि लेख्नुपर्छ।"}, {"id": "02-057", "text": "फोन गरेर ब्यालेन्स हेर्न मेनुमा कुन नम्बर थिच्नुपर्छ?"}, {"id": "02-058", "text": "बैंक जाँदा नागरिकताको प्रतिलिपि र दुई प्रति फोटो बोकेर जानू।"}, {"id": "02-059", "text": "Online payment गर्दै थिएँ, बीचमै internet गयो र पैसा अड्कियो।"}, {"id": "02-060", "text": "यस वर्ष बचत गरेको पैसाले आमालाई घुमाउन लैजाने सोच छ।"}], "num": "02", "title": "Banking and money", "readTime": "~6 minutes"}, {"sentences": [{"id": "03-001", "text": "मेरो यही नम्बरमा सय रुपैयाँ रिचार्ज गरिदिनुहोस्, म नगद दिन्छु।"}, {"id": "03-002", "text": "Data pack सकिएपछि ब्यालेन्सबाट पैसा काटिँदो रहेछ।"}, {"id": "03-003", "text": "हजुर, मेरो SIM card ले network नै पक्रिरहेको छैन।"}, {"id": "03-004", "text": "नयाँ सिम लिन नागरिकता चाहिन्छ कि पासपोर्टले पनि हुन्छ?"}, {"id": "03-005", "text": "मैले बिहान रिचार्ज गरेको पैसा अझै आएन, कृपया जाँचिदिनुहोस्।"}, {"id": "03-006", "text": "हाम्रो गाउँमा फोनको सिग्नल एकदमै कमजोर छ, छतमा गएर मात्र कुरा हुन्छ।"}, {"id": "03-007", "text": "एक महिनाका लागि सस्तो internet package कुन छ?"}, {"id": "03-008", "text": "म तपाईंको गुनासो दर्ता गर्दैछु, एकछिन पर्खनुहोस्।"}, {"id": "03-009", "text": "मेरो फोनमा अनावश्यक message धेरै आउँछन्, बन्द गर्न मिल्छ?"}, {"id": "03-010", "text": "घरको wifi बिहानदेखि नै चलेको छैन, router पनि restart गरिसकेँ।"}, {"id": "03-011", "text": "ग्राहक सेवामा फोन गर्दा मैले आधा घण्टा लाइनमा पर्खिएँ।"}, {"id": "03-012", "text": "हजुर, तपाईंको समस्या चौबीस घण्टाभित्र समाधान हुनेछ, धैर्य गर्नुहोला।"}, {"id": "03-013", "text": "SIM हराएको छ, उही नम्बरको नयाँ SIM पाउन सकिन्छ?"}, {"id": "03-014", "text": "यो महिनाको फोनको बिल कति आयो, SMS बाट थाहा पाउन सकिन्छ?"}, {"id": "03-015", "text": "मलाई roaming service सुरु गर्नु छ, अर्को हप्ता बाहिर जाँदैछु।"}, {"id": "03-016", "text": "डाटा प्याकको बाँकी MB कति छ भनेर कसरी हेर्ने?"}, {"id": "03-017", "text": "फोनमा कुरा गर्दा आवाज बीचबीचमा काटिन्छ र फेरि आउँछ।"}, {"id": "03-018", "text": "कृपया आफ्नो पूरा नाम र दर्ता भएको मोबाइल नम्बर भन्नुहोस्।"}, {"id": "03-019", "text": "घरको Router को बत्ती हिजो रातिदेखि रातो देखाइरहेको छ।"}, {"id": "03-020", "text": "मैले गलत नम्बरमा रिचार्ज गरेछु, पैसा फिर्ता हुन्छ?"}, {"id": "03-021", "text": "हजुरको गुनासो नम्बर लेखेर राख्नुहोला, पछि चाहिन सक्छ।"}, {"id": "03-022", "text": "रातिको data pack मात्र किन्दा सस्तो पर्छ।"}, {"id": "03-023", "text": "नयाँ फोनमा पुरानो SIM मिलेन, सानो साइजको चाहियो।"}, {"id": "03-024", "text": "एउटै रिचार्जबाट भ्वाइस प्याक र डाटा प्याक सँगै लिन मिल्छ?"}, {"id": "03-025", "text": "Technician कहिले आउनुहुन्छ भनेर अझै खबर आएको छैन।"}, {"id": "03-026", "text": "मेरो नम्बरबाट आफैं पैसा काटिन्छ, कुन सेवा चलेको हो?"}, {"id": "03-027", "text": "अहिले हजुरलाई कुन विषयमा सहयोग चाहिएको हो?"}, {"id": "03-028", "text": "Internet speed एकदमै slow छ, video पनि चल्दैन।"}, {"id": "03-029", "text": "हाम्रो पहाडी गाउँमा नयाँ टावर कहिले बन्छ, कसैलाई थाहा छ?"}, {"id": "03-030", "text": "बिलसम्बन्धी जानकारीका लागि दुई थिच्नुहोस्।"}, {"id": "03-031", "text": "फोन दिनभरि बन्द भएकाले घरबाट कसैले सम्पर्क गर्न सकेनन्।"}, {"id": "03-032", "text": "मैले हिजो किनेको एक GB को प्याक आजै सकियो।"}, {"id": "03-033", "text": "नयाँ SIM लिएपछि आफ्नै नाममा दर्ता गराउनुपर्छ।"}, {"id": "03-034", "text": "हजुर, लाइनमा धैर्यपूर्वक रहनुभएकोमा धन्यवाद।"}, {"id": "03-035", "text": "घरको internet को मासिक शुल्क तिर्न बिर्सेछु।"}, {"id": "03-036", "text": "Customer care मा कुरा गर्ने दिदीले राम्रोसँग बुझाउनुभयो।"}, {"id": "03-037", "text": "मेरो फोनले PUK code माग्दैछ, कहाँबाट पाउने?"}, {"id": "03-038", "text": "मेरो फोनमा भ्वाइस मेल आफैं सुरु भयो, कसरी बन्द गर्ने?"}, {"id": "03-039", "text": "नयाँ fiber connection लिन कति दिन लाग्छ?"}, {"id": "03-040", "text": "तपाईंको गुनासो सम्बन्धित विभागमा पठाइएको छ, उहाँहरूले फोन गर्नुहुनेछ।"}, {"id": "03-041", "text": "बुबाको फोनमा ब्यालेन्स सकियो, अलिकति पठाइदेऊ न।"}, {"id": "03-042", "text": "मेरो फोनमा बिहानदेखि call drop भइरहेको छ।"}, {"id": "03-043", "text": "सिम कार्ड बेच्ने आधिकारिक पसल यहाँ नजिक कतै छ?"}, {"id": "03-044", "text": "यो सस्तो डाटा अफर कहिलेसम्म लागू रहन्छ?"}, {"id": "03-045", "text": "म घर सर्दैछु, internet connection पनि नयाँ ठाउँमा सार्न मिल्छ?"}, {"id": "03-046", "text": "कृपया फोन राख्नुअघि हाम्रो सेवाबारे आफ्नो राय दिनुहोला।"}, {"id": "03-047", "text": "हिजो रातिदेखि मोबाइलमा 4G आउनै छाड्यो, 3G मात्र देखाउँछ।"}, {"id": "03-048", "text": "म पुरानो प्लानबाट अलि सस्तो नयाँ प्लानमा सर्न चाहन्छु।"}, {"id": "03-049", "text": "यो महिनाको Bill मा दोब्बर रकम कसरी आयो, बुझिनँ।"}, {"id": "03-050", "text": "घरनजिकै टावर भए पनि यहाँ नेटवर्क किन कमजोर छ?"}, {"id": "03-051", "text": "तपाईंको नम्बर अर्कै व्यक्तिको नाममा दर्ता देखिन्छ।"}, {"id": "03-052", "text": "Password बिर्सेकाले wifi मा फोन जोड्न सकिनँ।"}, {"id": "03-053", "text": "हजुर, म तपाईंलाई प्राविधिक टोलीसँग जोड्दैछु।"}, {"id": "03-054", "text": "विदेशमा भएको छोरालाई सस्तोमा फोन गर्ने उपाय के छ?"}, {"id": "03-055", "text": "डाटा प्याक आफैं renew नहोस् भन्ने मिलाइदिनुहोस्।"}, {"id": "03-056", "text": "मेरो गुनासो दिएको तीन दिन भयो, अझै कसैले हेरेन।"}, {"id": "03-057", "text": "SIM swap गर्न कुन कुन कागज लिएर जानुपर्छ?"}, {"id": "03-058", "text": "रिचार्ज कार्डको नम्बर हाल्दा error आयो।"}, {"id": "03-059", "text": "सेवा सुचारु भइसकेको छ, असुविधाका लागि क्षमा चाहन्छौं।"}, {"id": "03-060", "text": "अब फोनको सिग्नल ठीक भयो, सहयोगका लागि धन्यवाद हजुर।"}], "num": "03", "title": "Telecom and customer support", "readTime": "~6 minutes"}, {"sentences": [{"id": "04-001", "text": "कार्यक्रम पुस ५ गते शनिबार राखिएको छ।"}, {"id": "04-002", "text": "मेरो फोन नम्बर ९८०००१२३४५ हो, यसमै फोन गर्नुहोला।"}, {"id": "04-003", "text": "यो किताबको मूल्य चार सय पचास रुपैयाँ हो, तर विद्यार्थीलाई छुट छ।"}, {"id": "04-004", "text": "भोलिको बैठक बिहान साढे दस बजे सुरु हुन्छ, समयमै आउनुहोला।"}, {"id": "04-005", "text": "पोखरा जाने गाडी दिउँसो पौने तीन बजे छुट्छ।"}, {"id": "04-006", "text": "मैले जम्मा एक हजार दुई सय पचास रुपैयाँ पचास पैसा तिरेँ।"}, {"id": "04-007", "text": "उनको जन्म सन् १९९८ को मार्च महिनामा भएको थियो।"}, {"id": "04-008", "text": "थप जानकारीका लागि कृपया ९८०००५५५१२ मा सम्पर्क गर्नुहोला।"}, {"id": "04-009", "text": "हाम्रो कक्षामा बत्तीस जना विद्यार्थी छन्, जसमध्ये सत्र जना छात्रा छन्।"}, {"id": "04-010", "text": "परीक्षा २०८३ साल असार १५ गतेदेखि सुरु हुन्छ।"}, {"id": "04-011", "text": "एक किलो चामलको एक सय दस रुपैयाँ पर्छ।"}, {"id": "04-012", "text": "म रातको सवा नौ बजे मात्र घर पुगेँ।"}, {"id": "04-013", "text": "यो कोठाको भाडा महिनाको पन्ध्र हजार रुपैयाँ हो।"}, {"id": "04-014", "text": "एयरपोर्टसम्म जान ट्याक्सीले तीन सय असी रुपैयाँ माग्यो।"}, {"id": "04-015", "text": "मेरो कोठा नम्बर ३०७ हो, तेस्रो तल्लामा लिफ्टको छेउमा।"}, {"id": "04-016", "text": "यो तालिम कार्यक्रम सन् २०२७ जनवरी ३१ मा सकिन्छ।"}, {"id": "04-017", "text": "यो योजनाको बजेट जम्मा पच्चीस लाख रुपैयाँ हो।"}, {"id": "04-018", "text": "भोलि बिहान ५:४५ को alarm लगाइदेऊ, नत्र बस छुट्छ।"}, {"id": "04-019", "text": "पसलेले मलाई अझै ७५ पैसा फिर्ता दिन बाँकी छ।"}, {"id": "04-020", "text": "मेरो हजुरबुबा दुई हजार दस सालमा जन्मनुभएको हो।"}, {"id": "04-021", "text": "पसलले सत्तरी प्रतिशतसम्म छुट दिएको छ।"}, {"id": "04-022", "text": "यो चिनीको प्याकेटको तौल ५०० ग्राम छ।"}, {"id": "04-023", "text": "फारम भर्न उमेर कम्तीमा अठार वर्ष पुगेको हुनुपर्छ।"}, {"id": "04-024", "text": "हाम्रो घर सहरबाट करिब ११ किलोमिटर टाढा पहाडमा छ।"}, {"id": "04-025", "text": "उनले पसलेसँग ढाई सय ग्राम खसीको मासु मागिन्।"}, {"id": "04-026", "text": "अर्को बस चालीस मिनेटपछि मात्र आउँछ रे।"}, {"id": "04-027", "text": "मेरो भाइको उचाइ पाँच फिट सात इन्च छ।"}, {"id": "04-028", "text": "नाटक हेर्ने टिकटको मूल्य रु. ७५० मात्र हो।"}, {"id": "04-029", "text": "म हरेक महिनाको सात गतेभित्र घरभाडा तिर्छु।"}, {"id": "04-030", "text": "हाम्रो यो घर २०६५ सालमा बनेको हो।"}, {"id": "04-031", "text": "मेरो नम्बर नौ आठ शून्य शून्य शून्य, चार चार, छ दुई एक सात हो।"}, {"id": "04-032", "text": "कुल रकममा तेह्र प्रतिशत भ्याट थप्नुपर्छ।"}, {"id": "04-033", "text": "आज काठमाडौंको तापक्रम १८ डिग्री सेल्सियस छ।"}, {"id": "04-034", "text": "मैले साढे तीन लाखको मोटरसाइकल किस्तामा किनेँ।"}, {"id": "04-035", "text": "म सन् २०१९ देखि लगातार यही कम्पनीमा काम गर्दैछु।"}, {"id": "04-036", "text": "उनीहरूको बिहे २०८० फागुन ८ गते भएको थियो।"}, {"id": "04-037", "text": "बजारबाट डेढ किलो आलु र आधा किलो प्याज ल्याउनू।"}, {"id": "04-038", "text": "जम्मा बिल दुई हजार चार सय छयानब्बे रुपैयाँ भयो।"}, {"id": "04-039", "text": "पहिलो पाली बिहान छ बजेदेखि दिउँसो दुई बजेसम्म हुन्छ।"}, {"id": "04-040", "text": "ऊ पहिलो पटक म्याराथनमा बयालीस किलोमिटर दौडियो।"}, {"id": "04-041", "text": "तपाईंको टोकन नम्बर एक सय तेत्तीस हो, कृपया पर्खनुहोस्।"}, {"id": "04-042", "text": "मेरो छोरा अहिले साढे चार वर्षको भयो, अर्को वर्ष स्कुल जान्छ।"}, {"id": "04-043", "text": "यो महिना बिदा धेरै भएकाले जम्मा 22 दिन मात्र काम भयो।"}, {"id": "04-044", "text": "आजकल एक अमेरिकी डलर बराबर कति रुपैयाँ हुन्छ?"}, {"id": "04-045", "text": "टोलको भेला मंगलबार दिउँसो ठीक २ बजे बस्छ।"}, {"id": "04-046", "text": "यो पार्सल घर नम्बर १४/२ मा पठाइदिनुहोस्।"}, {"id": "04-047", "text": "हाम्रो गाउँको विद्यालय २०२२ सालमा स्थापना भएको हो।"}, {"id": "04-048", "text": "हजुरबुबा नब्बे वर्ष पुग्नुभयो, तर अझै आफैं हिँड्नुहुन्छ।"}, {"id": "04-049", "text": "२ जनवरी २०२७ मा मेरो visa को म्याद सकिन्छ।"}, {"id": "04-050", "text": "पसलमा एक दर्जन अण्डाको एक सय असी रुपैयाँ पर्छ।"}, {"id": "04-051", "text": "पसल बिहान 8 बजेदेखि बेलुका 8 बजेसम्म खुल्छ।"}, {"id": "04-052", "text": "पाँच सयको नोट साटेर सय सयका पाँचवटा नोट दिनुहोस् न।"}, {"id": "04-053", "text": "यो महिना बिजुलीको बिल ८७५ रुपैयाँ २५ पैसा आएको छ।"}, {"id": "04-054", "text": "दुई हजार उनासी सालको दसैं परिवारसँग निकै रमाइलो भयो।"}, {"id": "04-055", "text": "तपाईंको OTP ४८२९१७ हो, कसैलाई नभन्नुहोला।"}, {"id": "04-056", "text": "हामी बिहेमा एक सय बीस जना पाहुना बोलाउँदैछौं।"}, {"id": "04-057", "text": "बसको भाडा तीस रुपैयाँबाट बढेर पैंतीस पुगेको छ।"}, {"id": "04-058", "text": "मेरो जन्मदिन २०५५ साल साउन १२ गते हो।"}, {"id": "04-059", "text": "रिपोर्ट नोभेम्बर १५, २०२६ भित्र बुझाउनुपर्छ।"}, {"id": "04-060", "text": "हाम्रो टोलमा करिब तीन सय घरधुरी र दुईवटा विद्यालय छन्।"}], "num": "04", "title": "Numbers, dates, times, prices, phone numbers", "readTime": "~6 minutes"}, {"sentences": [{"id": "05-001", "text": "म भोलि बिहान सात बजे काठमाडौंबाट पोखरा जाँदैछु।"}, {"id": "05-002", "text": "कलंकीबाट बुटवल जाने बस कति बजे छुट्छ?"}, {"id": "05-003", "text": "हाम्रो घर ललितपुरको लगनखेल बसपार्कको नजिकै पर्छ।"}, {"id": "05-004", "text": "इलामको चियाबारी हेर्न हामी गत वर्ष गएका थियौं।"}, {"id": "05-005", "text": "जनकपुरबाट बसमा सिरहा पुग्न कति समय लाग्छ?"}, {"id": "05-006", "text": "गर्मीयाममा धनगढी निकै तातो हुन्छ, दिउँसो बाहिर निस्कनै सकिँदैन।"}, {"id": "05-007", "text": "जुम्लाको स्याउ सानो भए पनि निकै मीठो हुन्छ।"}, {"id": "05-008", "text": "नेपालगन्जबाट सुर्खेत जाने बाटो अहिले खुला छ कि छैन?"}, {"id": "05-009", "text": "असनबाट इन्द्रचोकसम्म हिँडेर जान पाँच मिनेट पनि लाग्दैन।"}, {"id": "05-010", "text": "लुक्लाबाट नाम्चे बजार पुग्न प्रायः दुई दिन हिँड्नुपर्छ।"}, {"id": "05-011", "text": "हामी अर्को हप्ता चितवनमा जंगल सफारी गर्न जाँदैछौं।"}, {"id": "05-012", "text": "बुटवलको ट्राफिक चोकबाट दायाँ मोडिएर सिधै जानुहोस्।"}, {"id": "05-013", "text": "कृपया मलाई बानेश्वर चोकको पुलअघि झारिदिनुहोस्।"}, {"id": "05-014", "text": "मुगुको रारा ताल पुग्ने सडक अहिले कस्तो छ?"}, {"id": "05-015", "text": "मेरो मामाघर ताप्लेजुङमा पर्छ, तर म धेरै वर्षदेखि गएको छैन।"}, {"id": "05-016", "text": "घाम लागेको दिन धुलिखेलबाट हिमालको दृश्य अति सुन्दर देखिन्छ।"}, {"id": "05-017", "text": "पाल्पाको तानसेन बजारका गल्लीहरू उकालोओरालोले भरिएका छन्।"}, {"id": "05-018", "text": "कोटेश्वरबाट airport जान taxi ले कति लिन्छ?"}, {"id": "05-019", "text": "हामी जोमसोमसम्म जिपमा गयौं र त्यहाँबाट कागबेनीसम्म हिँड्यौं।"}, {"id": "05-020", "text": "हामी भरतपुरबाट मुग्लिन हुँदै साँझसम्ममा काठमाडौं आइपुग्यौं।"}, {"id": "05-021", "text": "धरानको भानु चोक नजिकै एउटा सानो होटल छ।"}, {"id": "05-022", "text": "बर्दिया राष्ट्रिय निकुञ्जमा बाघ हेर्न धेरै पर्यटक आउँछन्।"}, {"id": "05-023", "text": "लेकसाइडको होटलमा दुई रातको booking गरेको छु।"}, {"id": "05-024", "text": "बाटोमा पहिरो गएकाले गाडी तीन घण्टा रोकियो।"}, {"id": "05-025", "text": "वीरगन्ज भन्सारमा आज बिहानदेखि ट्रकहरूको लामो लाइन थियो।"}, {"id": "05-026", "text": "कृपया भन्नुहोस्, तपाईंको ठेगानाको वडा नम्बर कति हो?"}, {"id": "05-027", "text": "मेरो ठेगाना भक्तपुर नगरपालिका, वडा नम्बर सात हो।"}, {"id": "05-028", "text": "दाङको घोराहीबाट तुलसीपुर धेरै टाढा छैन।"}, {"id": "05-029", "text": "हामी गोरखा दरबार हेर्न बिहानै उकालो चढ्यौं।"}, {"id": "05-030", "text": "Google Map ले गलत बाटो देखायो, हामी आधा घण्टा भौंतारियौं।"}, {"id": "05-031", "text": "डोल्पाको फोक्सुण्डो ताल पुग्न लामो यात्रा गर्नुपर्छ।"}, {"id": "05-032", "text": "झापाको दमकमा मेरी फुपू र फुपाजु बस्नुहुन्छ।"}, {"id": "05-033", "text": "नयाँ बसपार्कबाट ठमेल जान कुन माइक्रो चढ्ने?"}, {"id": "05-034", "text": "जाडोमा मनाङमा धेरै हिउँ पर्छ, कहिलेकाहीँ बाटो पनि बन्द हुन्छ।"}, {"id": "05-035", "text": "दाङ उपत्यका निकै समथर र हराभरा छ।"}, {"id": "05-036", "text": "सिन्धुपाल्चोकको बाटो वर्षामा अलि खतरनाक हुन्छ।"}, {"id": "05-037", "text": "चाबहिलबाट बौद्धसम्म हिँडेर पनि सजिलै जान सकिन्छ।"}, {"id": "05-038", "text": "कञ्चनपुरको महेन्द्रनगरमा मेरो साथीको सानो कपडा पसल छ।"}, {"id": "05-039", "text": "कुपण्डोलको पुल पार गरेपछि पहिलो गल्लीबाट बायाँ लाग्नुहोस्।"}, {"id": "05-040", "text": "म्याग्दीको तातोपानी कुण्डमा नुहाउन टाढाटाढाबाट मान्छे आउँछन्।"}, {"id": "05-041", "text": "दोलखाको चरिकोटबाट गौरीशंकर हिमाल देखिन्छ।"}, {"id": "05-042", "text": "सप्तरीको राजविराजमा अहिले धेरै गर्मी छ, पंखा नभई बस्नै सकिँदैन।"}, {"id": "05-043", "text": "बसपार्कको Ticket counter कुन तल्लामा छ?"}, {"id": "05-044", "text": "Flight ढिला भएकाले हामी भैरहवामै एक रात बस्यौं।"}, {"id": "05-045", "text": "बनेपाबाट धुलिखेल पुग्न गाडीमा दस मिनेट पनि लाग्दैन।"}, {"id": "05-046", "text": "मोरङको उर्लाबारीमा मेरो कलेजको साथीको घर छ।"}, {"id": "05-047", "text": "तनहुँको दमौलीमा सेती र मादी नदी मिसिन्छन्।"}, {"id": "05-048", "text": "पाटन दरबार क्षेत्र घुम्न नेपालीलाई पनि टिकट चाहिन्छ?"}, {"id": "05-049", "text": "हामीलाई सुनसरीको इटहरी चोकमा साँझ पाँच बजे भेट्नुहोला।"}, {"id": "05-050", "text": "हुम्ला जान अहिले पनि धेरैजसो हवाईजहाज चढ्नुपर्छ।"}, {"id": "05-051", "text": "न्यूरोडको पार्किङमा गाडी राख्ने ठाउँ नभेटेर हामी फर्कियौं।"}, {"id": "05-052", "text": "सराङकोटबाट सूर्योदय हेर्न हामी बिहान चार बजे उठ्यौं।"}, {"id": "05-053", "text": "कृपया आफ्नो पूरा ठेगाना र नजिकैको चिनारी भन्नुहोस्।"}, {"id": "05-054", "text": "सोलुखुम्बुको बाटोमा धेरै झोलुङ्गे पुल छन्।"}, {"id": "05-055", "text": "Hotel को location धेरै राम्रो रहेछ, ताल नजिकै।"}, {"id": "05-056", "text": "सल्यानबाट रुकुम जाने गाडी दिनको कति बजे पाइन्छ?"}, {"id": "05-057", "text": "कपिलवस्तुको तौलिहवा बजारमा आज हाटबजार लागेको छ।"}, {"id": "05-058", "text": "म बागलुङबाट बेनी हुँदै राति मात्र घर आइपुगेँ।"}, {"id": "05-059", "text": "ओखलढुंगाका केही गाउँमा अझै पनि पैदल हिँड्नुपर्छ।"}, {"id": "05-060", "text": "Trekking मा जाँदा राम्रो जुत्ता र पानीको बोतल बोक्नुहोस्।"}], "num": "05", "title": "Travel, places and addresses", "readTime": "~6 minutes"}, {"sentences": [{"id": "06-001", "text": "नयाँ नागरिकता बनाउन जिल्ला प्रशासन कार्यालयमा आफैं जानुपर्छ।"}, {"id": "06-002", "text": "पासपोर्टको फारम अनलाइन भरेर मात्र तोकिएको दिन कार्यालय जानुहोस्।"}, {"id": "06-003", "text": "नयाँ ठाउँमा सर्न वडा कार्यालयबाट बसाइँसराइको सिफारिस लिनुपर्ने भयो।"}, {"id": "06-004", "text": "डाक्टर साब, मलाई तीन दिनदेखि ज्वरो आइरहेको छ।"}, {"id": "06-005", "text": "अस्पतालमा टिकट काट्न बिहान छ बजेदेखि लाइन लाग्छ।"}, {"id": "06-006", "text": "नवजात बच्चाको जन्मदर्ता गर्न वडामा के के कागज चाहिन्छ?"}, {"id": "06-007", "text": "मेरो रगत जाँचको रिपोर्ट आज कति बजे आउँछ?"}, {"id": "06-008", "text": "यो औषधि दिनको दुई पटक खाना खाएपछि खानुहोस्।"}, {"id": "06-009", "text": "ड्राइभिङ लाइसेन्सको लिखित परीक्षा यस पटक कहिले हुन्छ?"}, {"id": "06-010", "text": "हजुरआमाको अचानक छाती दुख्यो, एम्बुलेन्स बोलाऊ।"}, {"id": "06-011", "text": "वडा कार्यालयमा कर्मचारीलाई भेट्न कति बजे आउनुपर्छ?"}, {"id": "06-012", "text": "पासपोर्ट नवीकरण गर्दा पुरानो पासपोर्ट पनि लैजानुपर्छ।"}, {"id": "06-013", "text": "Emergency मा बिरामी लैजान कुन ढोकाबाट जाने?"}, {"id": "06-014", "text": "डाक्टरले मलाई कम्तीमा एक हप्ता घरमै आराम गर्न भन्नुभयो।"}, {"id": "06-015", "text": "विवाह दर्ता गर्न दुवै जना उपस्थित हुनुपर्छ।"}, {"id": "06-016", "text": "मेरो दाँत धेरै दुख्छ, दाँतको डाक्टर कहाँ भेटिन्छ?"}, {"id": "06-017", "text": "स्वास्थ्य बीमाको कार्ड देखाएपछि औषधि सस्तोमा पाइयो।"}, {"id": "06-018", "text": "नागरिकताको प्रतिलिपि दुई प्रति र पासपोर्ट साइजको फोटो ल्याउनुहोला।"}, {"id": "06-019", "text": "मेरी छोरीलाई अर्को खोप लगाउने दिन कहिले हो?"}, {"id": "06-020", "text": "मलाई रिँगटा लाग्छ र भोक पनि लाग्दैन।"}, {"id": "06-021", "text": "मालपोत कार्यालयमा जग्गाको कागज मिलाउन गएको थिएँ।"}, {"id": "06-022", "text": "X-ray गर्न कुन कोठामा जाने, कसैले भनिदिनुहुन्छ कि?"}, {"id": "06-023", "text": "बुबाको sugar र pressure दुवै check गर्नुपर्छ।"}, {"id": "06-024", "text": "हजुर, यो फारममा कहाँ कहाँ सही गर्नुपर्छ?"}, {"id": "06-025", "text": "राष्ट्रिय परिचयपत्रका लागि औंठाछाप दिनुपर्छ।"}, {"id": "06-026", "text": "अस्पतालमा भर्ना हुन कति पैसा जम्मा गर्नुपर्छ?"}, {"id": "06-027", "text": "मेरी आमाको घुँडाको अपरेसन भोलि बिहान हुँदैछ।"}, {"id": "06-028", "text": "Report normal आयो भनेर डाक्टरले भन्नुभयो।"}, {"id": "06-029", "text": "भीडमा जाँदा र बिरामी भेट्न जाँदा मास्क लगाउन नबिर्सनू।"}, {"id": "06-030", "text": "ढाड दुखेर हिजो रातभरि निद्रा नै परेन।"}, {"id": "06-031", "text": "पासपोर्ट तयार भएपछि SMS बाट खबर आउँछ।"}, {"id": "06-032", "text": "बिरामी भेट्ने समय साँझ चार बजेदेखि छ बजेसम्म मात्र हो।"}, {"id": "06-033", "text": "सिफारिस पत्रमा वडा सचिवको सही र छाप चाहिन्छ।"}, {"id": "06-034", "text": "बच्चाको तौल उमेरअनुसार कम छ भनेर स्वास्थ्यकर्मीले भन्नुभयो।"}, {"id": "06-035", "text": "मेरो नाम नागरिकतामा गलत लेखिएको छ, कसरी सच्याउने?"}, {"id": "06-036", "text": "Appointment लिन अस्पतालको website मा जानुहोस्।"}, {"id": "06-037", "text": "चोट लागेको ठाउँमा बरफ राख्दा सुन्निन कम हुन्छ।"}, {"id": "06-038", "text": "जग्गा नामसारी गर्न मालपोतमा कति समय लाग्छ?"}, {"id": "06-039", "text": "सरकारी अस्पतालमा यो सेवा निःशुल्क हो कि होइन?"}, {"id": "06-040", "text": "डाक्टर साबले दिएको prescription कतै हराएछ, फेरि लेखिदिनुहुन्छ कि?"}, {"id": "06-041", "text": "हिजो बेलुकादेखि पेट दुखेको छ र पखाला पनि लागेको छ।"}, {"id": "06-042", "text": "खानेपानीको बिल नगरपालिकामै तिर्ने हो र?"}, {"id": "06-043", "text": "Blood donate गर्न कति उमेर पुग्नुपर्छ?"}, {"id": "06-044", "text": "कृपया लाइनमा बस्नुहोस्, तपाईंको पालो आउँदैछ।"}, {"id": "06-045", "text": "मेरी छोरीलाई रुघाखोकी लागेको छ, आज स्कुल पठाइनँ।"}, {"id": "06-046", "text": "बसाइँ सरेपछि नयाँ वडामा नाम दर्ता गराउनुपर्छ।"}, {"id": "06-047", "text": "आँखा जाँच गराउँदा चस्मा लगाउनुपर्ने भयो।"}, {"id": "06-048", "text": "घरको नक्सा पास गराउन इन्जिनियरको हस्ताक्षर चाहिन्छ।"}, {"id": "06-049", "text": "यो फार्मेसीमा यो औषधि पाइएन, अर्को ठाउँ जानुपर्छ।"}, {"id": "06-050", "text": "हजुर, यो अस्पतालको OPD बिहान कति बजे खुल्छ?"}, {"id": "06-051", "text": "पासपोर्टका लागि फोटो कार्यालयमै खिच्छन्, बाहिरबाट ल्याउनुपर्दैन।"}, {"id": "06-052", "text": "हात भाँचिएकाले एक महिना प्लास्टर लगाउनुपर्ने भयो।"}, {"id": "06-053", "text": "सामाजिक सुरक्षा भत्ता लिन वडामा नाम लेखाउनुपर्छ।"}, {"id": "06-054", "text": "डाक्टरको सल्लाहबिना एन्टिबायोटिक नखानुहोस्।"}, {"id": "06-055", "text": "मेरो बुबालाई अस्पतालमा भर्ना गरिएको छ, उहाँ ICU मा हुनुहुन्छ।"}, {"id": "06-056", "text": "गर्भवती महिलाले नजिकको स्वास्थ्य चौकीमा नियमित जाँच गराउनुपर्छ।"}, {"id": "06-057", "text": "कार्यालयमा फारम बुझाउने अन्तिम दिन कहिले हो?"}, {"id": "06-058", "text": "Online form मा फोटो upload नै हुँदैन, के गर्ने?"}, {"id": "06-059", "text": "आफ्नो स्वास्थ्यको ख्याल राख्नुहोला, धेरै पानी पिउनुहोला।"}, {"id": "06-060", "text": "कागज सबै ठीक छ, अर्को हप्ता आएर लैजानुहोला।"}], "num": "06", "title": "Health and government services", "readTime": "~6 minutes"}, {"sentences": [{"id": "07-001", "text": "म आज ट्राफिकले गर्दा meeting मा अलि late हुन्छु।"}, {"id": "07-002", "text": "Boss ले quarterly report आजै submit गर्नू भन्नुभएको छ।"}, {"id": "07-003", "text": "मेरो laptop फेरि hang भयो, restart गर्दैछु।"}, {"id": "07-004", "text": "भोलिको client presentation को slide तयार भयो कि अझै बाँकी छ?"}, {"id": "07-005", "text": "Client ले project को deadline एक हप्ता extend गरिदिए।"}, {"id": "07-006", "text": "Meeting सुरु हुनुअघि Zoom को link group मा पठाइदिनुहोस् न।"}, {"id": "07-007", "text": "आज work from home गर्दैछु, office आउँदिनँ।"}, {"id": "07-008", "text": "यो bug fix गर्न अझै दुई दिन लाग्छ जस्तो छ।"}, {"id": "07-009", "text": "HR बाट अर्को हप्ताको मेरो leave approve भयो।"}, {"id": "07-010", "text": "Excel sheet मा formula मिलेन, total गलत आयो।"}, {"id": "07-011", "text": "यो महिनाको Team lunch शुक्रबार दिउँसो राखौं न।"}, {"id": "07-012", "text": "मैले पठाएको email को reply अझै आएको छैन।"}, {"id": "07-013", "text": "बिहानदेखि Server down भएकाले website खुलेन।"}, {"id": "07-014", "text": "नयाँ intern लाई system राम्रोसँग बुझाइदिनुहोस्।"}, {"id": "07-015", "text": "मलाई यो project मा अलि बढी time चाहिन्छ।"}, {"id": "07-016", "text": "Password reset को link expire भयो, फेरि पठाइदिनुहोस्।"}, {"id": "07-017", "text": "म तपाईंलाई भोलिको लागि calendar invite पठाउँछु।"}, {"id": "07-018", "text": "कम्प्युटरमा virus पसेको जस्तो छ, सबै file खुल्न ढिलो भयो।"}, {"id": "07-019", "text": "यो महिना salary अलि ढिलो आउँछ रे।"}, {"id": "07-020", "text": "Printer मा फेरि कागज अड्कियो, कसैले हेरिदिनुहोस् न।"}, {"id": "07-021", "text": "हामीले आजको standup दस मिनेटमै सक्यौं।"}, {"id": "07-022", "text": "Code push गर्नुअघि review गराउनुपर्छ।"}, {"id": "07-023", "text": "मेरो mic mute थियो, तपाईंले सुन्नुभएन होला।"}, {"id": "07-024", "text": "Annual target पूरा गर्न अझै धेरै बाँकी छ।"}, {"id": "07-025", "text": "नयाँ software install गर्न admin permission चाहियो।"}, {"id": "07-026", "text": "Internet slow भएकाले video call बीचमै काटियो।"}, {"id": "07-027", "text": "Manager सँग performance review को कुरा भयो।"}, {"id": "07-028", "text": "यो file लाई PDF मा convert गरेर पठाउनुहोस्।"}, {"id": "07-029", "text": "हाम्रो company ले अर्को वर्ष विराटनगरमा नयाँ branch खोल्दैछ।"}, {"id": "07-030", "text": "आज office मा बत्ती गएर generator चलाउनुपर्ने भयो।"}, {"id": "07-031", "text": "Interview मा उनीहरूले मेरो experience बारे धेरै सोधे।"}, {"id": "07-032", "text": "Backup नलिई laptop format नगर्नुहोस्।"}, {"id": "07-033", "text": "धेरै सोचेपछि मैले resign गर्ने निर्णय गरेँ।"}, {"id": "07-034", "text": "आजको task list मा पाँचवटा काम छन्।"}, {"id": "07-035", "text": "Data analysis सकेपछि मात्र final decision हुन्छ।"}, {"id": "07-036", "text": "कृपया यो document मा आफ्नो comment थपिदिनुहोस्।"}, {"id": "07-037", "text": "म अहिले busy छु, पछि call back गर्छु।"}, {"id": "07-038", "text": "Training session मा सबै जना अनिवार्य उपस्थित हुनुपर्छ।"}, {"id": "07-039", "text": "Mobile app को नयाँ version भोलि release हुन्छ।"}, {"id": "07-040", "text": "Budget approve नभई purchase गर्न मिल्दैन।"}, {"id": "07-041", "text": "हामीले customer feedback अनुसार design बदल्यौं।"}, {"id": "07-042", "text": "Login गर्दा बारम्बार error message आइरह्यो।"}, {"id": "07-043", "text": "मेरो keyboard का केही key काम गर्दैनन्।"}, {"id": "07-044", "text": "आज फेरि overtime गर्नुपर्ने भयो।"}, {"id": "07-045", "text": "Sprint planning सोमबार बिहान दस बजे हुन्छ।"}, {"id": "07-046", "text": "Cloud मा सबै file sync भएको छ कि छैन, हेर्नुहोस्।"}, {"id": "07-047", "text": "नयाँ colleague त निकै helpful रहेछन्।"}, {"id": "07-048", "text": "Monthly report को draft मैले share गरिसकेँ।"}, {"id": "07-049", "text": "कार्यालयको बैठकमा आज कुनै निर्णय भएन।"}, {"id": "07-050", "text": "यो feature लाई next release मा राखौं।"}, {"id": "07-051", "text": "मेरो screen freeze भयो, केही पनि click हुँदैन।"}, {"id": "07-052", "text": "हाम्रो team मा अहिले आठ जना developer छन्।"}, {"id": "07-053", "text": "कृपया invoice को copy accounts मा पठाउनुहोस्।"}, {"id": "07-054", "text": "म भोलि sick leave लिँदैछु, ज्वरो आएको छ।"}, {"id": "07-055", "text": "Office को wifi को password के हो?"}, {"id": "07-056", "text": "AI tools चलाउँदा धेरै काम छिटो हुन्छ।"}, {"id": "07-057", "text": "हाम्रो vendor सँगको Contract renew गर्ने बेला आयो।"}, {"id": "07-058", "text": "हाम्रो office अर्को महिना नयाँ building मा सर्दैछ।"}, {"id": "07-059", "text": "उहाँ आज site visit मा जानुभएको छ।"}, {"id": "07-060", "text": "आजको काम यहीँ सकौं, भोलि fresh mind ले सुरु गरौं।"}], "num": "07", "title": "Work, tech and office talk", "readTime": "~6 minutes"}, {"sentences": [{"id": "08-001", "text": "दाइ, एक किलो गोलभेडा कति हो?"}, {"id": "08-002", "text": "आज बेलुका दाल, भात, तरकारी र अचार खाने।"}, {"id": "08-003", "text": "यो साग ताजा हो कि हिजोको?"}, {"id": "08-004", "text": "साहुजी, अलिकति घटाइदिनुहोस् न, म सधैं यहीँबाट किन्छु।"}, {"id": "08-005", "text": "मलाई दुईवटा पाउरोटी र एक प्याकेट दूध दिनुहोस्।"}, {"id": "08-006", "text": "नयाँ Supermarket मा आज सबै सामानमा discount छ रे।"}, {"id": "08-007", "text": "यो वरपर मःम खान कुन ठाउँ राम्रो छ?"}, {"id": "08-008", "text": "यो कुर्ता अलि ठूलो भयो, सानो साइज छ?"}, {"id": "08-009", "text": "सेलरोटी बनाउन मैले राति नै चामल भिजाएर राखेकी छु।"}, {"id": "08-010", "text": "तरकारी बजार बिहान सबेरै गए सस्तो पाइन्छ।"}, {"id": "08-011", "text": "Online order गरेको सामान तीन दिन भइसक्यो, अझै आएन।"}, {"id": "08-012", "text": "यो रातो स्याउ किलोको कति हो, साहुजी?"}, {"id": "08-013", "text": "आमाले बनाएको गुन्द्रुकको अचार सबैभन्दा मीठो हुन्छ।"}, {"id": "08-014", "text": "खुद्रा छैन, पाँच सयको नोट साट्न मिल्छ?"}, {"id": "08-015", "text": "ढिँडो र लोकल कुखुराको मासु खान मन लाग्यो।"}, {"id": "08-016", "text": "यो जुत्ता छालाको हो कि नक्कली?"}, {"id": "08-017", "text": "चिया पसलमा दुई कप दूध चिया र दुईवटा समोसा मगाऊ।"}, {"id": "08-018", "text": "बिल ल्याइदिनुहोस्, म card बाट तिर्छु।"}, {"id": "08-019", "text": "हामी भोलि किराना पसल गएर महिनाभरिको सामान ल्याउँछौं।"}, {"id": "08-020", "text": "नुन अलि बढी भयो, तरकारी पिरो पनि छ।"}, {"id": "08-021", "text": "दसैंको बेला कपडा पसलमा ठूलो भीड हुन्छ।"}, {"id": "08-022", "text": "घरमा तेल सकिएछ, आउँदा ल्याइदिनू।"}, {"id": "08-023", "text": "घरसम्म ल्याइदिँदा Delivery charge कति लाग्छ?"}, {"id": "08-024", "text": "यो चामल मन्सुली हो कि जीरा मसिनो?"}, {"id": "08-025", "text": "मासु पसलमा आज खसीको मासु सकिएछ।"}, {"id": "08-026", "text": "लौका, काँक्रो र भिन्डी सबै आधा आधा किलो दिनुहोस्।"}, {"id": "08-027", "text": "यो रेस्टुरेन्टको menu मा शाकाहारी खाना कम रहेछ।"}, {"id": "08-028", "text": "बच्चाहरूलाई खाजामा चाउचाउ धेरै मन पर्छ।"}, {"id": "08-029", "text": "साहुनी, यो दहीको ठेकी कतिको हो?"}, {"id": "08-030", "text": "नयाँ mall मा weekend मा निकै भीड हुन्छ।"}, {"id": "08-031", "text": "मकै पोलेर नुन र खुर्सानी हालेर खाँदा मज्जा आउँछ।"}, {"id": "08-032", "text": "सामान फिर्ता गर्न रसिद चाहिन्छ कि चाहिँदैन?"}, {"id": "08-033", "text": "हाटबजारमा गाउँका मान्छेहरू आफ्नै तरकारी बेच्न आउँछन्।"}, {"id": "08-034", "text": "मलाई कफी होइन, कालो चिया दिनुहोस्।"}, {"id": "08-035", "text": "घर लगेपछि Size मिलेन भने exchange गर्न मिल्छ?"}, {"id": "08-036", "text": "यो साडी कति पर्छ, अलि सस्तो देखाउनुहोस् न।"}, {"id": "08-037", "text": "बिहानको खाजामा च्युरा, दही र केरा खाएँ।"}, {"id": "08-038", "text": "पसले भाइले तौल गर्दा अलि कम दियो जस्तो लाग्यो।"}, {"id": "08-039", "text": "Pizza को सट्टा आज घरमै खाना बनाऔं।"}, {"id": "08-040", "text": "जाडोमा तातो सुप पिउँदा आनन्द आउँछ।"}, {"id": "08-041", "text": "घिउ शुद्ध हो भनेर कसरी थाहा पाउने?"}, {"id": "08-042", "text": "फलफूल पसलमा आज तराईबाट ताजा आँप आएको छ।"}, {"id": "08-043", "text": "एक प्लेट चाउमिन र एउटा चिसो पेय दिनुहोस्।"}, {"id": "08-044", "text": "मेरो साथीले थकाली खाना खुवायो, धेरै मीठो लाग्यो।"}, {"id": "08-045", "text": "बजार जाँदा कपडाको झोला बोक्नू, प्लास्टिक नलिनू।"}, {"id": "08-046", "text": "यो पसलमा QR बाट तिर्न मिल्छ कि नगद नै चाहिन्छ?"}, {"id": "08-047", "text": "मह शुद्ध हो भने किलोको कति हो?"}, {"id": "08-048", "text": "आज घरमा पाहुना आउने भएकाले खसीको मासु पकाउँदैछौं।"}, {"id": "08-049", "text": "यो मिठाई आजै बनेको हो कि पुरानो?"}, {"id": "08-050", "text": "जुत्ता पसलमा मेरो नापको जुत्ता भेटिएन।"}, {"id": "08-051", "text": "हतारमा Grocery list मा अण्डा थप्न बिर्सेँ।"}, {"id": "08-052", "text": "यो तरकारी organic हो भनेर कसरी विश्वास गर्ने?"}, {"id": "08-053", "text": "मेरो भाइलाई पानीपुरी असाध्यै मन पर्छ।"}, {"id": "08-054", "text": "बिहान दुईवटा अण्डा उमालेर खाएँ।"}, {"id": "08-055", "text": "भात अलि गिलो भयो, पानी धेरै भएछ।"}, {"id": "08-056", "text": "Order गरेको खाना एक घण्टा ढिलो र चिसो भएर आयो।"}, {"id": "08-057", "text": "बजारमा अदुवा र लसुनको भाउ बढेको छ।"}, {"id": "08-058", "text": "मेरा लागि चाहिँ less sugar वाला दूध चिया।"}, {"id": "08-059", "text": "यो कुर्सी र टेबलको सेट कतिमा दिनुहुन्छ?"}, {"id": "08-060", "text": "किनमेल सकियो, अब झोला बोकेर घर जाऔं।"}], "num": "08", "title": "Food, shopping and market", "readTime": "~6 minutes"}, {"sentences": [{"id": "09-001", "text": "ब्यालेन्स कति छ?"}, {"id": "09-002", "text": "अर्को।"}, {"id": "09-003", "text": "हो।"}, {"id": "09-004", "text": "होइन।"}, {"id": "09-005", "text": "फेरि भन्नुहोस्।"}, {"id": "09-006", "text": "मेरो खाताको ब्यालेन्स देखाउनुहोस्।"}, {"id": "09-007", "text": "आमालाई फोन लगाऊ।"}, {"id": "09-008", "text": "भोलि बिहान छ बजेको alarm राखिदेऊ।"}, {"id": "09-009", "text": "आज मौसम कस्तो छ?"}, {"id": "09-010", "text": "म ग्राहक सेवा प्रतिनिधिसँग कुरा गर्न चाहन्छु।"}, {"id": "09-011", "text": "पछाडि जानुहोस्।"}, {"id": "09-012", "text": "ठीक छ, धन्यवाद।"}, {"id": "09-013", "text": "एकछिन पर्खनुहोस्।"}, {"id": "09-014", "text": "Volume अलि बढाइदेऊ।"}, {"id": "09-015", "text": "पुरानो नेपाली गीत play गरिदेऊ।"}, {"id": "09-016", "text": "कसलाई पैसा पठाउने?"}, {"id": "09-017", "text": "पाँच सय रुपैयाँ पठाउनुहोस्।"}, {"id": "09-018", "text": "पुष्टि गर्नुहोस्।"}, {"id": "09-019", "text": "रद्द गर्नुहोस्।"}, {"id": "09-020", "text": "Main menu मा फर्कनुहोस्।"}, {"id": "09-021", "text": "मलाई data pack किन्नु छ।"}, {"id": "09-022", "text": "नजिकको ATM कहाँ छ?"}, {"id": "09-023", "text": "अहिले कति बज्यो?"}, {"id": "09-024", "text": "बत्ती निभाइदेऊ।"}, {"id": "09-025", "text": "मेरो पछिल्लो कारोबार देखाऊ।"}, {"id": "09-026", "text": "हजुर, बुझेँ।"}, {"id": "09-027", "text": "अहँ, त्यो होइन।"}, {"id": "09-028", "text": "हो, त्यही हो।"}, {"id": "09-029", "text": "तीन।"}, {"id": "09-030", "text": "शून्य थिचेँ भने के हुन्छ?"}, {"id": "09-031", "text": "म पछि फोन गर्छु।"}, {"id": "09-032", "text": "Bluetooth on गरिदेऊ।"}, {"id": "09-033", "text": "मेरो नाम रोशन श्रेष्ठ हो।"}, {"id": "09-034", "text": "काठमाडौं जाने बसको टिकट बुक गर्नु छ।"}, {"id": "09-035", "text": "मलाई नेपालीमा कुरा गर्नु छ।"}, {"id": "09-036", "text": "English मा होइन, नेपालीमै भन्नुहोस्।"}, {"id": "09-037", "text": "बिजुलीको बिल तिर्नु छ।"}, {"id": "09-038", "text": "मेरो गुनासो कहाँ पुग्यो?"}, {"id": "09-039", "text": "TV बन्द गर।"}, {"id": "09-040", "text": "Message पढेर सुनाऊ।"}, {"id": "09-041", "text": "सुनितालाई म आइपुगेँ भनेर पठाइदेऊ।"}, {"id": "09-042", "text": "पर्खनुहोस्, म नम्बर खोज्दैछु।"}, {"id": "09-043", "text": "अघिल्लो।"}, {"id": "09-044", "text": "रोक।"}, {"id": "09-045", "text": "सुरुदेखि फेरि बजाऊ।"}, {"id": "09-046", "text": "मैले बुझिनँ, अलि बिस्तारै भन्नुहोस् न।"}, {"id": "09-047", "text": "Wifi को password के हो?"}, {"id": "09-048", "text": "भोलि पानी पर्छ कि पर्दैन?"}, {"id": "09-049", "text": "नजिकैको pharmacy खोजिदेऊ।"}, {"id": "09-050", "text": "हजुर, ठीक छ।"}, {"id": "09-051", "text": "अँ।"}, {"id": "09-052", "text": "नाइँ, पर्दैन।"}, {"id": "09-053", "text": "मेरो recharge history देखाऊ।"}, {"id": "09-054", "text": "Loan को किस्ता कति बाँकी छ?"}, {"id": "09-055", "text": "आजका मुख्य समाचार सुनाऊ।"}, {"id": "09-056", "text": "दस मिनेटको timer राखिदेऊ।"}, {"id": "09-057", "text": "घर जाने बाटो देखाऊ।"}, {"id": "09-058", "text": "सबै ठीक छ।"}, {"id": "09-059", "text": "अरू केही चाहिँदैन।"}, {"id": "09-060", "text": "Call end गर्नुहोस्।"}], "num": "09", "title": "Questions, commands and short replies", "readTime": "~4 minutes"}, {"sentences": [{"id": "10-001", "text": "अनि हजुर, म भन्दै थिएँ नि, हिजो बजार जाँदा अचानक पानी पर्न थाल्यो।"}, {"id": "10-002", "text": "त्यसो भए, भोलि बिहानै निस्कौं, होइन त?"}, {"id": "10-003", "text": "हजुर, म बुझ्दै छु, तर अलि प्रस्ट गरेर भन्नुहुन्छ कि?"}, {"id": "10-004", "text": "के भन्ने खै, यो महिना त खर्च यति धेरै भयो कि बचत नै भएन।"}, {"id": "10-005", "text": "अँ, त्यो त ठीकै हो, तर मलाई अझै अलिकति शंका लागिरहेको छ।"}, {"id": "10-006", "text": "हेर्नुस् न, म त समयमै आइपुगेँ, तर बस छुटिसकेको रहेछ।"}, {"id": "10-007", "text": "अनि उसले के भन्यो भने, अबदेखि यस्तो हुँदैन रे।"}, {"id": "10-008", "text": "ए साथी, थाहा छ, हाम्रो पुरानो स्कुलको चौरमा अहिले त घर बनेछ।"}, {"id": "10-009", "text": "खै, मलाई त लाग्छ, यो काम अर्को हप्तासम्म पनि सकिँदैन जस्तो छ।"}, {"id": "10-010", "text": "Actually, म त्यो दिन आउन खोजेको थिएँ, तर घरमा अचानक काम आइलाग्यो।"}, {"id": "10-011", "text": "त्यसो भए हजुर, म तपाईंलाई साँझतिर फेरि फोन गर्छु है।"}, {"id": "10-012", "text": "यार, आज त traffic यति धेरै थियो कि घर पुग्न एक घण्टा लाग्यो।"}, {"id": "10-013", "text": "अनि पछि हामी सबै मिलेर दिदीको घरमा खाना खान गयौं, त्यहाँ भिनाजुले आफैं मासु पकाउनुभएको थियो, धेरै रमाइलो भयो।"}, {"id": "10-014", "text": "हजुर, तपाईंले भनेजस्तै गरेँ, तर फेरि पनि त्यही error आइरह्यो।"}, {"id": "10-015", "text": "त्यो कुरा त मैले पहिल्यै भनेको थिएँ नि, कसैले सुनेनन्।"}, {"id": "10-016", "text": "के गर्ने त, जीवन यस्तै रहेछ, कहिले सजिलो, कहिले गाह्रो।"}, {"id": "10-017", "text": "ल ल, ठीक छ, तिमी पहिले खाना खाऊ, अनि कुरा गरौंला।"}, {"id": "10-018", "text": "हैन, मैले भन्न खोजेको के भने, हामीले अलि पहिले नै plan बनाउनुपर्थ्यो।"}, {"id": "10-019", "text": "अँ, मेरो भाइ पनि त्यही कलेजमा पढ्छ, तर ऊ अलि पछिको batch मा छ।"}, {"id": "10-020", "text": "हजुर, म अहिले बाटोमा छु, अलि पछि मात्र कुरा गर्न सक्छु होला।"}, {"id": "10-021", "text": "Basically, हामीलाई चाहिएको भनेको सस्तो र भरपर्दो सेवा हो।"}, {"id": "10-022", "text": "अनि त्यो दिन के भयो थाहा छ? हामी बाटो बिराएर अर्कै गाउँ पुग्यौं।"}, {"id": "10-023", "text": "खै, मलाई त्यति थाहा छैन, तर सायद अर्को महिनादेखि नियम फेरिन्छ रे।"}, {"id": "10-024", "text": "त्यसो भए, तपाईं आउँदा कागजपत्र सबै बोकेर आउनुहोला, नत्र फेरि फर्किनुपर्छ।"}, {"id": "10-025", "text": "Seriously, मैले यस्तो मीठो मःम पहिले कहिल्यै खाएको थिइनँ।"}, {"id": "10-026", "text": "हजुर हजुर, म सुन्दै छु, भन्नुहोस्।"}, {"id": "10-027", "text": "अनि अन्त्यमा, धेरै छलफलपछि सबै जना एउटै निर्णयमा पुग्यौं।"}, {"id": "10-028", "text": "म त भन्छु, एकपटक ठूली दिदीलाई सोधौं, उहाँले राम्रो सल्लाह दिनुहुन्छ।"}, {"id": "10-029", "text": "के रे, उसले job छोड्यो रे? मैले त थाहै पाइनँ।"}, {"id": "10-030", "text": "हेर, यसरी ढिलो गर्नु हुँदैन भनेर तिमीलाई कति पटक भनेँ।"}, {"id": "10-031", "text": "अनि हजुरको स्वास्थ्य अहिले कस्तो छ, अलि सन्चो भयो कि?"}, {"id": "10-032", "text": "ओहो, कति लामो समयपछि भेट भयो, तपाईं त अलि दुब्लाउनुभएछ।"}, {"id": "10-033", "text": "त्यसो भए यो कुरा यहीँ टुंग्याऔं, बाँकी भोलि कुरा गरौंला।"}, {"id": "10-034", "text": "अँ, मैले online मा हेरेँ, तर price त निकै महँगो रहेछ।"}, {"id": "10-035", "text": "खै, के भनूँ, कहिलेकाहीँ त सबै छोडेर गाउँ फर्कूँ जस्तो लाग्छ।"}, {"id": "10-036", "text": "हजुर, माफ गर्नुहोला, मैले तपाईंको कुरा राम्ररी सुनिनँ, फेरि भन्नुहुन्छ कि?"}, {"id": "10-037", "text": "अनि सानो छँदा हामी खोलामा माछा मार्न जान्थ्यौं, ती दिन त बेग्लै थिए।"}, {"id": "10-038", "text": "यार, Monday आउनै लाग्यो, weekend कसरी बित्यो पत्तै भएन।"}, {"id": "10-039", "text": "त्यसो होइन, म के भन्दैछु भने हामीसँग अझै समय छ।"}, {"id": "10-040", "text": "अनि बुबाले भन्नुभयो, पढाइ सकेपछि मात्र काम खोज्नू।"}, {"id": "10-041", "text": "OK, त्यसो भए म अहिले नै booking गरिदिन्छु, तपाईं confirm गर्नुहोस्।"}, {"id": "10-042", "text": "हजुर, नमस्कार, म कृष्ण बोल्दैछु, सरिता दिदी बोल्नुभएको हो?"}, {"id": "10-043", "text": "एकछिन है, म charger खोजेर आउँछु, phone मर्न लाग्यो।"}, {"id": "10-044", "text": "अनि त्यसपछि हामी चिया पसलमा बसेर पुराना साथीहरूको कुरा गर्दै झन्डै दुई घण्टा बस्यौं, समय गएको पत्तै भएन।"}, {"id": "10-045", "text": "के गर्नु, पैसा त छ, तर घुम्न जाने समय नै छैन।"}, {"id": "10-046", "text": "Honestly भन्नुपर्दा, मलाई त्यो फिल्म त्यति मन परेन।"}, {"id": "10-047", "text": "ए बाबु, बिस्तारै हिँड, बाटो चिप्लो छ।"}, {"id": "10-048", "text": "हजुर, हामी आउँदै छौं, अब दस मिनेटमा आइपुग्छौं होला।"}, {"id": "10-049", "text": "अनि मेरी भान्जीले पनि यस वर्ष SEE दिँदैछे, अलि tension मा छे।"}, {"id": "10-050", "text": "त्यसो भए, अर्को पटक आउँदा मेरो घरमा पनि आउनुपर्छ है।"}, {"id": "10-051", "text": "हैन, म त भन्दै थिएँ कि अब नयाँ कोठा खोजौं, किनभने पुरानोमा घरबेटीले यो वर्ष फेरि भाडा बढाउनुभयो, अनि पानी पनि राम्रोसँग आउँदैन।"}, {"id": "10-052", "text": "अनि पसलेले भन्यो, यो त अन्तिम पिस हो, अब आउँदैन रे।"}, {"id": "10-053", "text": "Anyway, जे भयो भयो, अब अगाडि के गर्ने भन्ने सोचौं।"}, {"id": "10-054", "text": "हजुर, मलाई पनि त्यस्तै लाग्छ, तर एक पटक बुबासँग सल्लाह गरौं।"}, {"id": "10-055", "text": "के रे? भोलि बिदा हो रे? मलाई त कसैले भनेनन्।"}, {"id": "10-056", "text": "अनि, अहिले के गर्दै हुनुहुन्छ, खाना खानुभयो?"}, {"id": "10-057", "text": "यार, त्यो group मा सबै जना एकैचोटि बोल्छन्, केही बुझिँदैन।"}, {"id": "10-058", "text": "त्यसो भए आजलाई यत्ति, भोलि फेरि भेटौंला, ख्याल गर्नू है।"}, {"id": "10-059", "text": "अँ, म पनि सोच्दै थिएँ, यो पटक छुट्टीमा कतै टाढा घुम्न जाऊँ कि।"}, {"id": "10-060", "text": "हजुर, समय दिनुभएकोमा धेरै धेरै धन्यवाद।"}], "num": "10", "title": "Longer conversational sentences", "readTime": "~8 minutes"}];
+const SPEAKERS = ["s01", "s02", "s03", "s04", "s05", "s06", "s07", "s08"];
+const DEV_DIGITS = "०१२३४५६७८९";
+const toDev = (n) => String(n).replace(/[0-9]/g, (d) => DEV_DIGITS[d]);
+const $ = (id) => document.getElementById(id);
+
+const state = {
+  speaker: "s01",
+  cond: "quiet",
+  part: 0,
+  index: 0,
+  progress: {},   // key -> Set of done ids
+  consent: {},    // speaker -> bool
+  flags: [],      // [{id, utt, speaker, note, at}]
+  flagOpen: false,
+};
+
+const progressKey = (speaker, cond, partIdx) => `${speaker}_${cond}_part${PARTS[partIdx].num}`;
+const doneSet = (partIdx = state.part) => state.progress[progressKey(state.speaker, state.cond, partIdx)] || new Set();
+const currentPart = () => PARTS[state.part];
+const currentSentence = () => currentPart().sentences[state.index];
+
+// Storage: the artifact db when available (Claude can read flags from it), otherwise this browser only.
+const store = {
+  db: null,
+  mode: "local",
+  writeChain: Promise.resolve(),
+  local(key, value) {
+    try {
+      if (value === undefined) return JSON.parse(localStorage.getItem("boli-desk:" + key) || "null");
+      localStorage.setItem("boli-desk:" + key, JSON.stringify(value));
+    } catch { return null; }
+  },
+  write(fn) {
+    this.writeChain = this.writeChain.then(fn).catch((e) => {
+      console.error(e);
+      toast(e && e.code === "invalid_argument" ? "You can view this desk but not save to it." : "Could not save. Try again in a moment.");
+    });
+    return this.writeChain;
+  },
+};
+
+async function saveProgress(partIdx) {
+  const key = progressKey(state.speaker, state.cond, partIdx);
+  const done = [...(state.progress[key] || new Set())].sort();
+  if (store.mode === "db") {
+    await store.write(() => store.db.doc("progress/" + key).set({ speaker: state.speaker, condition: state.cond, part: PARTS[partIdx].num, done, updatedAt: new Date().toISOString() }));
+  } else {
+    const all = store.local("progress") || {};
+    all[key] = done;
+    store.local("progress", all);
+  }
+}
+
+async function saveConsent(speaker, value) {
+  if (store.mode === "db") {
+    await store.write(() => store.db.doc("speakers/" + speaker).set({ consentSigned: value, updatedAt: new Date().toISOString() }));
+  } else {
+    const all = store.local("consent") || {};
+    all[speaker] = value;
+    store.local("consent", all);
+  }
+}
+
+async function addFlag(note) {
+  const s = currentSentence();
+  const flag = { utt: s.id, speaker: state.speaker, condition: state.cond, text: s.text, note, at: new Date().toISOString() };
+  if (store.mode === "db") {
+    await store.write(() => store.db.collection("flags").add(flag));
+  } else {
+    flag.id = s.id + "_" + Date.now();
+    state.flags.push(flag);
+    store.local("flags", state.flags);
+    renderFlags();
+    render();
+  }
+}
+
+async function removeFlag(id) {
+  if (store.mode === "db") {
+    await store.write(() => store.db.doc("flags/" + id).delete());
+  } else {
+    state.flags = state.flags.filter((f) => f.id !== id);
+    store.local("flags", state.flags);
+    renderFlags();
+    render();
+  }
+}
+
+function loadLocal() {
+  const p = store.local("progress") || {};
+  for (const [k, ids] of Object.entries(p)) state.progress[k] = new Set(ids);
+  state.consent = store.local("consent") || {};
+  state.flags = store.local("flags") || [];
+  const ui = store.local("ui");
+  if (ui) Object.assign(state, { speaker: ui.speaker || "s01", cond: ui.cond || "quiet", part: ui.part || 0, index: ui.index || 0 });
+}
+
+function rememberUi() {
+  store.local("ui", { speaker: state.speaker, cond: state.cond, part: state.part, index: state.index });
+}
+
+async function connect() {
+  let db = null;
+  try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch { db = null; }
+  if (!db) {
+    setStatus("local", "Saved in this browser only");
+    return;
+  }
+  store.db = db;
+  store.mode = "db";
+  setStatus("live", "Progress and flags saved to the desk");
+  const fail = (e) => { console.error(e); setStatus("local", "Live sync stopped. Reload the page."); };
+  db.collection("progress").onSnapshot((snap) => {
+    const next = {};
+    snap.docs.forEach((d) => { next[d.id] = new Set((d.data() || {}).done || []); });
+    state.progress = next;
+    render();
+  }, fail);
+  db.collection("speakers").onSnapshot((snap) => {
+    const next = {};
+    snap.docs.forEach((d) => { next[d.id] = !!(d.data() || {}).consentSigned; });
+    state.consent = next;
+    render();
+  }, fail);
+  db.collection("flags").onSnapshot((snap) => {
+    state.flags = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    renderFlags();
+    render();
+  }, fail);
+}
+
+function setStatus(kind, text) {
+  $("statusDot").className = "dot " + kind;
+  $("statusText").textContent = text;
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+function highlightLatin(text) {
+  const frag = document.createDocumentFragment();
+  text.split(/([A-Za-z][A-Za-z0-9'&.\-]*(?:\s+[A-Za-z][A-Za-z0-9'&.\-]*)*)/).forEach((chunk, i) => {
+    if (!chunk) return;
+    if (i % 2 === 1) {
+      const span = document.createElement("span");
+      span.className = "latin";
+      span.lang = "en";
+      span.textContent = chunk;
+      frag.appendChild(span);
+    } else {
+      frag.appendChild(document.createTextNode(chunk));
+    }
+  });
+  return frag;
+}
+
+function render() {
+  const part = currentPart();
+  const s = currentSentence();
+  const done = doneSet();
+  const consented = !!state.consent[state.speaker];
+
+  $("uid").textContent = s.id;
+  $("cue").textContent = toDev(parseInt(s.id.slice(3), 10));
+  const sentenceEl = $("sentence");
+  sentenceEl.replaceChildren(highlightLatin(s.text));
+  const nxt = part.sentences[state.index + 1];
+  $("next").textContent = nxt ? `${nxt.id}  ${nxt.text}` : "End of this part. Stop the recorder and save the file.";
+
+  const flagged = state.flags.some((f) => f.utt === s.id);
+  const badge = $("badge");
+  if (flagged) { badge.className = "badge flagged"; badge.textContent = "Flagged"; }
+  else if (done.has(s.id)) { badge.className = "badge done"; badge.textContent = "Read"; }
+  else { badge.className = "badge todo"; badge.textContent = "Not read yet"; }
+
+  $("partName").textContent = `Part ${part.num} · ${part.title}`;
+  $("partCount").textContent = `${done.size} / ${part.sentences.length} read`;
+  $("partBar").style.width = (100 * done.size / part.sentences.length) + "%";
+
+  $("consent").checked = consented;
+  $("consentBox").classList.toggle("ok", consented);
+  $("consentText").replaceChildren();
+  $("consentText").append(...(consented
+    ? [`Consent recorded for ${state.speaker}.`]
+    : ["This speaker has read and signed ", Object.assign(document.createElement("b"), { textContent: "CONSENT.md" }), ". Recording stays locked until this is ticked."]));
+  $("done").disabled = !consented;
+  $("back").disabled = state.index === 0;
+  $("filename").textContent = `part${part.num}_${state.speaker}_${state.cond}.wav`;
+  document.querySelectorAll("#conditions button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.cond === state.cond)));
+  $("speaker").value = state.speaker;
+
+  const existing = state.flags.filter((f) => f.utt === s.id);
+  $("existingFlags").replaceChildren(...existing.map((f) => {
+    const div = document.createElement("div");
+    div.textContent = `Already flagged by ${f.speaker}: ${f.note}`;
+    return div;
+  }));
+
+  renderParts();
+  renderList();
+  rememberUi();
+}
+
+function renderParts() {
+  $("tab-parts").replaceChildren(...PARTS.map((p, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "part";
+    b.setAttribute("aria-current", String(i === state.part));
+    const n = doneSet(i).size;
+    const num = document.createElement("span"); num.className = "num"; num.textContent = `Part ${p.num} · ${p.readTime}`;
+    const ttl = document.createElement("span"); ttl.className = "ttl"; ttl.textContent = p.title;
+    const cnt = document.createElement("span"); cnt.className = "cnt"; cnt.textContent = `${n} / ${p.sentences.length} read`;
+    const bar = document.createElement("div"); bar.className = "bar";
+    const fill = document.createElement("i"); fill.style.width = (100 * n / p.sentences.length) + "%"; bar.appendChild(fill);
+    b.append(num, ttl, cnt, bar);
+    b.addEventListener("click", () => {
+      state.part = i;
+      const d = doneSet(i);
+      const firstTodo = p.sentences.findIndex((s) => !d.has(s.id));
+      state.index = firstTodo === -1 ? 0 : firstTodo;
+      closeFlag();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    return b;
+  }));
+}
+
+function renderList() {
+  const part = currentPart();
+  const done = doneSet();
+  $("listRows").replaceChildren(...part.sentences.map((s, i) => {
+    const tr = document.createElement("tr");
+    const id = document.createElement("td"); id.className = "mono"; id.textContent = s.id;
+    const tx = document.createElement("td"); tx.lang = "ne"; tx.textContent = s.text;
+    const st = document.createElement("td");
+    const flagged = state.flags.some((f) => f.utt === s.id);
+    const badge = document.createElement("span");
+    badge.className = "badge " + (flagged ? "flagged" : done.has(s.id) ? "done" : "todo");
+    badge.textContent = flagged ? "Flagged" : done.has(s.id) ? "Read" : "To do";
+    st.appendChild(badge);
+    tr.append(id, tx, st);
+    tr.style.cursor = "pointer";
+    tr.addEventListener("click", () => { state.index = i; closeFlag(); render(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+    return tr;
+  }));
+}
+
+function renderFlags() {
+  $("flagCount").textContent = state.flags.length ? `(${state.flags.length})` : "";
+  const rows = [...state.flags].sort((a, b) => a.utt.localeCompare(b.utt));
+  if (!rows.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 5; td.className = "empty";
+    td.textContent = "No flagged sentences yet. Press F on any sentence that sounds unnatural.";
+    tr.appendChild(td);
+    $("flagRows").replaceChildren(tr);
+    return;
+  }
+  $("flagRows").replaceChildren(...rows.map((f) => {
+    const tr = document.createElement("tr");
+    const cells = [[f.utt, "mono"], [f.text, ""], [f.note, ""], [f.speaker, "mono"]];
+    cells.forEach(([v, cls]) => { const td = document.createElement("td"); td.textContent = v || ""; if (cls) td.className = cls; td.lang = cls ? "en" : "ne"; tr.appendChild(td); });
+    const td = document.createElement("td");
+    const del = document.createElement("button");
+    del.type = "button"; del.className = "btn small"; del.textContent = "Remove";
+    del.addEventListener("click", () => removeFlag(f.id));
+    td.appendChild(del);
+    tr.appendChild(td);
+    return tr;
+  }));
+}
+
+async function markDoneAndNext() {
+  if (!state.consent[state.speaker]) { toast("Tick the consent box first."); return; }
+  const s = currentSentence();
+  const key = progressKey(state.speaker, state.cond, state.part);
+  if (!state.progress[key]) state.progress[key] = new Set();
+  const changed = !state.progress[key].has(s.id);
+  state.progress[key].add(s.id);
+  const partIdx = state.part;
+  if (state.index < currentPart().sentences.length - 1) state.index += 1;
+  else toast("Part finished. Stop the recorder and save the file.");
+  closeFlag();
+  render();
+  if (changed) saveProgress(partIdx);
+}
+
+function back() {
+  if (state.index > 0) { state.index -= 1; closeFlag(); render(); }
+}
+
+function openFlag() {
+  state.flagOpen = true;
+  $("flagbox").hidden = false;
+  $("flagNote").value = "";
+  $("flagNote").focus();
+}
+function closeFlag() {
+  state.flagOpen = false;
+  $("flagbox").hidden = true;
+}
+
+$("speaker").replaceChildren(...SPEAKERS.map((s) => Object.assign(document.createElement("option"), { value: s, textContent: s })));
+$("speaker").addEventListener("change", (e) => { state.speaker = e.target.value; render(); });
+document.querySelectorAll("#conditions button").forEach((b) => b.addEventListener("click", () => { state.cond = b.dataset.cond; render(); }));
+$("consent").addEventListener("change", (e) => {
+  state.consent[state.speaker] = e.target.checked;
+  render();
+  saveConsent(state.speaker, e.target.checked);
+});
+$("copyName").addEventListener("click", async () => {
+  const text = $("filename").textContent;
+  try { await navigator.clipboard.writeText(text); toast("File name copied"); }
+  catch {
+    const r = document.createRange(); r.selectNodeContents($("filename"));
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    toast("Selected. Press Cmd+C to copy.");
+  }
+});
+$("done").addEventListener("click", markDoneAndNext);
+$("back").addEventListener("click", back);
+$("flag").addEventListener("click", () => (state.flagOpen ? closeFlag() : openFlag()));
+$("cancelFlag").addEventListener("click", closeFlag);
+$("saveFlag").addEventListener("click", async () => {
+  const note = $("flagNote").value.trim();
+  if (!note) { toast("Write what sounds wrong first."); return; }
+  closeFlag();
+  await addFlag(note);
+  toast("Flag saved");
+});
+document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+  ["parts", "flags", "list"].forEach((t) => { $("tab-" + t).hidden = t !== b.dataset.tab; });
+}));
+document.addEventListener("keydown", (e) => {
+  const typing = ["TEXTAREA", "INPUT", "SELECT"].includes(document.activeElement && document.activeElement.tagName);
+  if (typing) { if (e.key === "Escape") closeFlag(); return; }
+  if (e.key === " " || e.key === "ArrowRight") { e.preventDefault(); markDoneAndNext(); }
+  else if (e.key === "ArrowLeft") { e.preventDefault(); back(); }
+  else if (e.key === "f" || e.key === "F") { e.preventDefault(); state.flagOpen ? closeFlag() : openFlag(); }
+});
+
+loadLocal();
+if (state.part >= PARTS.length) state.part = 0;
+if (state.index >= currentPart().sentences.length) state.index = 0;
+renderFlags();
+render();
+connect();
+</script>

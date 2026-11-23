@@ -1,0 +1,14 @@
+{
+  "name": "boli-client-example",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Calls the Boli API with an API key, using the OpenAI SDK",
+  "type": "module",
+  "scripts": {
+    "quickstart": "node --env-file-if-exists=.env quickstart.mjs",
+    "stream": "node --env-file-if-exists=.env stream.mjs"
+  },
+  "dependencies": {
+    "openai": "^4.104.0"
+  }
+}

@@ -1,5 +1,11 @@
 # AI - the layer and the AI page
 
+> **Out of date for Boli (2026-11-24).** This describes the base's Claude-powered AI page. In Boli the chat is **Kura**
+> (`/kura`) and runs only on our own open model `boli-chat` via llama-server (`packages/ai/src/boli.ts`,
+> `apps/main/app/api/ai/chat/route.ts`); the public API is `/v1/*` (`apps/main/app/api/v1/[...path]/route.ts`).
+> See `plan/main/platform/platform-v0.md` and `docs/inference/07-api-keys-and-gateway.md`. Rewrite this file after v0.
+
+
 Rules (cost, the page, cards): [`AGENTS.md` section 12](../AGENTS.md#12-ai). This file maps them to code.
 
 ## `@repo/ai` (`packages/ai/src/`)

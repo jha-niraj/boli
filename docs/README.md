@@ -74,6 +74,7 @@ Per-app rules: [`apps/main/CLAUDE.md`](../apps/main/CLAUDE.md), [`apps/admin/CLA
 | Legal text | `packages/legal/src/documents.ts`; page `apps/main/app/(legal)/` |
 | The reference list module | `apps/main/app/(main)/notes/` + `actions/notes.action.ts` + `lib/notes.ts` + `schemas/notes.ts` + `types/notes.ts` |
 | Plans | `plan/INDEX.md`, `plan/TEMPLATE.md`, `plan/README.md` |
+| Self-hosting an open model (playbook an agent can follow) | `docs/inference/README.md` |
 
 ## First commands
 
