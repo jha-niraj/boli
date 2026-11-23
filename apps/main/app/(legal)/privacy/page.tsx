@@ -6,6 +6,7 @@ const meta = listLegalDocuments().find((d) => d.slug === 'privacy')
 
 export const metadata: Metadata = {
     title: meta?.title ?? 'Privacy Policy',
+    alternates: { canonical: '/privacy' },
     description: meta?.summary,
 }
 

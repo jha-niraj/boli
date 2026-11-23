@@ -6,6 +6,7 @@ const meta = listLegalDocuments().find((d) => d.slug === 'terms')
 
 export const metadata: Metadata = {
     title: meta?.title ?? 'Terms of Service',
+    alternates: { canonical: '/terms' },
     description: meta?.summary,
 }
 

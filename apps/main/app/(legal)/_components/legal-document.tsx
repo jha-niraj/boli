@@ -1,28 +1,51 @@
-// Renders one @repo/legal document: neutral, readable, max-w-3xl. Server component (react-markdown renders on the
-// server; no client JS beyond the links).
+// Renders one @repo/legal document in the public reading layout: Instrument Serif title, a table of contents on wide
+// screens, readable body type. Server component (react-markdown renders on the server; no client JS).
+import { Children, isValidElement, type ReactNode } from 'react'
 import ReactMarkdown, { type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { AppLink } from '@repo/ui/components/app-link'
 import { SITE } from '@repo/core/site'
 import { getLegalDocument, listLegalDocuments, type LegalContext, type LegalDocumentSlug } from '@repo/legal/documents'
+import { Ornament } from '@/components/brand/ornament'
+import { BRAND, RATE_LIMIT_PER_MIN, WELCOME_CREDITS } from '@/lib/boli'
 
-/** Replace before launch: the address people write to about terms and privacy, and the operating company. */
+/** The operator and address are placeholders in lib/boli.ts (BRAND) until the owner gives them (plan Q13). */
 export const LEGAL_CONTEXT: LegalContext = {
     productName: SITE.name,
     siteUrl: SITE.url,
-    contactEmail: 'legal@example.com',
-    companyName: undefined,
+    contactEmail: BRAND.contactEmail,
+    companyName: BRAND.legalEntity,
+    platform: { welcomeCredits: WELCOME_CREDITS, rateLimitPerMin: RATE_LIMIT_PER_MIN, paymentMethods: 'eSewa or Khalti' },
+}
+
+function textOf(node: ReactNode): string {
+    return Children.toArray(node)
+        .map((c) => (typeof c === 'string' || typeof c === 'number' ? String(c) : isValidElement<{ children?: ReactNode }>(c) ? textOf(c.props.children) : ''))
+        .join('')
+}
+
+function slugify(text: string): string {
+    return text
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
 }
 
 const components: Components = {
-    h2: ({ children }) => <h2 className="mt-8 text-base font-semibold text-neutral-900 dark:text-neutral-100">{children}</h2>,
-    h3: ({ children }) => <h3 className="mt-6 text-sm font-semibold text-neutral-900 dark:text-neutral-100">{children}</h3>,
-    p: ({ children }) => <p className="mt-3 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">{children}</p>,
-    ul: ({ children }) => <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">{children}</ul>,
-    ol: ({ children }) => <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">{children}</ol>,
-    strong: ({ children }) => <strong className="font-semibold text-neutral-900 dark:text-neutral-100">{children}</strong>,
+    h2: ({ children }) => (
+        <h2 id={slugify(textOf(children))} className="mt-12 scroll-mt-24 font-serif text-3xl leading-tight tracking-tight text-boli-ink">
+            {children}
+        </h2>
+    ),
+    h3: ({ children }) => <h3 className="mt-8 text-base font-semibold text-boli-ink">{children}</h3>,
+    p: ({ children }) => <p className="mt-4 text-base leading-7 text-boli-text">{children}</p>,
+    ul: ({ children }) => <ul className="mt-4 list-disc space-y-2 pl-6 text-base leading-7 text-boli-text marker:text-boli-muted">{children}</ul>,
+    ol: ({ children }) => <ol className="mt-4 list-decimal space-y-2 pl-6 text-base leading-7 text-boli-text">{children}</ol>,
+    strong: ({ children }) => <strong className="font-semibold text-boli-ink">{children}</strong>,
     a: ({ href, children }) => (
-        <a href={href} className="cursor-pointer text-neutral-900 underline underline-offset-2 dark:text-neutral-100">{children}</a>
+        <a href={href} className="cursor-pointer text-boli-blue underline underline-offset-2">
+            {children}
+        </a>
     ),
 }
 
@@ -33,35 +56,61 @@ function formatDate(iso: string): string {
 export function LegalDocumentPage({ slug }: { slug: LegalDocumentSlug }) {
     const doc = getLegalDocument(slug, LEGAL_CONTEXT)
     const others = listLegalDocuments().filter((d) => d.slug !== slug)
+    const toc = doc.markdown
+        .split('\n')
+        .filter((l) => l.startsWith('## '))
+        .map((l) => {
+            const title = l.slice(3).trim()
+            return { title, id: slugify(title) }
+        })
     return (
-        <main className="min-h-dvh bg-white dark:bg-[#121314]">
-            <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:py-16">
-                <AppLink href="/" className="cursor-pointer text-xs text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100">
-                    Back to {SITE.name}
-                </AppLink>
-                <h1 className="mt-6 text-xl font-semibold text-neutral-900 dark:text-neutral-100">{doc.title}</h1>
-                <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">
-                    Effective {formatDate(doc.effectiveDate)} - version {doc.version}
-                </p>
-                {doc.template ? (
-                    <p className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300">
-                        <strong className="font-semibold">Template text.</strong> Replace this document with terms reviewed for your product in packages/legal/src/documents.ts,
-                        then set template to false.
-                    </p>
-                ) : null}
-                <article className="mt-6 border-t border-neutral-200 pt-2 dark:border-neutral-800">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>{doc.markdown}</ReactMarkdown>
-                </article>
-                {others.length > 0 ? (
-                    <nav className="mt-10 flex flex-wrap gap-4 border-t border-neutral-200 pt-4 text-xs dark:border-neutral-800">
-                        {others.map((d) => (
-                            <AppLink key={d.slug} href={d.path} className="cursor-pointer text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100">
-                                {d.title}
-                            </AppLink>
-                        ))}
-                    </nav>
-                ) : null}
+        <div className="mx-auto w-full max-w-6xl px-4 pb-24 pt-14 sm:px-6 sm:pt-20">
+            <div className="grid gap-12 lg:grid-cols-[200px_minmax(0,1fr)]">
+                <nav aria-label="Contents" className="hidden lg:block">
+                    <div className="sticky top-24 max-h-[calc(100dvh-8rem)] overflow-y-auto pt-2">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-boli-muted">Contents</p>
+                        <ol className="mt-4 space-y-2 border-l border-boli-line">
+                            {toc.map((t) => (
+                                <li key={t.id}>
+                                    <a href={`#${t.id}`} className="-ml-px block cursor-pointer border-l border-transparent pl-4 text-sm leading-5 text-boli-text hover:border-boli-ink hover:text-boli-ink">
+                                        {t.title}
+                                    </a>
+                                </li>
+                            ))}
+                        </ol>
+                    </div>
+                </nav>
+                <div className="mx-auto w-full min-w-0 max-w-2xl lg:mx-0">
+                    <header>
+                        <Ornament className="text-boli-crimson-ink/50" />
+                        <p className="mt-6 text-xs font-semibold uppercase tracking-[0.14em] text-boli-crimson-ink">Legal</p>
+                        <h1 className="mt-3 font-serif text-5xl leading-tight tracking-tight text-boli-ink">{doc.title}</h1>
+                        <p className="mt-3 text-sm text-boli-muted">
+                            Effective {formatDate(doc.effectiveDate)} - version {doc.version}
+                        </p>
+                        {doc.template ? (
+                            <p role="note" className="mt-6 rounded-2xl border border-boli-crimson/25 bg-boli-crimson-soft px-4 py-3 text-sm leading-6 text-boli-ink">
+                                <strong className="font-semibold">Draft - to be reviewed by a lawyer before launch.</strong> Placeholders such as {BRAND.legalEntity}{' '}
+                                and {BRAND.contactEmail} will be filled in then.
+                            </p>
+                        ) : null}
+                    </header>
+                    <article className="mt-4">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+                            {doc.markdown}
+                        </ReactMarkdown>
+                    </article>
+                    {others.length > 0 ? (
+                        <nav aria-label="Other documents" className="mt-14 flex flex-wrap gap-4 border-t border-boli-line pt-6 text-sm">
+                            {others.map((d) => (
+                                <AppLink key={d.slug} href={d.path} className="cursor-pointer text-boli-blue hover:underline">
+                                    Read the {d.title}
+                                </AppLink>
+                            ))}
+                        </nav>
+                    ) : null}
+                </div>
             </div>
-        </main>
+        </div>
     )
 }
