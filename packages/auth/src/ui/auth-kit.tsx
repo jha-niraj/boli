@@ -5,17 +5,19 @@
  * admin's sign-in and invitation). Built on @repo/ui's own Input, Button and InputOTP, so the screens read like every
  * other form in light and dark.
  *
- * Layout: the product on the LEFT, the form on the RIGHT from `lg` (see AuthFrame); on a phone the form alone. Neutral only - rose for an error notice and nothing else.
+ * Layout: the product on the LEFT, the form on the RIGHT from `lg` (see AuthFrame); on a phone the form alone. Neutral only - rose for an error notice and green for a met password rule, nothing else.
+ * An app can bring its own left panel (`panel`), a mark above the form (`formMark`) and serif titles (`display`).
  * A screen is: a title, at most one sentence, the controls, one footnote.
  */
 import * as React from "react"
-import { Eye, EyeOff, LayoutGrid, ShieldCheck, MessagesSquare } from "lucide-react"
+import { Check, Eye, EyeOff, LayoutGrid, ShieldCheck, MessagesSquare } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { SITE } from "@repo/core/site"
 import { cn } from "@repo/ui/lib/utils"
 import { AppLink } from "@repo/ui/components/app-link"
 import { Button } from "@repo/ui/components/ui/button"
 import { Input } from "@repo/ui/components/ui/input"
+import { Checkbox } from "@repo/ui/components/ui/checkbox"
 import { Label } from "@repo/ui/components/ui/label"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@repo/ui/components/ui/input-otp"
 import { InlineLoader } from "@repo/ui/components/ui/inline-loader"
@@ -36,6 +38,10 @@ export interface AuthSwitchLinks {
  * sign-up and a footer with the legal links. The halves meet with a soft shadow, not a hairline. On a phone: the form
  * column alone, brand in its top bar.
  */
+/** How the screens inside a frame draw their titles: the base sans, or an app's serif display face (`font-serif`). */
+type AuthDisplay = "sans" | "serif"
+const AuthDisplayContext = React.createContext<AuthDisplay>("sans")
+
 export function AuthFrame({
     children,
     panelTitle,
@@ -45,8 +51,23 @@ export function AuthFrame({
     eyebrow,
     links,
     legal = { terms: "/terms", privacy: "/privacy" },
+    panel,
+    formMark,
+    display = "sans",
+    className,
 }: {
     children: React.ReactNode
+    /**
+     * The app's own left half (from `lg`), drawn edge to edge in place of the default dark panel - an illustration with a
+     * card on it. `panelTitle`, `panelLine` and `points` are ignored when it is set.
+     */
+    panel?: React.ReactNode
+    /** A mark above every screen's title (all widths). When set, the top bar's brand is not drawn. */
+    formMark?: React.ReactNode
+    /** Title face for every screen in this frame. */
+    display?: AuthDisplay
+    /** Extra classes on the root (an app's ground colour). */
+    className?: string
     /** The left panel's headline. Defaults to the product's tagline. */
     panelTitle?: React.ReactNode
     /** One line under it. Defaults to the product's description. */
@@ -67,9 +88,14 @@ export function AuthFrame({
     const year = new Date().getFullYear()
     const list = points ?? DEFAULT_POINTS
 
+    const showHeader = !formMark || Boolean(links)
+
     return (
-        <div className="flex min-h-dvh w-full bg-white text-neutral-900 dark:bg-[#121314] dark:text-white">
-            {/* Left: the product (desktop) */}
+        <AuthDisplayContext.Provider value={display}>
+        <div className={cn("flex min-h-dvh w-full bg-white text-neutral-900 dark:bg-[#121314] dark:text-white", className)}>
+            {panel ? (
+                <aside className="sticky top-0 hidden h-dvh w-1/2 shrink-0 overflow-hidden lg:block">{panel}</aside>
+            ) : (
             <aside className="relative z-10 hidden w-[46%] max-w-[44rem] shrink-0 overflow-hidden bg-[#0d0e10] text-white shadow-[10px_0_40px_-12px_rgba(0,0,0,0.45)] lg:flex">
                 <PanelGlow />
                 <div className="relative flex min-h-dvh w-full flex-col px-10 py-9 xl:px-14 xl:py-11">
@@ -94,11 +120,13 @@ export function AuthFrame({
                     <p className="text-xs text-neutral-500">&copy; {year} {SITE.name}</p>
                 </div>
             </aside>
+            )}
 
             {/* Right: the form */}
             <main className="flex min-h-dvh min-w-0 flex-1 flex-col">
+                {showHeader && (
                 <header className="flex h-16 shrink-0 items-center justify-between gap-3 px-5 sm:px-8">
-                    <div className="lg:invisible"><Brand homeHref={homeHref} eyebrow={eyebrow} tone="auto" /></div>
+                    <div className={cn("lg:invisible", formMark && "invisible")}><Brand homeHref={homeHref} eyebrow={eyebrow} tone="auto" /></div>
                     {links && (onSignIn ? links.signUp : true) && (
                         <div className="flex min-w-0 items-center gap-2 text-sm">
                             <span className="hidden text-neutral-600 sm:inline dark:text-neutral-400">{onSignIn ? "New here?" : "Have an account?"}</span>
@@ -108,9 +136,13 @@ export function AuthFrame({
                         </div>
                     )}
                 </header>
+                )}
 
                 <div className="flex flex-1 items-center justify-center px-5 py-8 sm:px-8">
-                    <div className="w-full max-w-[23rem]">{children}</div>
+                    <div className="w-full max-w-[23rem]">
+                        {formMark && <div className={cn("mb-6 flex", display === "serif" && "justify-center")}>{formMark}</div>}
+                        {children}
+                    </div>
                 </div>
 
                 {legal && (
@@ -122,6 +154,7 @@ export function AuthFrame({
                 )}
             </main>
         </div>
+        </AuthDisplayContext.Provider>
     )
 }
 
@@ -197,10 +230,14 @@ function ProductPreview() {
 // -- Text ------------------------------------------------------------------------------------------------------------
 
 export function AuthTitle({ title, sub }: { title: React.ReactNode; sub?: React.ReactNode }) {
+    const serif = React.useContext(AuthDisplayContext) === "serif"
     return (
-        <div className="mb-7">
-            <h1 className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white">{title}</h1>
-            {sub && <p className="mt-1.5 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">{sub}</p>}
+        <div className={cn("mb-7", serif && "text-center")}>
+            <h1 className={cn(
+                "text-neutral-900 dark:text-white",
+                serif ? "font-serif text-[2.5rem] font-normal leading-[1.1] tracking-tight" : "text-2xl font-semibold tracking-tight",
+            )}>{title}</h1>
+            {sub && <p className={cn("text-sm leading-relaxed text-neutral-600 dark:text-neutral-400", serif ? "mt-2.5" : "mt-1.5")}>{sub}</p>}
         </div>
     )
 }
@@ -246,8 +283,9 @@ export function Divider({ children = "or" }: { children?: React.ReactNode }) {
 
 /** A status mark for one-line states (sent, done, failed), above the title. */
 export function StatusMark({ kind }: { kind: "mail" | "done" | "error" | "key" }) {
+    const serif = React.useContext(AuthDisplayContext) === "serif"
     return (
-        <span className="mb-5 grid size-11 place-items-center rounded-xl border border-neutral-200 bg-white text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white">
+        <span className={cn("mb-5 grid size-11 place-items-center rounded-xl border border-neutral-200 bg-white text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white", serif && "mx-auto")}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 {kind === "mail" && <><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="m4 7 8 6 8-6" /></>}
                 {kind === "done" && <path d="m5 12.5 4.5 4.5L19 7.5" />}
@@ -388,6 +426,60 @@ export function PasswordStrength({ value }: { value: string }) {
     )
 }
 
+/**
+ * The sign-up rules, shown as a live checklist (each line turns green as it is met). The server's own rule is still
+ * the length (8 to 128, better-auth); this list is the stricter bar the form asks for before it lets you submit.
+ */
+import { PASSWORD_RULES } from "../password-rules"
+export { PASSWORD_RULES, passwordMeetsRules } from "../password-rules"
+
+export function PasswordChecklist({ value, id }: { value: string; id?: string }) {
+    return (
+        <ul id={id} aria-label="Password rules" className="grid gap-1 pt-1.5 text-xs sm:grid-cols-3 sm:gap-2">
+            {PASSWORD_RULES.map((r) => {
+                const met = r.test(value)
+                return (
+                    <li key={r.key} className={cn("flex items-center gap-1.5 transition-colors", met ? "text-emerald-700 dark:text-emerald-400" : "text-neutral-500 dark:text-neutral-400")}>
+                        <span aria-hidden className={cn(
+                            "grid size-3.5 shrink-0 place-items-center rounded-full border transition-colors",
+                            met ? "border-emerald-600 bg-emerald-600 text-white dark:border-emerald-500 dark:bg-emerald-500" : "border-neutral-300 dark:border-neutral-700",
+                        )}>
+                            {met && <Check className="size-2.5" strokeWidth={3} />}
+                        </span>
+                        {r.label}
+                        <span className="sr-only">{met ? "(done)" : "(not yet)"}</span>
+                    </li>
+                )
+            })}
+        </ul>
+    )
+}
+
+// -- Terms -----------------------------------------------------------------------------------------------------------
+
+/** The required "I accept" box. The links open in a new tab so the half-filled form stays. */
+export function TermsCheckbox({ id = "terms", checked, onChange, terms, privacy, disabled }: {
+    id?: string
+    checked: boolean
+    onChange: (v: boolean) => void
+    terms: string
+    privacy: string
+    disabled?: boolean
+}) {
+    const link = "font-medium text-neutral-900 underline underline-offset-4 dark:text-white"
+    return (
+        <div className="flex items-start gap-2.5">
+            <Checkbox id={id} checked={checked} disabled={disabled} onCheckedChange={(v) => onChange(v === true)} className="mt-0.5" aria-required />
+            <Label htmlFor={id} className="block text-sm font-normal leading-snug text-neutral-700 dark:text-neutral-300">
+                I accept the{" "}
+                <a href={terms} target="_blank" rel="noreferrer" className={link}>Terms of Service</a>
+                {" "}and{" "}
+                <a href={privacy} target="_blank" rel="noreferrer" className={link}>Privacy Policy</a>
+            </Label>
+        </div>
+    )
+}
+
 // -- Buttons ---------------------------------------------------------------------------------------------------------
 
 const authButton = "h-11 w-full gap-2 rounded-xl text-sm"
@@ -449,13 +541,15 @@ export function GoogleButton({ onClick, loading, disabled, setup }: { onClick: (
 }
 
 /** Two or three sign-in methods as one segmented control ("Password" | "Email code"). */
-export function MethodTabs<T extends string>({ value, options, onChange }: {
+export function MethodTabs<T extends string>({ value, options, onChange, className }: {
     value: T
     options: { value: T; label: string }[]
     onChange: (v: T) => void
+    /** Extra classes on the track (an app with pill controls rounds it fully). */
+    className?: string
 }) {
     return (
-        <div role="tablist" aria-label="Sign-in method" className="mb-5 grid grid-flow-col auto-cols-fr gap-1 rounded-xl bg-neutral-100 p-1 dark:bg-neutral-900">
+        <div role="tablist" aria-label="Sign-in method" className={cn("mb-5 grid grid-flow-col auto-cols-fr gap-1 rounded-xl bg-neutral-100 p-1 dark:bg-neutral-900", className)}>
             {options.map((o) => (
                 <Button
                     key={o.value}

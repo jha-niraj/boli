@@ -2,8 +2,6 @@
 //
 //   GET /api/documents/users.pdf          sample @repo/pdf document: the account list (admins: every user;
 //                                         everyone else: their own row). `?download=1` saves instead of opening.
-//   GET /api/documents/notes.pdf          the signed-in person's notes in the view on /notes (same `tab`, `q`, `tag`,
-//                                         `pinned` params, read by the page's own parser and `lib/notes`).
 //   GET /api/documents/files/<key...>     a private R2 object: checks the key's owner segment against the session,
 //                                         then redirects to a 5-minute signed URL. This is what `storageHref()`
 //                                         returns for a private bucket, so `<img src>` links never go stale.
@@ -15,9 +13,7 @@ import { user } from '@repo/db/schema'
 import { errorResponse, errForbidden, errNotFound } from '@repo/errors'
 import { pdfFilename, pdfResponse, renderDataTablePdf } from '@repo/pdf'
 import { getDownloadUrl, isStorageConfigured, ownerFromKey } from '@repo/storage'
-import { readAllNotes } from '@/lib/notes'
 import { getSession } from '@/lib/session'
-import { parseNoteParams } from '@/app/(main)/notes/_components/notes-query'
 import type { AppSession } from '@/types/session'
 
 export const dynamic = 'force-dynamic'
@@ -43,21 +39,6 @@ const DOCUMENTS: Record<string, DocumentHandler> = {
             note: isAdmin && rows.length === 5000 ? 'Showing the newest 5,000 accounts.' : null,
         })
         return pdfResponse(bytes, pdfFilename({ type: 'users' }), { download: url.searchParams.get('download') === '1' })
-    },
-    'notes.pdf': async (session, url) => {
-        const CAP = 2000
-        const p = parseNoteParams(url.searchParams)
-        const rows = await readAllNotes(session.user.id, p, CAP)
-        const view = [p.tab === 'archived' ? 'Archived' : 'Active', p.q && `search "${p.q}"`, p.tags.length > 0 && `tags ${p.tags.join(', ')}`, p.pinned && (p.pinned === 'yes' ? 'pinned' : 'not pinned')]
-            .filter(Boolean).join(' - ')
-        const bytes = await renderDataTablePdf({
-            title: 'Your notes',
-            columns: [{ header: 'Title' }, { header: 'Start of the note' }, { header: 'Tags' }, { header: 'Edited', align: 'right' }],
-            rows: rows.map((r) => [(r.pinned ? '* ' : '') + r.title, r.body.replace(/\s+/g, ' ').slice(0, 140), r.tags.join(', '), r.updatedAt.slice(0, 10)]),
-            meta: [['View', view], ['Notes', String(rows.length)]],
-            note: rows.length === CAP ? `Showing the first ${CAP.toLocaleString()} notes in this view.` : rows.some((r) => r.pinned) ? '* pinned' : null,
-        })
-        return pdfResponse(bytes, pdfFilename({ type: 'notes' }), { download: url.searchParams.get('download') === '1' })
     },
 }
 

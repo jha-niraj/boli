@@ -4,7 +4,9 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { authClient } from "@repo/auth/client"
 import { clientErrorMessage } from "@repo/auth/errors"
-import { AuthTitle, Field, Footnote, Notice, PasswordInput, PasswordStrength, PrimaryButton, StatusMark, TextLink } from "@repo/auth/ui"
+import {
+    AuthTitle, Field, Footnote, Notice, PasswordChecklist, PasswordInput, PrimaryButton, StatusMark, TextLink, passwordMeetsRules,
+} from "@repo/auth/ui"
 import { AUTH_ROUTES } from "@/lib/auth-routes"
 
 export function ResetForm({ token }: { token: string | null }) {
@@ -21,7 +23,7 @@ export function ResetForm({ token }: { token: string | null }) {
                 <AuthTitle title="That link did not work" sub="Reset links work once and for one hour. Ask for a new one." />
                 <PrimaryButton type="button" onClick={() => router.push(AUTH_ROUTES.forgotPassword)}>Get a new link</PrimaryButton>
                 <Footnote>
-                    <TextLink href={AUTH_ROUTES.signIn}>Back to sign in</TextLink>
+                    <p className="text-center"><TextLink href={AUTH_ROUTES.signIn}>Back to log in</TextLink></p>
                 </Footnote>
             </div>
         )
@@ -30,7 +32,7 @@ export function ResetForm({ token }: { token: string | null }) {
     async function onSubmit(e: React.FormEvent) {
         e.preventDefault()
         setError(null)
-        if (password.length < 8) return setError("Use at least 8 characters for the password.")
+        if (!passwordMeetsRules(password)) return setError("The password needs 8 characters, a number, and upper and lower case letters.")
         if (password !== confirm) return setError("The two passwords are not the same.")
         setBusy(true)
         const { error: err } = await authClient.resetPassword({ newPassword: password, token: token ?? "" })
@@ -50,13 +52,13 @@ export function ResetForm({ token }: { token: string | null }) {
             {error && <Notice tone="error">{error}</Notice>}
             <form onSubmit={onSubmit} className="space-y-4">
                 <Field label="New password" htmlFor="password">
-                    <PasswordInput id="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="At least 8 characters" autoFocus />
-                    <PasswordStrength value={password} />
+                    <PasswordInput id="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="Choose a password" autoFocus />
+                    <PasswordChecklist value={password} />
                 </Field>
                 <Field label="Confirm new password" htmlFor="confirm">
                     <PasswordInput id="confirm" value={confirm} onChange={setConfirm} autoComplete="new-password" />
                 </Field>
-                <PrimaryButton loading={busy}>Save new password</PrimaryButton>
+                <PrimaryButton loading={busy} disabled={!passwordMeetsRules(password) || confirm.length === 0}>Save new password</PrimaryButton>
             </form>
         </div>
     )

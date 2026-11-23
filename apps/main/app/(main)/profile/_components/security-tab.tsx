@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { PasswordInput, PasswordStrength } from "@repo/auth/ui"
+import { PasswordChecklist, PasswordInput, passwordMeetsRules } from "@repo/auth/ui"
 import { Button } from "@repo/ui/components/ui/button"
 import { InlineLoader } from "@repo/ui/components/ui/inline-loader"
 import { Label } from "@repo/ui/components/ui/label"
@@ -49,7 +49,7 @@ function ChangePasswordSection() {
                 title="Password"
                 description="We email you whenever it changes."
                 footer={
-                    <Button type="submit" size="sm" disabled={busy || !current || !next} className="gap-1.5">
+                    <Button type="submit" size="sm" disabled={busy || !current || !passwordMeetsRules(next)} className="gap-1.5">
                         {busy && <InlineLoader size={14} className="text-current" />}
                         Change password
                     </Button>
@@ -64,7 +64,7 @@ function ChangePasswordSection() {
                     <div className="space-y-1.5">
                         <Label htmlFor="pw-new">New password</Label>
                         <PasswordInput id="pw-new" value={next} onChange={setNext} autoComplete="new-password" placeholder="At least 8 characters" />
-                        <PasswordStrength value={next} />
+                        <PasswordChecklist value={next} />
                     </div>
                     <div className="space-y-1.5">
                         <Label htmlFor="pw-confirm">Confirm new password</Label>
@@ -106,7 +106,7 @@ function SetPasswordSection() {
                 title="Set a password"
                 description="You sign in with Google or an email code. Add a password to sign in with your email too."
                 footer={
-                    <Button type="submit" size="sm" disabled={busy || !next} className="gap-1.5">
+                    <Button type="submit" size="sm" disabled={busy || !passwordMeetsRules(next)} className="gap-1.5">
                         {busy && <InlineLoader size={14} className="text-current" />}
                         Set password
                     </Button>
@@ -117,7 +117,7 @@ function SetPasswordSection() {
                     <div className="space-y-1.5">
                         <Label htmlFor="pw-set">Password</Label>
                         <PasswordInput id="pw-set" value={next} onChange={setNext} autoComplete="new-password" placeholder="At least 8 characters" />
-                        <PasswordStrength value={next} />
+                        <PasswordChecklist value={next} />
                     </div>
                     <div className="space-y-1.5">
                         <Label htmlFor="pw-set-confirm">Confirm password</Label>

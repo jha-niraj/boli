@@ -39,7 +39,7 @@ export function ForgotForm({ initialEmail }: { initialEmail: string }) {
                 {error && <Notice tone="error">{error}</Notice>}
                 <SecondaryButton onClick={() => onSubmit()} loading={busy}>Send the link again</SecondaryButton>
                 <Footnote>
-                    Remembered it? <TextLink href={AUTH_ROUTES.signIn}>Back to sign in</TextLink>
+                    <p className="text-center">Remembered it? <TextLink href={AUTH_ROUTES.signIn}>Back to log in</TextLink></p>
                 </Footnote>
             </div>
         )
@@ -56,7 +56,7 @@ export function ForgotForm({ initialEmail }: { initialEmail: string }) {
                 <PrimaryButton loading={busy}>Send reset link</PrimaryButton>
             </form>
             <Footnote>
-                Remembered it? <TextLink href={AUTH_ROUTES.signIn}>Back to sign in</TextLink>
+                <p className="text-center">Remembered it? <TextLink href={AUTH_ROUTES.signIn}>Back to log in</TextLink></p>
             </Footnote>
         </div>
     )

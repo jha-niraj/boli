@@ -8,7 +8,7 @@ import { SignUpForm } from './_components/signup-form'
 
 export const metadata: Metadata = {
     title: 'Create an account',
-    description: 'Create your account.',
+    description: 'Create your Boli account.',
     robots: { index: false, follow: false },
 }
 

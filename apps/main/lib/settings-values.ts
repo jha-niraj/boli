@@ -27,8 +27,31 @@ export function isNotificationTopic(value: string): value is NotificationTopic {
 export const SETTING_KEYS = {
     density: "appearance.density",
     reducedMotion: "appearance.reducedMotion",
-    useFor: "onboarding.useFor",
+    /** What Boli calls the person (a string). Set on /welcome step 1. */
+    preferredName: "onboarding.preferredName",
+    /** /welcome answers, each an `OnboardingPicks` value ({ picks, other }). */
+    onboardingBuild: "onboarding.build",
+    onboardingLanguages: "onboarding.languages",
+    onboardingRole: "onboarding.role",
+    onboardingTeamSize: "onboarding.teamSize",
 } as const
+
+/** One /welcome answer as stored: the chosen options (from ONBOARDING in lib/boli.ts) plus the free "Other" text. */
+export interface OnboardingPicks {
+    picks: string[]
+    other: string | null
+}
+
+export const ONBOARDING_OTHER_MAX = 80
+
+/** Read a stored answer back, dropping anything that is not one of `allowed` (the lists can change). */
+export function readOnboardingPicks(value: unknown, allowed: readonly string[]): OnboardingPicks {
+    if (!value || typeof value !== "object") return { picks: [], other: null }
+    const v = value as { picks?: unknown; other?: unknown }
+    const picks = Array.isArray(v.picks) ? v.picks.filter((p): p is string => typeof p === "string" && allowed.includes(p)) : []
+    const other = typeof v.other === "string" && v.other.trim() ? v.other.trim().slice(0, ONBOARDING_OTHER_MAX) : null
+    return { picks, other }
+}
 
 export type Density = "comfortable" | "compact"
 
@@ -38,21 +61,3 @@ export interface AppearancePrefs {
 }
 
 export const DEFAULT_APPEARANCE: AppearancePrefs = { density: "comfortable", reducedMotion: false }
-
-/** The onboarding "what will you use it for" chips. */
-export const USE_FOR_OPTIONS = [
-    { value: "writing", label: "Writing" },
-    { value: "research", label: "Research" },
-    { value: "notes", label: "Notes and ideas" },
-    { value: "coding", label: "Coding" },
-    { value: "planning", label: "Planning" },
-    { value: "learning", label: "Learning" },
-    { value: "work", label: "Work tasks" },
-    { value: "other", label: "Something else" },
-] as const
-
-export type UseFor = (typeof USE_FOR_OPTIONS)[number]["value"]
-
-export function isUseFor(value: string): value is UseFor {
-    return USE_FOR_OPTIONS.some((o) => o.value === value)
-}

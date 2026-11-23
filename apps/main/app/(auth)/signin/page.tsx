@@ -8,8 +8,8 @@ import { param, type SearchParams } from '../_lib/params'
 import { SignInForm, type SignInNotice } from './_components/signin-form'
 
 export const metadata: Metadata = {
-    title: 'Sign in',
-    description: 'Sign in to your account.',
+    title: 'Log in',
+    description: 'Log in to your Boli account.',
     robots: { index: false, follow: false },
 }
 

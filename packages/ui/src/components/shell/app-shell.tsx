@@ -51,13 +51,15 @@ export interface AppShellProps {
     aside?: React.ReactNode
     /** Extra round icons in the rail footer, after the account chip, before the bell. */
     railFooterExtra?: React.ReactNode
+    /** A full-width row in the rail footer, above the account row (e.g. a credits balance). */
+    railFooterTop?: React.ReactNode
     /** The assistant's own row above the account row (e.g. "Ask AI" -> /ai). */
     assistant?: ShellAssistant
     children: React.ReactNode
 }
 
 export function AppShell({
-    brand, nav, account, notifications, initialPinned, initialRailWidth, cookieName, aside, railFooterExtra, assistant, children,
+    brand, nav, account, notifications, initialPinned, initialRailWidth, cookieName, aside, railFooterExtra, railFooterTop, assistant, children,
 }: AppShellProps) {
     const pp = usePinPeek({ initialPinned, cookieName })
     /*
@@ -169,6 +171,7 @@ export function AppShell({
                     notifications={notifications}
                     pin={{ isPinned: pp.isPinned, setPinned: pp.setPinned }}
                     footerExtra={railFooterExtra}
+                    footerTop={railFooterTop}
                     assistant={assistant}
                     menu={{ open: menuOpen, onOpenChange: setMenuOpen }}
                 />
@@ -231,6 +234,7 @@ export function AppShell({
                         notifications={notifications ? { ...notifications, onOpen: () => { setMoreOpen(false); notifications.onOpen() } } : undefined}
                         onNavigate={() => setMoreOpen(false)}
                         footerExtra={railFooterExtra}
+                    footerTop={railFooterTop}
                         assistant={assistant ? { ...assistant, onClick: assistant.onClick ? () => { setMoreOpen(false); assistant.onClick?.() } : undefined } : undefined}
                     />
                 </SheetContent>

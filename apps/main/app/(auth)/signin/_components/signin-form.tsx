@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { authClient, signIn } from "@repo/auth/client"
 import { clientErrorMessage } from "@repo/auth/errors"
 import {
-    AuthTitle, CodeInput, Divider, Field, GoogleButton, MethodTabs, Notice, PasswordInput, PrimaryButton,
+    AuthTitle, CodeInput, Divider, Field, Footnote, GoogleButton, MethodTabs, Notice, PasswordInput, PrimaryButton,
     TextLink, authInputCls,
 } from "@repo/auth/ui"
 import type { GoogleMode } from "@repo/auth/google"
@@ -14,6 +14,7 @@ import { Input } from "@repo/ui/components/ui/input"
 import { InlineLoader } from "@repo/ui/components/ui/inline-loader"
 import { SigningInScreen } from "@repo/ui/components/ui/signing-in-screen"
 import { AUTH_ROUTES } from "@/lib/auth-routes"
+import { BRAND } from "@/lib/boli"
 
 export interface SignInNotice {
     tone: "neutral" | "error"
@@ -25,8 +26,8 @@ type Method = "password" | "code"
 const RESEND_SECONDS = 30
 
 /**
- * Sign in by password or by a one-time email code (a method tab), plus Google when configured. On success the page
- * hard-navigates straight to `returnTo` (or /ai) with the signing-in screen up - no intermediate page.
+ * Sign in by password or by a one-time email code (a method tab), plus Google first when configured. On success the
+ * page hard-navigates straight to `returnTo` (or Kura) with the signing-in screen up - no intermediate page.
  */
 export function SignInForm({ google, returnTo, initialMethod, initialEmail, notice }: {
     google: GoogleMode
@@ -133,7 +134,7 @@ export function SignInForm({ google, returnTo, initialMethod, initialEmail, noti
 
     return (
         <div>
-            <AuthTitle title="Sign in" sub="Welcome back. Pick how you want to sign in." />
+            <AuthTitle title={`Log in to ${BRAND.name}`} sub="Welcome back. Pick how you want to sign in." />
 
             {notice && !error && <Notice tone={notice.tone}>{notice.text}</Notice>}
             {error && <Notice tone="error">{error}</Notice>}
@@ -141,11 +142,12 @@ export function SignInForm({ google, returnTo, initialMethod, initialEmail, noti
             {google !== "off" && (
                 <>
                     <GoogleButton onClick={onGoogle} loading={busy === "google"} disabled={busy !== null && busy !== "google"} setup={google === "setup"} />
-                    <Divider />
+                    <Divider>OR</Divider>
                 </>
             )}
 
             <MethodTabs<Method>
+                className="rounded-full"
                 value={method}
                 onChange={switchMethod}
                 options={[{ value: "password", label: "Password" }, { value: "code", label: "Email code" }]}
@@ -163,7 +165,7 @@ export function SignInForm({ google, returnTo, initialMethod, initialEmail, noti
                     >
                         <PasswordInput id="password" value={password} onChange={setPassword} />
                     </Field>
-                    <PrimaryButton loading={busy === "password"} disabled={busy !== null}>Sign in</PrimaryButton>
+                    <PrimaryButton loading={busy === "password"} disabled={busy !== null}>Log in</PrimaryButton>
                 </form>
             )}
 
@@ -183,7 +185,7 @@ export function SignInForm({ google, returnTo, initialMethod, initialEmail, noti
                     </p>
                     <CodeInput value={code} onChange={setCode} onComplete={verifyCode} disabled={busy === "verify"} />
                     <PrimaryButton type="button" onClick={() => verifyCode(code)} loading={busy === "verify"} disabled={code.length !== 6 || busy !== null}>
-                        Sign in
+                        Log in
                     </PrimaryButton>
                     <div className="flex items-center justify-between gap-3">
                         <Button type="button" variant="link" className="h-auto px-0 text-sm" onClick={() => { setCodeSentTo(null); setError(null) }}>
@@ -197,6 +199,15 @@ export function SignInForm({ google, returnTo, initialMethod, initialEmail, noti
                 </div>
             )}
 
+            <Footnote>
+                <p className="text-center">
+                    Don&apos;t have an account? <TextLink href={AUTH_ROUTES.signUp}>Create one</TextLink>
+                </p>
+                <p className="mt-3 text-center text-xs leading-relaxed">
+                    By continuing you agree to the <TextLink href={AUTH_ROUTES.terms}>Terms of Service</TextLink> and the{" "}
+                    <TextLink href={AUTH_ROUTES.privacy}>Privacy Policy</TextLink>.
+                </p>
+            </Footnote>
         </div>
     )
 }

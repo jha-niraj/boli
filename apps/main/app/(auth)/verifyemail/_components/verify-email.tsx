@@ -51,11 +51,11 @@ export function VerifyEmail({ state, error, email: initialEmail, resent, signedI
         return (
             <div>
                 <StatusMark kind="done" />
-                <AuthTitle title="Email confirmed" sub={signedIn ? "You are signed in and ready to go." : "Sign in to carry on."} />
+                <AuthTitle title="Email confirmed" sub={signedIn ? "You are signed in and ready to go." : "Log in to carry on."} />
                 {signedIn ? (
                     <PrimaryButton type="button" onClick={() => window.location.assign(AUTH_ROUTES.home)}>Continue</PrimaryButton>
                 ) : (
-                    <PrimaryButton type="button" onClick={() => window.location.assign(AUTH_ROUTES.signIn)}>Sign in</PrimaryButton>
+                    <PrimaryButton type="button" onClick={() => window.location.assign(AUTH_ROUTES.signIn)}>Log in</PrimaryButton>
                 )}
             </div>
         )
@@ -93,7 +93,12 @@ export function VerifyEmail({ state, error, email: initialEmail, resent, signedI
             </form>
 
             <Footnote>
-                No email? Check spam, or <TextLink href={codeHref}>sign in with a code</TextLink> instead.
+                <p className="text-center">
+                    No email? Check spam, or <TextLink href={codeHref}>log in with a code</TextLink> instead.
+                </p>
+                <p className="mt-3 text-center">
+                    Wrong address? <TextLink href={AUTH_ROUTES.signUp}>Start again</TextLink>
+                </p>
             </Footnote>
         </div>
     )

@@ -6,7 +6,7 @@ export const AUTH_ROUTES = {
     forgotPassword: '/forgotpassword',
     resetPassword: '/resetpassword',
     /** Where a signed-in person lands by default. */
-    home: '/ai',
+    home: '/kura',
     terms: '/terms',
     privacy: '/privacy',
 } as const

@@ -71,6 +71,8 @@ export interface ShellRailProps {
     onNavigate?: () => void
     /** Extra round icons in the footer row, after the account chip, before the bell. */
     footerExtra?: React.ReactNode
+    /** A full-width row above the account row (e.g. a credits balance with an Add button). */
+    footerTop?: React.ReactNode
     assistant?: ShellAssistant
     /** The account menu's open state, so the shell keeps a peeked rail out while the menu is open. */
     menu?: { open: boolean; onOpenChange: (open: boolean) => void }
@@ -85,7 +87,7 @@ function initials(name: string): string {
 const ICON_BTN =
     "flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-md p-0 text-neutral-600 outline-none transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus-visible:ring-2 focus-visible:ring-neutral-400 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
 
-export function ShellRail({ brand, nav, account, notifications, pin, onNavigate, footerExtra, assistant, menu }: ShellRailProps) {
+export function ShellRail({ brand, nav, account, notifications, pin, onNavigate, footerExtra, footerTop, assistant, menu }: ShellRailProps) {
     const pathname = usePathname() ?? "/"
     const active = activeHref(pathname, nav)
 
@@ -170,6 +172,7 @@ export function ShellRail({ brand, nav, account, notifications, pin, onNavigate,
              */}
             <div className="flex shrink-0 flex-col gap-2 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
                 {assistant ? <AssistantRow assistant={assistant} onNavigate={onNavigate} /> : null}
+                {footerTop}
                 <div className="flex items-center gap-1">
                     <AccountRow account={account} onNavigate={onNavigate} menu={menu} />
                     {footerExtra}
