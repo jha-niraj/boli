@@ -4,7 +4,7 @@ import * as React from "react"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { BadgeCent, CalendarClock, Coins, Receipt, RefreshCw, Repeat } from "lucide-react"
 import type { AdminBillingStats, AdminPaymentRow, AdminSubscriptionRow, Paged } from "@repo/billing"
-import { formatCredits, formatMoney, PLANS } from "@repo/billing/plans"
+import { formatMicroCredits, formatMoney, PLANS } from "@repo/billing/plans"
 import { Button } from "@repo/ui/components/ui/button"
 import { EmptyState } from "@repo/ui/components/ui/empty-state"
 import { Input } from "@repo/ui/components/ui/input"
@@ -121,7 +121,7 @@ export function BillingClient({ initialTab, initialStats, initialPayments, initi
                     { icon: BadgeCent, label: "Revenue", value: moneyLine(s?.revenueThisMonth), hint: "this month" },
                     { icon: Receipt, label: "Payments", value: s ? s.paymentsThisMonth.toLocaleString() : "-", hint: "paid this month" },
                     { icon: CalendarClock, label: "Paid plans", value: s ? s.activeSubscriptions.toLocaleString() : "-", hint: s ? `${s.autoRenewing.toLocaleString()} auto-renew` : undefined },
-                    { icon: Coins, label: "Credits granted", value: s ? formatCredits(s.creditsGrantedThisMonth) : "-", hint: "by admins this month" },
+                    { icon: Coins, label: "Credits granted", value: s ? formatMicroCredits(s.creditsGrantedThisMonthMicro) : "-", hint: "by admins this month" },
                 ]}
             />
 
@@ -226,7 +226,7 @@ export function BillingClient({ initialTab, initialStats, initialPayments, initi
                                                         <TableCell className="text-sm text-neutral-700 dark:text-neutral-300">
                                                             {r.autoRenew ? `Auto, ${PROVIDER_NAMES[r.provider ?? ""] ?? r.provider ?? "-"}` : `Prepaid, ${r.termMonths} mo`}
                                                         </TableCell>
-                                                        <TableCell className="text-right text-sm tabular-nums text-neutral-900 dark:text-white">{formatCredits(r.creditBalance)}</TableCell>
+                                                        <TableCell className="text-right text-sm tabular-nums text-neutral-900 dark:text-white">{formatMicroCredits(r.balanceMicro)}</TableCell>
                                                         <TableCell pin="end" className="text-right">
                                                             {canGrant ? (
                                                                 <Button size="sm" variant="outline" className="cursor-pointer gap-1.5 rounded-xl" data-sheet-keep-open=""

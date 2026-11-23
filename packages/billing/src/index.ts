@@ -8,18 +8,21 @@
 //   append-only ledger; the cached balance moves in the same statement as each ledger row.
 // - startCheckout -> the gateway (@repo/payments) -> confirmPayment (return) / applyWebhookNotices (webhook): whichever
 //   arrives first applies the purchase, the other changes nothing.
-// - CREDITS_ENFORCED=1: an AI turn needs a positive balance, and spends its metered cost after the turn (inline).
+// - Credits are integer MICRO-credits (1 credit = Rs 1 = 1,000,000). The welcome grant (`grantWelcome`) runs on email
+//   verification; a model call is charged by apps/main lib/platform/credits.ts with `ledgerEntrySql` inside one batch.
+// - CREDITS_ENFORCED=1: a model call needs a positive balance (calls are charged either way).
 export { requestCostUsd, priceCall } from './ai-meter'
 export type { CallCost } from './ai-meter'
 export { logAiUsage, spentTodayMicroUsd, dailyCapMicroUsd, checkDailyCap, startOfUtcDay } from './usage-log'
 export * from './plans'
 export {
-    getOrCreateAccount, accountForUser, addCredits, recomputeBalance, creditsEnforced, hasCredits, spendCredits,
-    startOfUtcMonth, creditsSpentThisMonth, recentLedger, type BillingAccountRow, type LedgerEntryInput, type LedgerRow,
+    getOrCreateAccount, accountForUser, addCredits, ledgerEntrySql, appliedBalance, creditsToMicro, grantWelcome, recomputeBalance,
+    creditsEnforced, balanceMicroForUser, hasCredits, spendCredits, startOfUtcMonth, creditsSpentThisMonth, recentLedger, dailySpend,
+    type BillingAccountRow, type LedgerEntryInput, type LedgerRow, type DailySpend,
 } from './ledger'
 export {
-    appBaseUrl, startCheckout, confirmPayment, applyVerified, applyWebhookNotices, markCancelled, getPayment, effectivePlan,
-    cancelAutoRenew, type CheckoutRequest, type StartCheckoutInput, type StartedCheckout, type ConfirmOutcome, type PaymentRow,
+    appBaseUrl, startCheckout, startCreditPurchase, confirmPayment, applyVerified, applyWebhookNotices, markCancelled, getPayment, effectivePlan,
+    cancelAutoRenew, type CheckoutRequest, type CreditPurchaseInput, type StartCheckoutInput, type StartedCheckout, type ConfirmOutcome, type PaymentRow,
     type SubscriptionRow, type EffectivePlan,
 } from './checkout'
 export {

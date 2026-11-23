@@ -52,7 +52,7 @@ async function handleReturn(request: Request, providerId: string, paymentId: str
     const params = await readParams(request)
     const hint = await provider.parseReturn(params).catch(() => null)
     const id = paymentId && UUID.test(paymentId) ? paymentId : hint?.paymentId && UUID.test(hint.paymentId) ? hint.paymentId : null
-    if (!id) return Response.redirect(new URL('/settings/billing', request.url).toString(), 303)
+    if (!id) return Response.redirect(new URL('/billing', request.url).toString(), 303)
     if (hint?.cancelled) {
         await markCancelled(providerId, id).catch(() => null)
         return toResult(request, id)
@@ -69,7 +69,7 @@ async function handleReturn(request: Request, providerId: string, paymentId: str
 }
 
 async function handleCancel(request: Request, providerId: string, paymentId: string | undefined): Promise<Response> {
-    if (!isProviderId(providerId) || !paymentId || !UUID.test(paymentId)) return Response.redirect(new URL('/settings/billing', request.url).toString(), 303)
+    if (!isProviderId(providerId) || !paymentId || !UUID.test(paymentId)) return Response.redirect(new URL('/billing', request.url).toString(), 303)
     await markCancelled(providerId, paymentId).catch(() => null)
     return toResult(request, paymentId)
 }

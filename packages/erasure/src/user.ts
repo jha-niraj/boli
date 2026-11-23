@@ -12,9 +12,11 @@ import { deleteFile, isResolvedStorageValue, isStorageConfigured, keyFromPublicU
  * rows must be KEPT de-identified (payments, usage, audit) goes in `DETACH_TABLES` instead.
  */
 export const ERASE_TABLES: ReadonlyArray<{ table: string; column: string }> = [
+    // Boli: per-call metadata (no prompt text) points at api_key, so it goes first.
+    { table: 'inference_request', column: 'user_id' },
+    { table: 'api_key', column: 'user_id' },
     { table: 'ai_message', column: 'user_id' },
     { table: 'ai_conversation', column: 'user_id' },
-    { table: 'note', column: 'user_id' },
     { table: 'notification', column: 'user_id' },
     { table: 'legal_acceptance', column: 'user_id' },
     { table: 'payment_customer', column: 'user_id' },
@@ -26,6 +28,7 @@ export const ERASE_TABLES: ReadonlyArray<{ table: string; column: string }> = [
 export const DETACH_TABLES: ReadonlyArray<{ table: string; column: string }> = [
     { table: 'ai_usage_log', column: 'user_id' },
     { table: 'payment_event', column: 'user_id' },
+    { table: 'feedback', column: 'user_id' },
 ]
 
 async function sha256Hex(value: string): Promise<string> {
@@ -96,6 +99,10 @@ export async function eraseUserAs(userId: string, requestedBy: string): Promise<
             const r = await db.execute(sql`DELETE FROM ${sql.identifier(table)} WHERE ${sql.identifier(column)} = ${userId} RETURNING 1`)
             if (r.rows.length) counts[table] = r.rows.length
         }
+        // The user's billing account goes too: balance, ledger and subscription cascade with it; payment rows stay with
+        // account_id set to NULL (kept de-identified for accounting; owner, 2026-11-24).
+        const b = await db.execute(sql`DELETE FROM "billing_account" WHERE "owner_type" = 'user' AND "owner_id" = ${userId} RETURNING 1`)
+        if (b.rows.length) counts.billing_account = b.rows.length
         const v = await db.execute(sql`DELETE FROM "verification" WHERE "identifier" = ${person.email} RETURNING 1`)
         if (v.rows.length) counts.verification = v.rows.length
 

@@ -7,14 +7,15 @@
 //   that claim (a CTE), so two racers cannot both extend it;
 // - a renewal charge: a payment row unique on (provider, provider_payment_id) is inserted once, then fulfilled as above.
 import { and, db, eq, sql } from '@repo/db'
-import { payment, subscription, type PaymentStatus } from '@repo/db/schema'
+import { payment, subscription, user, type PaymentStatus } from '@repo/db/schema'
 import {
     getProvider, PaymentError, providersFor, type CheckoutStart, type Currency, type ExpectedPayment, type PaymentProvider,
     type PaymentState, type ProviderId, type ReturnHint, type VerifiedPayment, type WebhookNotice,
 } from '@repo/payments'
-import { accountForUser, addCredits } from './ledger'
+import { accountForUser, addCredits, creditsToMicro } from './ledger'
 import {
-    findPack, isBillingCurrency, isTermMonths, PLANS, planPrice, recurringPlanKey, type BillingCurrency, type PlanCode, type TermMonths,
+    ADD_CREDITS_MAX, ADD_CREDITS_MIN, findPack, isBillingCurrency, isPurchasableCredits, isTermMonths, PAISA_PER_CREDIT, PLANS, planPrice,
+    recurringPlanKey, type BillingCurrency, type PlanCode, type TermMonths,
 } from './plans'
 
 export type PaymentRow = typeof payment.$inferSelect
@@ -30,6 +31,8 @@ export function appBaseUrl(): string {
 export type CheckoutRequest =
     | { kind: 'plan'; plan: Exclude<PlanCode, 'free'>; months: TermMonths; autoRenew: boolean }
     | { kind: 'credits'; pack: string }
+    /** Any whole number of credits, ADD_CREDITS_MIN..ADD_CREDITS_MAX, NPR only (1 credit = Rs 1). */
+    | { kind: 'custom_credits'; credits: number }
 
 export interface StartCheckoutInput {
     user: { id: string; email: string; name?: string | null }
@@ -38,6 +41,8 @@ export interface StartCheckoutInput {
     /** Cashfree requires one; others ignore it. */
     phone?: string | null
     request: CheckoutRequest
+    /** The app origin the gateway returns to (defaults to MAIN_APP_URL). */
+    appUrl?: string
 }
 
 export interface StartedCheckout {
@@ -54,9 +59,18 @@ function priceOf(req: CheckoutRequest, currency: BillingCurrency): { amountMinor
         const description = req.autoRenew ? `${PLANS[req.plan].name} plan, renews monthly` : `${PLANS[req.plan].name} plan, ${months} month${months === 1 ? '' : 's'}`
         return { amountMinor: amount, description, credits: null }
     }
+    if (req.kind === 'custom_credits') {
+        if (currency !== 'NPR') throw new PaymentError('invalid', 'Credits are sold in Nepali rupees (NPR) only.')
+        if (!isPurchasableCredits(req.credits)) {
+            throw new PaymentError('invalid', `Choose a whole number of credits from ${ADD_CREDITS_MIN.toLocaleString('en')} to ${ADD_CREDITS_MAX.toLocaleString('en')}.`)
+        }
+        return { amountMinor: req.credits * PAISA_PER_CREDIT, description: `${req.credits.toLocaleString('en')} Boli credits`, credits: req.credits }
+    }
     const pack = findPack(req.pack)
     if (!pack) throw new PaymentError('invalid', 'That credit pack does not exist.')
-    return { amountMinor: pack.price[currency], description: `${pack.credits.toLocaleString('en')} credits`, credits: pack.credits }
+    const amount = pack.price[currency]
+    if (!amount) throw new PaymentError('invalid', `Credit packs are not sold in ${currency}.`)
+    return { amountMinor: amount, description: `${pack.credits.toLocaleString('en')} credits`, credits: pack.credits }
 }
 
 /**
@@ -81,7 +95,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<StartedC
         id: paymentId,
         accountId: account.id,
         userId: input.user.id,
-        kind: req.kind,
+        kind: req.kind === 'custom_credits' ? 'credits' : req.kind,
         status: 'created',
         provider: provider.id,
         currency: input.currency,
@@ -94,7 +108,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<StartedC
         livemode: provider.mode() === 'live',
     })
 
-    const base = appBaseUrl()
+    const base = input.appUrl ?? appBaseUrl()
     const checkoutInput = {
         paymentId,
         amountMinor: price.amountMinor,
@@ -122,6 +136,41 @@ export async function startCheckout(input: StartCheckoutInput): Promise<StartedC
             .where(eq(payment.id, paymentId)).catch(() => undefined)
         throw err
     }
+}
+
+export interface CreditPurchaseInput {
+    userId: string
+    /** Whole credits (= rupees), ADD_CREDITS_MIN..ADD_CREDITS_MAX. */
+    credits: number
+    provider: 'esewa' | 'khalti'
+    /**
+     * Optional; must be on this app (MAIN_APP_URL), relative paths allowed. The gateway always returns through
+     * `/api/payments/<provider>/return/<paymentId>`, which shows `/checkout/<paymentId>` (the result page links on).
+     */
+    returnUrl?: string
+}
+
+/**
+ * Buy a custom number of credits with eSewa or Khalti (NPR; test mode while ESEWA_ENV / KHALTI_ENV say so). Returns
+ * the same as startCheckout: `start.type === 'form'` for eSewa (POST `fields` to `action`), `'redirect'` for Khalti.
+ * The caller checks the session and passes its user id. N credits add N * 1,000,000 micro-credits once paid.
+ */
+export async function startCreditPurchase(input: CreditPurchaseInput): Promise<StartedCheckout> {
+    if (input.provider !== 'esewa' && input.provider !== 'khalti') throw new PaymentError('invalid', 'Pay with eSewa or Khalti.')
+    const [buyer] = await db.select({ id: user.id, email: user.email, name: user.name }).from(user).where(eq(user.id, input.userId)).limit(1)
+    if (!buyer) throw new PaymentError('invalid', 'Sign in again, then add credits.')
+    if (input.returnUrl) {
+        // Never let a caller-supplied URL steer the gateway elsewhere: it must be this app's own origin.
+        let origin = ''
+        try { origin = new URL(input.returnUrl, appBaseUrl()).origin } catch { origin = '' }
+        if (origin !== new URL(appBaseUrl()).origin) throw new PaymentError('invalid', 'The return address must be on this app.')
+    }
+    return startCheckout({
+        user: buyer,
+        provider: input.provider,
+        currency: 'NPR',
+        request: { kind: 'custom_credits', credits: input.credits },
+    })
 }
 
 /** The result a return page (or an admin recheck) shows. */
@@ -164,12 +213,15 @@ async function markUnpaid(row: PaymentRow, status: PaymentStatus, reason: string
  */
 async function fulfil(row: PaymentRow, v: VerifiedPayment): Promise<boolean> {
     if (row.fulfilledAt) return false
+    // The owner deleted their account while the payment was in flight: nothing to credit (the payment row stays).
+    const accountId = row.accountId
+    if (!accountId) return false
     const ppid = v.providerPaymentId
     const psid = v.providerSubscriptionId ?? row.providerSubscriptionId
     if (row.kind === 'credits') {
         const credits = row.credits ?? 0
         const r = credits > 0
-            ? await addCredits(row.accountId, { kind: 'purchase', amount: credits, key: `purchase:${row.id}`, description: `${credits.toLocaleString('en')} credits`, paymentId: row.id })
+            ? await addCredits(accountId, { kind: 'purchase', amountMicro: creditsToMicro(credits), key: `purchase:${row.id}`, description: `${credits.toLocaleString('en')} credits`, paymentId: row.id })
             : { applied: false }
         await db.update(payment).set({
             status: 'succeeded', fulfilledAt: sql`COALESCE(${payment.fulfilledAt}, now())`, providerPaymentId: sql`COALESCE(${payment.providerPaymentId}, ${ppid})`,
@@ -182,8 +234,8 @@ async function fulfil(row: PaymentRow, v: VerifiedPayment): Promise<boolean> {
     const plan = PLANS[(row.planCode as PlanCode) ?? 'pro'] ?? PLANS.pro
     const months = row.termMonths ?? 1
     if (plan.monthlyCredits > 0) {
-        await addCredits(row.accountId, {
-            kind: 'grant', amount: plan.monthlyCredits * months, key: `plan:${row.id}`,
+        await addCredits(accountId, {
+            kind: 'grant', amountMicro: creditsToMicro(plan.monthlyCredits * months), key: `plan:${row.id}`,
             description: `${plan.name} plan credits, ${months} month${months === 1 ? '' : 's'}`, paymentId: row.id,
         })
     }

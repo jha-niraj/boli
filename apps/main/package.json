@@ -18,6 +18,7 @@
         "@repo/billing": "workspace:*",
         "@repo/core": "workspace:*",
         "@repo/cron": "workspace:*",
+        "@repo/crypto": "workspace:*",
         "@repo/db": "workspace:*",
         "@repo/email": "workspace:*",
         "@repo/erasure": "workspace:*",

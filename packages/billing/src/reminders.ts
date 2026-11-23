@@ -81,7 +81,7 @@ export async function sendRenewalReminders(now: Date = new Date()): Promise<{ du
             endsAt: sub.currentPeriodEnd,
             autoRenew: sub.autoRenew,
             amount: sub.autoRenew && sub.amountMinor && sub.currency ? formatMoney(sub.amountMinor, sub.currency) : null,
-            billingUrl: `${base}/settings/billing`,
+            billingUrl: `${base}/billing`,
         })
         const r = await sendEmail({ kind: 'transactional', to: contact.email, ...content })
         if (r.status === 'failed') {

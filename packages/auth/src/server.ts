@@ -14,6 +14,7 @@
  * only - it never creates an account, the sign-up page is the front door).
  */
 import { betterAuth } from 'better-auth'
+import { APIError, createAuthMiddleware } from 'better-auth/api'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { emailOTP } from 'better-auth/plugins'
 import { nextCookies } from 'better-auth/next-js'
@@ -21,6 +22,7 @@ import { after } from 'next/server'
 import { db, eq } from '@repo/db'
 import { user as userTable, session as sessionTable, account as accountTable, verification as verificationTable } from '@repo/db/schema'
 import { hashPassword, verifyPassword } from '@repo/crypto/password'
+import { grantWelcome } from '@repo/billing/ledger'
 import {
     sendEmail,
     verifyEmail,
@@ -31,6 +33,7 @@ import {
     type EmailContent,
 } from '@repo/email'
 import { authCookiePrefix } from './cookies'
+import { passwordRuleMessage } from './password-rules'
 
 const isDev = process.env.NODE_ENV !== 'production'
 
@@ -59,6 +62,19 @@ async function deliver(to: string, content: EmailContent): Promise<void> {
  * Best-effort work the person does not wait for (a welcome, a "password changed" notice): after the response when a
  * request is in scope (`after` = `waitUntil` on Workers), inline otherwise. Never a floating promise.
  */
+/**
+ * The one-time welcome credits (100, keyed `welcome:<accountId>`, so every path below may call it). INLINE, never
+ * after(): it is money the person is told they have. A failure is logged and does not undo the verification; the next
+ * verified update grants it.
+ */
+async function grantWelcomeCredits(userId: string): Promise<void> {
+    try {
+        await grantWelcome(userId)
+    } catch (err) {
+        console.error('[auth] welcome credits failed:', err instanceof Error ? err.message : err)
+    }
+}
+
 async function inBackground(task: () => Promise<unknown>): Promise<void> {
     const run = async () => {
         try {
@@ -98,6 +114,17 @@ export const auth = betterAuth({
         schema: { user: userTable, session: sessionTable, account: accountTable, verification: verificationTable },
     }),
 
+    // The checklist's rules, enforced here too (owner, 2026-11-24): sign-up, reset, change and set password all pass through.
+    hooks: {
+        before: createAuthMiddleware(async (ctx) => {
+            const body = ctx.body as { password?: unknown; newPassword?: unknown } | undefined
+            const pw = ctx.path === '/sign-up/email' ? body?.password : ctx.path === '/reset-password' || ctx.path === '/change-password' || ctx.path === '/set-password' ? body?.newPassword : undefined
+            if (typeof pw !== 'string') return
+            const message = passwordRuleMessage(pw)
+            if (message) throw new APIError('BAD_REQUEST', { message, code: 'PASSWORD_RULES' })
+        }),
+    },
+
     emailAndPassword: {
         enabled: true,
         requireEmailVerification: true,
@@ -129,6 +156,7 @@ export const auth = betterAuth({
             await deliver(user.email, verifyEmail({ name: user.name, url }))
         },
         afterEmailVerification: async (user) => {
+            await grantWelcomeCredits(user.id)
             await inBackground(() => sendEmail({ kind: 'transactional', to: user.email, ...welcomeEmail({ name: user.name, appUrl: appUrl() }) }))
         },
     },
@@ -169,7 +197,15 @@ export const auth = betterAuth({
                 // get it after they confirm their email (afterEmailVerification).
                 after: async (u) => {
                     if (!u.emailVerified) return
+                    await grantWelcomeCredits(u.id)
                     await inBackground(() => sendEmail({ kind: 'transactional', to: u.email, ...welcomeEmail({ name: u.name, appUrl: appUrl() }) }))
+                },
+            },
+            update: {
+                // A path that verifies without afterEmailVerification (the one-time email code, Google linking an
+                // unverified password account) still gets the grant; it is keyed, so a repeat adds nothing.
+                after: async (u) => {
+                    if (u.emailVerified === true && typeof u.id === 'string') await grantWelcomeCredits(u.id)
                 },
             },
         },

@@ -15,11 +15,11 @@
 		"check-types": "tsc --noEmit"
 	},
 	"dependencies": {
-		"ai": "^7.0.179",
-		"@ai-sdk/anthropic": "^4.0.107",
-		"zod": "^4.6.7",
+		"@ai-sdk/openai-compatible": "^3.0.94",
 		"@repo/errors": "workspace:*",
-		"server-only": "^0.0.1"
+		"ai": "^7.0.179",
+		"server-only": "^0.0.1",
+		"zod": "^4.6.7"
 	},
 	"devDependencies": {
 		"@repo/typescript-config": "workspace:*",

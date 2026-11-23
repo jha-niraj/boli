@@ -53,7 +53,7 @@ export async function getBillingSubscriptions(page = 1): Promise<ActionResult<Pa
     }
 }
 
-export async function getUserCredits(userId: string): Promise<ActionResult<{ balance: number; entries: AdminLedgerRow[] }>> {
+export async function getUserCredits(userId: string): Promise<ActionResult<{ balanceMicro: number; entries: AdminLedgerRow[] }>> {
     try {
         await requireAdminAction(READ, "read")
         if (typeof userId !== "string" || !userId) return failWith("validation", "Choose a user.")
@@ -88,7 +88,7 @@ export async function recheckPayment(paymentId: string): Promise<ActionResult<Co
  * Grant (or, negative, take back) credits. `requestId` is made once per open sheet, so a double submit is ONE grant.
  * The audit row records who, whom, how many and why.
  */
-export async function grantUserCredits(input: { userId: string; credits: number; reason: string; requestId: string }): Promise<ActionResult<{ balance: number; applied: boolean }>> {
+export async function grantUserCredits(input: { userId: string; credits: number; reason: string; requestId: string }): Promise<ActionResult<{ balanceMicro: number; applied: boolean }>> {
     try {
         const admin = await requireAdminAction(GRANT, "write")
         const credits = Math.trunc(Number(input.credits))
@@ -102,12 +102,12 @@ export async function grantUserCredits(input: { userId: string; credits: number;
             await db.insert(adminAuditLog).values({
                 adminId: admin.id, action: credits > 0 ? "CREATE" : "UPDATE", module: "billing", resourceType: "User", resourceId: input.userId,
                 description: credits > 0 ? `Granted ${credits} credits` : `Removed ${Math.abs(credits)} credits`,
-                changes: { credits, balanceAfter: r.balance },
+                changes: { credits, balanceAfterMicro: r.balanceMicro },
                 metadata: { reason, requestId: input.requestId },
             })
         }
         revalidatePath("/billing")
-        return ok({ balance: r.balance, applied: r.applied })
+        return ok({ balanceMicro: r.balanceMicro, applied: r.applied })
     } catch (err) {
         return fail(err)
     }

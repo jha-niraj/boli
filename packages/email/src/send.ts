@@ -11,7 +11,16 @@
  * - Resend answers errors as JSON with a non-2xx status; that is `failed` with Resend's own message, never `sent`.
  */
 
+import { SITE } from '@repo/core/site'
+
 export type EmailKind = 'transactional' | 'marketing'
+
+/** The sender as `<product name> <address>` (SITE.name, "Boli"), whatever display name RESEND_FROM_EMAIL carries. */
+function withSenderName(from: string): string {
+    const address = /<([^>]+)>/.exec(from)?.[1]?.trim() ?? from.trim()
+    const name = SITE.name.replace(/["<>]/g, '')
+    return `${name} <${address}>`
+}
 
 interface BaseEmailInput {
     to: string | string[]
@@ -109,11 +118,12 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
         return { status: 'skipped', reason: 'RESEND_API_KEY is not set' }
     }
 
-    const from = env('RESEND_FROM_EMAIL')
-    if (!from) {
+    const fromEnv = env('RESEND_FROM_EMAIL')
+    if (!fromEnv) {
         console.error(`[email] failed "${subject}": RESEND_FROM_EMAIL is not set`)
         return { status: 'failed', error: 'RESEND_FROM_EMAIL is not set' }
     }
+    const from = withSenderName(fromEnv)
 
     const headers =
         input.kind === 'marketing'

@@ -1,22 +1,19 @@
 import 'server-only'
 import { hasToolCall, isStepCount, streamText, type LanguageModelUsage, type ModelMessage, type ToolSet, type AssistantModelMessage, type ToolModelMessage } from 'ai'
-import { anthropicOptionsFor, getChatModel } from './anthropic'
-import { cachedInstructions, withCacheMarks } from './cache'
+import { BOLI_CHAT_MODEL_ID, boliProviderOptions, getBoliChatModel, type BoliSamplingSettings } from './boli'
 import { classifyAiError, type ClassifiedAiError } from './errors'
 import type { ChatCard, ChatFrame, ChatLink, MessagePart } from './protocol'
 import { recordAiUsage, type AiRequestUsage } from './usage'
 import { taskConfig, type AiTaskName } from './config'
 
 /**
- * One chat turn: the tool loop, streamed as protocol frames.
+ * One chat turn on `boli-chat` (llama-server): the tool loop, streamed as protocol frames.
  *
- * Cost rules built in (AGENTS.md section 12):
- * - task -> model from config.ts, thinking adaptive + effort from the task, the same every turn;
- * - the system prompt is frozen and marked for the 1-hour cache; the last user message and the latest tool result are
- *   re-marked before every step (`prepareStep`), so each tool round and the next turn read the history from cache;
+ * - The system prompt is frozen text so llama-server can reuse its prompt cache; sampling and thinking come from
+ *   `settings` (`boliProviderOptions`), thinking off unless `settings.think`;
  * - a tool that reports an outage is removed for the rest of the turn (`activeTools`), steps are capped (`stopWhen`);
- * - every request's usage (incl. 1-hour writes, read from the raw usage) goes to the usage sink - also on failure;
- * - dev only: one `[ai cache] step` line per request with read / write / hit.
+ * - every request's usage goes to the usage sink - also on failure (the caller charges credits with its own meter);
+ * - dev only: one `[ai] step` line per request with input / output tokens.
  *
  * Tool output conventions (read here, all optional, the model sees them too):
  *   `_card`   a question / confirm / form card (its id is replaced by the tool call id);
@@ -26,6 +23,8 @@ import { taskConfig, type AiTaskName } from './config'
 
 export interface ChatTurnOptions<TOOLS extends ToolSet> {
     task: AiTaskName
+    /** Sampling + thinking (Kura's settings). Omitted = server defaults, thinking off. */
+    settings?: BoliSamplingSettings
     /** Frozen text. Nothing per request in it. */
     instructions: string
     tools: TOOLS
@@ -57,22 +56,12 @@ type Json = Record<string, unknown>
 const isObj = (v: unknown): v is Json => typeof v === 'object' && v !== null && !Array.isArray(v)
 const n = (v: number | undefined | null) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : 0)
 
-/** The 1-hour part of a request's cache writes - Anthropic reports it in `cache_creation`, the SDK only the total. */
-function oneHourWrites(usage: LanguageModelUsage): number {
-    const raw = usage.raw
-    if (!isObj(raw) || !isObj(raw.cache_creation)) return 0
-    const v = raw.cache_creation.ephemeral_1h_input_tokens
-    return typeof v === 'number' ? v : 0
-}
-
 function toRequest(usage: LanguageModelUsage): AiRequestUsage {
-    const input = n(usage.inputTokens)
-    const write = n(usage.inputTokenDetails.cacheWriteTokens)
     return {
-        inputTokens: input,
+        inputTokens: n(usage.inputTokens),
         cacheReadTokens: n(usage.inputTokenDetails.cacheReadTokens),
-        cacheWriteTokens: write,
-        cacheWrite1hTokens: Math.min(write, oneHourWrites(usage)),
+        cacheWriteTokens: 0,
+        cacheWrite1hTokens: 0,
         outputTokens: n(usage.outputTokens),
     }
 }
@@ -128,7 +117,7 @@ export async function runChatTurn<TOOLS extends ToolSet>(opts: ChatTurnOptions<T
     let error: ClassifiedAiError | null = null
     let aborted = false
     let responseMessages: Array<AssistantModelMessage | ToolModelMessage> = []
-    let modelId = 'unknown'
+    const modelId: string = BOLI_CHAT_MODEL_ID
 
     const pushText = (d: string) => {
         const last = parts[parts.length - 1]
@@ -149,28 +138,27 @@ export async function runChatTurn<TOOLS extends ToolSet>(opts: ChatTurnOptions<T
     const labelOf = (name: string): string | undefined => (opts.toolLabels as Partial<Record<string, string>> | undefined)?.[name]
 
     try {
-        const { model, modelId: id } = getChatModel(opts.task)
-        modelId = id
+        const model = getBoliChatModel()
+        const settings = opts.settings ?? {}
         const stopOnTools = opts.stopOnTools ?? []
         const stopWhen = stopOnTools.length
             ? [isStepCount(opts.maxSteps ?? 6), hasToolCall<TOOLS>(...stopOnTools)]
             : [isStepCount(opts.maxSteps ?? 6)]
         const result = streamText({
             model,
-            instructions: cachedInstructions(opts.instructions),
+            instructions: { role: 'system', content: opts.instructions },
             allowSystemInMessages: true,
-            messages: withCacheMarks(opts.messages),
+            messages: opts.messages,
             tools: opts.tools,
             toolOrder: opts.toolOrder,
             // Only these are sent - a tool defined but not listed (e.g. one switched off for this deployment) stays out.
             activeTools: opts.toolOrder,
             stopWhen,
             maxRetries: 1,
-            maxOutputTokens: taskConfig(opts.task).maxOutputTokens,
-            providerOptions: { anthropic: anthropicOptionsFor(opts.task) },
+            maxOutputTokens: settings.maxTokens ?? taskConfig(opts.task).maxOutputTokens,
+            providerOptions: boliProviderOptions(settings),
             abortSignal: opts.abortSignal,
-            prepareStep: ({ messages }) => ({
-                messages: withCacheMarks(messages),
+            prepareStep: () => ({
                 activeTools: opts.toolOrder.filter((t) => !outages.has(t)),
             }),
         })
@@ -244,12 +232,8 @@ export async function runChatTurn<TOOLS extends ToolSet>(opts: ChatTurnOptions<T
                     const req = toRequest(part.usage)
                     requests.push(req)
                     if (isDev) {
-                        const uncached = Math.max(0, req.inputTokens - req.cacheReadTokens - req.cacheWriteTokens)
-                        console.info(`[ai cache] step ${requests.length}`, {
-                            input: req.inputTokens, uncached, read: req.cacheReadTokens, write: req.cacheWriteTokens,
-                            write1h: req.cacheWrite1hTokens, output: req.outputTokens,
-                            hit: req.inputTokens ? `${Math.round((req.cacheReadTokens / req.inputTokens) * 100)}%` : '-',
-                            finish: part.finishReason,
+                        console.info(`[ai] step ${requests.length}`, {
+                            input: req.inputTokens, cached: req.cacheReadTokens, output: req.outputTokens, finish: part.finishReason,
                         })
                     }
                     break

@@ -5,8 +5,9 @@ import { getModel, type AiRequestUsage, type Rates } from '@repo/ai'
  *
  *   cost = plain input x input + cache reads x read + 5-minute writes x write5m + 1-hour writes x write1h + output x output
  *
- * Cache reads and writes are SUBSETS of input tokens - never added on top (double count). Long context (Haiku 5.5 past
- * 100K prompt tokens) is decided PER REQUEST, on the request's whole prompt. An unknown model costs 0 with
+ * Cache reads and writes are SUBSETS of input tokens - never added on top (double count). A long-context card (when a
+ * model has one) is decided PER REQUEST, on the request's whole prompt. `boli-chat` is self-hosted: its USD rates are
+ * 0, so this logs tokens for our own records; what a person pays is micro-credits (apps/main lib/platform/credits.ts). An unknown model costs 0 with
  * `priceKnown: false` - it never silently falls back to some other model's price.
  */
 

@@ -23,6 +23,7 @@
 		"check-types": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@repo/billing": "workspace:*",
 		"@repo/core": "workspace:*",
 		"@repo/crypto": "workspace:*",
 		"@repo/db": "workspace:*",
@@ -39,9 +40,9 @@
 	},
 	"devDependencies": {
 		"@types/node": "^22.15.3",
+		"@types/react": "^19.3.0",
 		"next": "16.4.6",
-		"typescript": "5.9.3",
-		"@types/react": "^19.3.0"
+		"typescript": "5.9.3"
 	},
 	"description": "The ONLY owner of better-auth: server config, session reads, client, cookies, sign-out, returnTo, auth UI kit"
 }

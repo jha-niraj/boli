@@ -1,8 +1,18 @@
 // @repo/billing/plans - the price list, in CODE (not the database): a price change is a reviewed commit, never a row
 // someone edited. Pure: no env, no database - the browser imports it too (`@repo/billing/plans`).
 //
-// Money is integer MINOR units (paisa / cents). Credits are whole numbers: 1 credit = 1000 millionths of a USD
-// ($0.001) of AI cost, so a turn that cost us $0.0123 spends 13 credits (rounded UP - a real call never spends 0).
+// Money is integer MINOR units (paisa / cents). Credits (Boli): 1 credit = Rs 1 = 100 paisa, stored as integer
+// MICRO-credits (1 credit = 1,000,000). These mirror apps/main/lib/boli.ts (the source) - keep them equal.
+
+/** Micro-credits per credit. */
+export const MICRO_PER_CREDIT = 1_000_000
+/** Paisa per credit (1 credit = Rs 1). */
+export const PAISA_PER_CREDIT = 100
+/** The one-time welcome grant, on email verification. */
+export const WELCOME_CREDITS = 100
+/** A custom credit purchase (credits = rupees). */
+export const ADD_CREDITS_MIN = 100
+export const ADD_CREDITS_MAX = 100_000
 
 export const BILLING_CURRENCIES = ['NPR', 'INR', 'USD'] as const
 export type BillingCurrency = (typeof BILLING_CURRENCIES)[number]
@@ -24,7 +34,7 @@ export interface Plan {
     name: string
     /** One line on what it is for. */
     summary: string
-    /** Credits added with each paid month (Pro), or once on the first visit (Free). */
+    /** Whole credits added with each paid month (Pro). The Free plan's welcome grant is WELCOME_CREDITS, not this. */
     monthlyCredits: number
     /** Price of ONE month, minor units per currency. Null = free. */
     monthlyPrice: Record<BillingCurrency, number> | null
@@ -36,9 +46,9 @@ export const PLANS: Record<PlanCode, Plan> = {
         code: 'free',
         name: 'Free',
         summary: 'Try everything with a starter balance of credits.',
-        monthlyCredits: 500,
+        monthlyCredits: 0,
         monthlyPrice: null,
-        features: ['500 credits to start', 'Top up credits any time'],
+        features: [`${WELCOME_CREDITS} credits when you verify your email`, 'Top up credits any time'],
     },
     pro: {
         code: 'pro',
@@ -79,31 +89,23 @@ export function planPrice(plan: PlanCode, currency: BillingCurrency, months: Ter
 export interface CreditPack {
     code: string
     credits: number
-    price: Record<BillingCurrency, number>
+    /** Minor units. Credits are sold in NPR only (1 credit = Rs 1). */
+    price: Partial<Record<BillingCurrency, number>>
 }
 
-export const CREDIT_PACKS: CreditPack[] = [
-    { code: 'small', credits: 2000, price: { NPR: 39900, INR: 24900, USD: 300 } },
-    { code: 'medium', credits: 6000, price: { NPR: 99900, INR: 64900, USD: 800 } },
-    { code: 'large', credits: 15000, price: { NPR: 229900, INR: 139900, USD: 1800 } },
-]
+export const CREDIT_PACKS: CreditPack[] = [100, 500, 1000].map((credits) => ({
+    code: String(credits),
+    credits,
+    price: { NPR: credits * PAISA_PER_CREDIT },
+}))
 
 export function findPack(code: string): CreditPack | null {
     return CREDIT_PACKS.find((p) => p.code === code) ?? null
 }
 
-/** Millionths of a USD per credit. */
-export const MICRO_USD_PER_CREDIT = 1000
-
-/** Credits for an AI cost in millionths of a USD - rounded UP, so any real cost spends at least 1. */
-export function creditsForMicroUsd(microUsd: number): number {
-    if (!Number.isFinite(microUsd) || microUsd <= 0) return 0
-    return Math.ceil(microUsd / MICRO_USD_PER_CREDIT)
-}
-
-/** Credits for a USD amount (e.g. a price card's estimate). */
-export function creditsForUsd(usd: number): number {
-    return creditsForMicroUsd(Math.round(usd * 1e6))
+/** Whether `credits` is a whole number a person may buy (ADD_CREDITS_MIN..ADD_CREDITS_MAX). */
+export function isPurchasableCredits(credits: unknown): credits is number {
+    return typeof credits === 'number' && Number.isInteger(credits) && credits >= ADD_CREDITS_MIN && credits <= ADD_CREDITS_MAX
 }
 
 /** The stable key a gateway plan is created under (a price change makes a new gateway plan). */
@@ -126,6 +128,12 @@ export function formatMoney(minor: number, currency: string): string {
     }
 }
 
+/** Whole credits: 1,000. */
 export function formatCredits(n: number): string {
     return n.toLocaleString('en')
+}
+
+/** Micro-credits as credits with 2 decimals: 99_960_000 -> "99.96". */
+export function formatMicroCredits(micro: number): string {
+    return (micro / MICRO_PER_CREDIT).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }

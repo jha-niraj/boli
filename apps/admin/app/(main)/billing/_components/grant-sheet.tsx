@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Coins, Search } from "lucide-react"
-import { formatCredits } from "@repo/billing/plans"
+import { formatCredits, formatMicroCredits } from "@repo/billing/plans"
 import { Button } from "@repo/ui/components/ui/button"
 import { ConfirmPopover } from "@repo/ui/components/ui/confirm-popover"
 import { InlineLoader } from "@repo/ui/components/ui/inline-loader"
@@ -122,7 +122,7 @@ export function GrantSheet({ target, open, onOpenChange, onExitComplete }: {
                                 <div className="flex min-w-0 items-baseline justify-between gap-3">
                                     <span className="text-sm text-neutral-600 dark:text-neutral-400">Balance</span>
                                     {ledger.data ? (
-                                        <span className="text-base font-semibold tabular-nums text-neutral-900 dark:text-white">{formatCredits(ledger.data.balance)}</span>
+                                        <span className="text-base font-semibold tabular-nums text-neutral-900 dark:text-white">{formatMicroCredits(ledger.data.balanceMicro)}</span>
                                     ) : <Skeleton className="h-5 w-16 rounded-md" />}
                                 </div>
                                 <div className="flex min-w-0 flex-col gap-1.5">
@@ -145,7 +145,7 @@ export function GrantSheet({ target, open, onOpenChange, onExitComplete }: {
                                                         <span className="block truncate text-sm text-neutral-900 dark:text-white">{e.description ?? KIND_LABEL[e.kind] ?? e.kind}</span>
                                                         <span className="block text-xs text-neutral-500 dark:text-neutral-400">{KIND_LABEL[e.kind] ?? e.kind} - {formatDate(e.createdAt, true)}</span>
                                                     </span>
-                                                    <span className="shrink-0 text-sm tabular-nums text-neutral-900 dark:text-white">{e.amount > 0 ? "+" : ""}{formatCredits(e.amount)}</span>
+                                                    <span className="shrink-0 text-sm tabular-nums text-neutral-900 dark:text-white">{e.amountMicro > 0 ? "+" : ""}{formatMicroCredits(e.amountMicro)}</span>
                                                 </li>
                                             ))}
                                         </ul>

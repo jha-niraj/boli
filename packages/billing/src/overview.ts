@@ -4,7 +4,7 @@
 import { and, count, db, desc, eq, gte, ilike, or, sql, type SQL } from '@repo/db'
 import { billingAccount, creditLedger, payment, subscription, user, type PaymentStatus } from '@repo/db/schema'
 import { providersFor, summarize, type ProviderSummary } from '@repo/payments'
-import { accountForUser, addCredits, creditsSpentThisMonth, startOfUtcMonth } from './ledger'
+import { accountForUser, addCredits, creditsSpentThisMonth, creditsToMicro, startOfUtcMonth } from './ledger'
 import { effectivePlan } from './checkout'
 import { BILLING_CURRENCIES, type BillingCurrency, type PlanCode } from './plans'
 
@@ -40,8 +40,10 @@ export interface BillingOverview {
     plan: PlanCode
     active: boolean
     subscription: SubscriptionView | null
-    creditBalance: number
-    spentThisMonth: number
+    /** Micro-credits. */
+    balanceMicro: number
+    /** Micro-credits spent this UTC month (positive). */
+    spentThisMonthMicro: number
     currency: BillingCurrency | null
     /** Per currency, the providers with keys set - the only ones the picker may show. */
     providers: Record<BillingCurrency, ProviderSummary[]>
@@ -76,8 +78,8 @@ export async function billingOverview(userId: string): Promise<BillingOverview> 
         plan: plan.plan,
         active: plan.active,
         subscription: plan.subscription ? subscriptionView(plan.subscription) : null,
-        creditBalance: account.creditBalance,
-        spentThisMonth: spent,
+        balanceMicro: account.balanceMicro,
+        spentThisMonthMicro: spent,
         currency: (account.currency as BillingCurrency | null) ?? null,
         providers,
         payments: rows.map(paymentView),
@@ -163,13 +165,13 @@ export interface AdminSubscriptionRow extends SubscriptionView {
     userId: string
     userName: string | null
     userEmail: string | null
-    creditBalance: number
+    balanceMicro: number
 }
 
 export async function adminListSubscriptions(page = 1, limit = 25): Promise<Paged<AdminSubscriptionRow>> {
     const offset = (Math.max(1, page) - 1) * limit
     const [rows, [{ n } = { n: 0 }]] = await Promise.all([
-        db.select({ s: subscription, name: user.name, email: user.email, ownerId: billingAccount.ownerId, balance: billingAccount.creditBalance })
+        db.select({ s: subscription, name: user.name, email: user.email, ownerId: billingAccount.ownerId, balance: billingAccount.balanceMicro })
             .from(subscription)
             .innerJoin(billingAccount, eq(billingAccount.id, subscription.accountId))
             .leftJoin(user, eq(user.id, billingAccount.contactUserId))
@@ -177,7 +179,7 @@ export async function adminListSubscriptions(page = 1, limit = 25): Promise<Page
         db.select({ n: count() }).from(subscription),
     ])
     return {
-        items: rows.map((r) => ({ ...subscriptionView(r.s), id: r.s.id, userId: r.ownerId, userName: r.name, userEmail: r.email, creditBalance: r.balance })),
+        items: rows.map((r) => ({ ...subscriptionView(r.s), id: r.s.id, userId: r.ownerId, userName: r.name, userEmail: r.email, balanceMicro: r.balance })),
         total: Number(n),
         page,
         pages: Math.max(1, Math.ceil(Number(n) / limit)),
@@ -191,7 +193,8 @@ export interface AdminBillingStats {
     paymentsThisMonth: number
     activeSubscriptions: number
     autoRenewing: number
-    creditsGrantedThisMonth: number
+    /** Micro-credits granted by admins this month. */
+    creditsGrantedThisMonthMicro: number
 }
 
 export async function adminBillingStats(now: Date = new Date()): Promise<AdminBillingStats> {
@@ -206,7 +209,7 @@ export async function adminBillingStats(now: Date = new Date()): Promise<AdminBi
             active: sql<string>`count(*) filter (where ${subscription.currentPeriodEnd} > now() and ${subscription.status} in ('active', 'past_due'))`,
             auto: sql<string>`count(*) filter (where ${subscription.autoRenew} and ${subscription.currentPeriodEnd} > now())`,
         }).from(subscription),
-        db.select({ total: sql<string | null>`sum(${creditLedger.amount})` }).from(creditLedger)
+        db.select({ total: sql<string | null>`sum(${creditLedger.amountMicro})` }).from(creditLedger)
             .where(and(eq(creditLedger.kind, 'grant'), sql`${creditLedger.grantedBy} IS NOT NULL`, gte(creditLedger.createdAt, month))),
     ])
     const toMap = (rows: { currency: string; total: string }[]) => Object.fromEntries(rows.map((r) => [r.currency, Number(r.total)]))
@@ -216,21 +219,22 @@ export async function adminBillingStats(now: Date = new Date()): Promise<AdminBi
         paymentsThisMonth: Number(paid),
         activeSubscriptions: Number(subs?.active ?? 0),
         autoRenewing: Number(subs?.auto ?? 0),
-        creditsGrantedThisMonth: Number(grants?.total ?? 0),
+        creditsGrantedThisMonthMicro: Number(grants?.total ?? 0),
     }
 }
 
 /**
- * An admin's manual grant (or, with a negative amount, a correction). `requestId` comes from the form, so a double
- * submit is one grant. The audit row is the caller's job (the admin app owns admin_audit_log writes).
+ * An admin's manual grant (or, with a negative amount, a correction) in WHOLE credits, stored as micro-credits.
+ * `requestId` comes from the form, so a double submit is one grant. The audit row is the caller's job (the admin app
+ * owns admin_audit_log writes). Returns the balance after in micro-credits.
  */
-export async function adminGrantCredits(input: { userId: string; credits: number; reason: string; adminAccessId: string; requestId: string }): Promise<{ applied: boolean; balance: number }> {
+export async function adminGrantCredits(input: { userId: string; credits: number; reason: string; adminAccessId: string; requestId: string }): Promise<{ applied: boolean; balanceMicro: number }> {
     const [target] = await db.select({ id: user.id }).from(user).where(eq(user.id, input.userId)).limit(1)
     if (!target) throw new Error('No user with that id')
     const account = await accountForUser(input.userId)
     return addCredits(account.id, {
         kind: input.credits >= 0 ? 'grant' : 'expiry',
-        amount: input.credits,
+        amountMicro: creditsToMicro(input.credits),
         key: `grant:${input.requestId}`,
         description: input.reason,
         grantedBy: input.adminAccessId,
@@ -240,21 +244,22 @@ export async function adminGrantCredits(input: { userId: string; credits: number
 export interface AdminLedgerRow {
     id: string
     kind: string
-    amount: number
+    /** Signed micro-credits. */
+    amountMicro: number
     description: string | null
     grantedBy: string | null
     createdAt: string
 }
 
 /** One user's balance and latest ledger rows (the admin grant sheet). */
-export async function adminUserCredits(userId: string): Promise<{ balance: number; entries: AdminLedgerRow[] }> {
+export async function adminUserCredits(userId: string): Promise<{ balanceMicro: number; entries: AdminLedgerRow[] }> {
     // A read: an account that does not exist yet is a zero balance, not a new row.
     const [account] = await db.select().from(billingAccount)
         .where(and(eq(billingAccount.ownerType, 'user'), eq(billingAccount.ownerId, userId))).limit(1)
-    if (!account) return { balance: 0, entries: [] }
+    if (!account) return { balanceMicro: 0, entries: [] }
     const rows = await db.select().from(creditLedger).where(eq(creditLedger.accountId, account.id)).orderBy(desc(creditLedger.createdAt)).limit(30)
     return {
-        balance: account.creditBalance,
-        entries: rows.map((r) => ({ id: r.id, kind: r.kind, amount: r.amount, description: r.description, grantedBy: r.grantedBy, createdAt: r.createdAt.toISOString() })),
+        balanceMicro: account.balanceMicro,
+        entries: rows.map((r) => ({ id: r.id, kind: r.kind, amountMicro: r.amountMicro, description: r.description, grantedBy: r.grantedBy, createdAt: r.createdAt.toISOString() })),
     }
 }
