@@ -2,9 +2,10 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { ArticleLayout } from "@/components/content/article-layout"
 import { JsonLd } from "@/components/json-ld"
-import { getEntry, lastModified, listPosts } from "@/lib/content"
+import { getAuthor, getEntry, lastModified, listPosts } from "@/lib/content"
+import { BLOG_FEED } from "@/lib/feed"
 import { ROUTES } from "@/lib/routes"
-import { articleSchema, breadcrumbSchema } from "@/lib/schema"
+import { articleSchema, breadcrumbSchema, faqSchema } from "@/lib/schema"
 import { absoluteUrl, pageMeta } from "@/lib/seo"
 
 /** Every post is built at build time; any other slug is a 404 (drafts are not built in production). */
@@ -25,10 +26,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         type: "article",
         publishedTime: post.date,
         modifiedTime: lastModified(post),
-        authors: [post.author],
+        authors: [getAuthor(post.author).name],
         section: post.category,
         tags: post.tags,
         noindex: post.draft,
+        feeds: [BLOG_FEED],
     })
 }
 
@@ -46,6 +48,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
                         { name: "Blog", path: ROUTES.blog },
                         { name: post.title, path: ROUTES.post(slug) },
                     ]),
+                    ...(post.faqs.length ? [faqSchema(post.faqs)] : []),
                 ]}
             />
             <ArticleLayout

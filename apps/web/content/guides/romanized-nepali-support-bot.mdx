@@ -2,10 +2,25 @@
 title: Build a Romanized Nepali support bot with the API
 date: 2026-11-24
 summary: A customer support bot that answers in the customer's own mix of Romanized Nepali and English - a system prompt that holds, short memory, and what it costs per message.
-author: The Boli team
+author: boli-team
 cover: contactPasal
 draft: true
 tags: [API, Guide, Romanized Nepali]
+topics: [api, romanized-nepali]
+takeaways:
+  - "Keep Boli's script-mapping line in the system prompt word for word - without it, small models drift into Devanagari."
+  - "Put the facts the bot may use in the prompt itself; a small model will invent a delivery date if you do not give it one."
+  - "Each call is independent: send the system prompt plus the last few turns, not the whole history."
+  - "About 600 tokens in and 80 out per customer message costs a fraction of a rupee; max_tokens caps each reply."
+faqs:
+  - q: How do I stop the bot answering in Devanagari?
+    a: Keep the script-mapping line in the system prompt - English to English, Romanized Nepali to Romanized Nepali, a mix to the same mix in Latin letters, Devanagari only when the customer writes in Devanagari.
+  - q: How much history should the bot send?
+    a: The system prompt plus the last few messages - the guide keeps 6. The whole request must fit in {{context}} tokens, and every token you resend costs money.
+  - q: What does one reply cost?
+    a: With a system prompt of about 150 tokens, six recent messages of about 450 and a reply of about 80, a message is roughly 600 tokens in and 80 out - a fraction of a rupee at {{inputPrice}} in and {{outputPrice}} out per million tokens.
+  - q: When should the bot hand over to a person?
+    a: When the customer asks for one, or when the bot says it does not know. A simple check on the reply is enough to start routing those conversations to your team.
 ---
 
 Your customers write *order kaile aaucha?* and *refund milcha ki nai?*. This guide builds a small support bot that answers them in the same words they used, remembers the last few messages, and costs a fraction of a rupee per reply. The code is Python with the official OpenAI SDK; the same ideas work in any language.

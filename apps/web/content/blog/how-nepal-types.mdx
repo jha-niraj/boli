@@ -3,10 +3,25 @@ title: How Nepal types
 date: 2026-11-24
 category: Product
 summary: Romanized Nepali, English and the mix in between. Why small models answer in Devanagari when you did not ask, and how Boli answers in kind.
-author: The Boli team
+author: boli-team
 cover: keyboard
 draft: true
 tags: [Kura, Romanized Nepali, Models]
+topics: [romanized-nepali, open-models, kura]
+takeaways:
+  - "People in Nepal write the same thought in English, Romanized Nepali or a mix - and Romanized Nepali has no fixed spelling (cha, xa, chha)."
+  - "Small open models often answer Romanized Nepali in Devanagari, because most Nepali text they learned from is in Devanagari."
+  - "{{kura}} uses a system prompt that maps each way of writing to the same way of answering; without that line, answers drift."
+  - "With it, the model stayed in the user's script in 6 of 8 test prompts; the other small open model tested managed about 3 of 8."
+faqs:
+  - q: What is Romanized Nepali?
+    a: Nepali written with Latin letters, as most people type it on a phone - for example "mero exam sakiyo, aba k garne?". It has no fixed spelling, so cha, xa and chha are the same word.
+  - q: Why do AI models answer Romanized Nepali in Devanagari?
+    a: Most Nepali text on the web that models train on is in Devanagari, and Hindi is close by. When a model recognises Nepali, Devanagari is the likely continuation, even when the person typed in Latin letters.
+  - q: How does Boli answer in the same script?
+    a: "{{kura}} sends a system prompt that maps each way of writing to the same way of answering: English to English, Romanized Nepali to Romanized Nepali, a mix to the same mix, and Devanagari only when you write in Devanagari. You can send the same prompt with your own API calls."
+  - q: Does it always get the script right?
+    a: No. In our tests the model stayed in the user's script in 6 of 8 prompts. It still slips on grammar, sometimes uses a Hindi word and sometimes answers in English.
 ---
 
 Open any group chat in Kathmandu and count the scripts. A message in English, a reply in Nepali written with Latin letters, a third that switches halfway through a sentence. Devanagari shows up too, but far less than you might expect from a country whose official language is written in it.

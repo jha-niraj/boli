@@ -18,6 +18,12 @@ export const ROUTES = {
     post: (slug: string) => `/blog/${slug}`,
     /** The blog index with a category tab picked (a BLOG_CATEGORIES value). */
     blogCategory: (category: string) => `/blog?category=${encodeURIComponent(category)}`,
+    /** Topic hubs (content/topics.ts). Content URLs are marketing URLs and may carry hyphens, like post slugs. */
+    blogTopics: "/blog/topics",
+    blogTopic: (id: string) => `/blog/topics/${id}`,
+    /** RSS 2.0 feeds (published entries only). */
+    blogRss: "/blog/rss.xml",
+    changelogRss: "/changelog/rss.xml",
     guides: "/guides",
     guide: (slug: string) => `/guides/${slug}`,
     changelog: "/changelog",

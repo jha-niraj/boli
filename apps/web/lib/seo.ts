@@ -27,6 +27,8 @@ export type PageMetaInput = {
     section?: string
     tags?: string[]
     noindex?: boolean
+    /** RSS feeds to advertise (<link rel="alternate" type="application/rss+xml">). Site paths. */
+    feeds?: readonly { title: string; path: string }[]
 }
 
 export function absoluteUrl(path: string): string {
@@ -39,7 +41,10 @@ export function pageMeta(o: PageMetaInput): Metadata {
     return {
         title: o.absoluteTitle ? { absolute: o.title } : o.title,
         description: o.description,
-        alternates: { canonical: url },
+        alternates: {
+            canonical: url,
+            ...(o.feeds?.length ? { types: { "application/rss+xml": o.feeds.map((f) => ({ url: absoluteUrl(f.path), title: f.title })) } } : {}),
+        },
         openGraph: {
             title: fullTitle,
             description: o.description,

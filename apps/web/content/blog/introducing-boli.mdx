@@ -3,10 +3,27 @@ title: Introducing Boli
 date: 2026-11-24
 category: Launch
 summary: Boli runs open AI models for Nepal. Chat in Kura or call the same model from your code, in Romanized Nepali, English or both, and pay in rupees.
-author: The Boli team
+author: boli-team
 cover: launch
 draft: true
 tags: [Kura, API, Launch]
+topics: [open-models, kura, api]
+takeaways:
+  - "Boli runs an open model that reads Romanized Nepali, English, Devanagari and the mix, and answers in the script you wrote in."
+  - "{{kura}} is the chat; the API is the same model behind an OpenAI-compatible endpoint - change the base URL and the key."
+  - "Prices are per token in rupees: 1 credit = Rs 1, and {{welcomeCredits}} free credits when you verify your email."
+  - "API calls store metadata only - never your prompts or the answers."
+faqs:
+  - q: What is Boli?
+    a: Boli runs open AI models for Nepal. You can chat with the model in {{kura}} or call the same model from your code through an OpenAI-compatible API, and you pay in Nepali rupees.
+  - q: Which model does Boli run?
+    a: "{{model}}, which is {{modelLabel}}: open weights under {{licence}}, with {{context}} tokens of context. Boli runs only open models - no closed model sits behind the API or {{kura}}."
+  - q: Can I use the OpenAI SDK with Boli?
+    a: Yes. The official OpenAI SDKs for Python, TypeScript, JavaScript and Go work as they are. Change the base URL to Boli's /v1 endpoint and use your Boli key.
+  - q: How much does a call cost?
+    a: Each call costs its input and output tokens - {{inputPrice}} per million input tokens and {{outputPrice}} per million output tokens. A short reply costs a fraction of a rupee. Credits do not expire and nothing renews.
+  - q: Does Boli keep my prompts?
+    a: Not from the API. API calls store metadata only - the model, the token counts, the cost, the time and the status. {{kura}} conversations are saved to your account so you can come back to them.
 ---
 
 Most people in Nepal do not type Nepali in Devanagari. They type it in Latin letters - *mero exam sakiyo, aba k garne?* - and they mix in English mid-sentence. Boli starts there: an open model that reads how people actually write, a chat app to talk to it, and an API to build with it, priced in Nepali rupees.

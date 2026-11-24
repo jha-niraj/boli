@@ -16,3 +16,4 @@ One row per doc. Status: Planned / In progress / Done / Dropped.
 | [main/design/design-pass-v1.md](main/design/design-pass-v1.md) | Planned | 2026-11-24 | Design pass from owner feedback: shell alignment, no red, logo + font options on /design, Sarvam-grade landing/about/docs, eSewa/Khalti sandbox |
 | [repo/ml/docintel-testset.md](repo/ml/docintel-testset.md) | Done | 2026-11-24 | Stage 0 document reader measured on ~30 real public Nepali documents: CER, digit accuracy, Preeti trap, next steps |
 | [web/site/web-split.md](web/site/web-split.md) | In progress | 2026-11-24 | Split the public site into apps/web (bolihq.com), shared packages, mega-menu nav, Blog/Models/Guides/Changelog, SEO |
+| [web/site/content-seo.md](web/site/content-seo.md) | In progress | 2026-11-24 | apps/web content SEO to gurukulhq level: authors, topics, takeaways, FAQs, Service schema, RSS, markdown for agents |

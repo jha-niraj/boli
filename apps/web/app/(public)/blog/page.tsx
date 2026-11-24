@@ -7,17 +7,17 @@ import { Cover } from "@/components/content/cover"
 import { DraftBadge } from "@/components/content/draft-badge"
 import { PostCard } from "@/components/content/post-card"
 import { JsonLd } from "@/components/json-ld"
-import { BLOG_CATEGORIES, entryHref, formatContentDate, listPosts } from "@/lib/content"
+import { TopicChips } from "@/components/content/topic-chips"
+import { BLOG_CATEGORIES, entryHref, formatContentDate, listPosts, publishedEntries, topicsInUse } from "@/lib/content"
+import { BLOG_FEED } from "@/lib/feed"
 import { ROUTES } from "@/lib/routes"
-import { breadcrumbSchema } from "@/lib/schema"
+import { breadcrumbSchema, collectionPageSchema } from "@/lib/schema"
 import { pageMeta } from "@/lib/seo"
 import { BlogBrowser } from "./_components/blog-browser"
 
-export const metadata: Metadata = pageMeta({
-    title: "Blog",
-    description: "Stories from Boli: launches, product notes and research on open AI for Nepali, Romanized Nepali and English.",
-    path: ROUTES.blog,
-})
+const DESCRIPTION = "Stories from Boli: launches, product notes and research on open AI for Nepali, Romanized Nepali and English."
+
+export const metadata: Metadata = pageMeta({ title: "Blog", description: DESCRIPTION, path: ROUTES.blog, feeds: [BLOG_FEED] })
 
 /**
  * The blog (Sarvam's pattern): the newest post as a feature - big cover left, date, category, title and "Read the post"
@@ -27,9 +27,20 @@ export const metadata: Metadata = pageMeta({
 export default function BlogIndex() {
     const posts = listPosts()
     const featured = posts[0]
+    const topics = topicsInUse()
     return (
         <div className="mx-auto w-full max-w-6xl px-4 pb-24 pt-10 font-sans sm:px-6 sm:pt-14 lg:px-10">
-            <JsonLd data={breadcrumbSchema([{ name: "Blog", path: ROUTES.blog }])} />
+            <JsonLd
+                data={[
+                    collectionPageSchema({
+                        name: "Boli blog",
+                        description: DESCRIPTION,
+                        path: ROUTES.blog,
+                        items: publishedEntries("blog").map((p) => ({ name: p.title, path: entryHref(p) })),
+                    }),
+                    breadcrumbSchema([{ name: "Blog", path: ROUTES.blog }]),
+                ]}
+            />
             <header className="max-w-3xl">
                 <Kicker reveal={false}>Blog</Kicker>
                 <h1 className="mt-3 text-[42px] leading-[1.02] text-boli-ink sm:text-[56px]" style={DISPLAY.display}>
@@ -38,6 +49,14 @@ export default function BlogIndex() {
                 <p className="mt-4 max-w-2xl text-base leading-7 text-boli-text sm:text-lg sm:leading-8">
                     What we ship, what we measure and what we learn running open AI for Nepal.
                 </p>
+                {topics.length ? (
+                    <nav aria-label="Topics" className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2">
+                        <TopicChips topics={topics.map((t) => t.id)} />
+                        <AppLink href={ROUTES.blogTopics} className="cursor-pointer text-xs text-boli-muted underline underline-offset-4 transition-colors hover:text-boli-ink">
+                            All topics
+                        </AppLink>
+                    </nav>
+                ) : null}
             </header>
 
             {featured ? (

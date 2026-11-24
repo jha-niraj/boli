@@ -13,7 +13,7 @@ import { PageHero } from "@/components/public/page-hero"
 import { JsonLd } from "@/components/json-ld"
 import { API_ORIGIN, KEYS_URL, KURA_URL } from "@/lib/app-links"
 import { ROUTES } from "@/lib/routes"
-import { breadcrumbSchema } from "@/lib/schema"
+import { apiServiceSchema, breadcrumbSchema } from "@/lib/schema"
 import { pageMeta } from "@/lib/seo"
 
 const M = BOLI_CHAT
@@ -57,10 +57,13 @@ export default function BoliChatPage() {
     return (
         <>
             <JsonLd
-                data={breadcrumbSchema([
-                    { name: "Models", path: ROUTES.models },
-                    { name: M.id, path: ROUTES.model(M.id) },
-                ])}
+                data={[
+                    apiServiceSchema(),
+                    breadcrumbSchema([
+                        { name: "Models", path: ROUTES.models },
+                        { name: M.id, path: ROUTES.model(M.id) },
+                    ]),
+                ]}
             />
             <PageHero
                 kicker="Models - Live"

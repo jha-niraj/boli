@@ -2,8 +2,20 @@
  * The mega menu's motion (components/public/mega-menu.tsx). Only opacity and transform; the panel's height follows the
  * open menu (Radix publishes --radix-navigation-menu-viewport-height). Everything is instant under reduced motion.
  */
+/*
+ * The viewport is a transparent frame around the card: --mega-bridge reaches up under the triggers (so the pointer stays
+ * inside the menu crossing the gap), --mega-gap is the visible 8px space under the bar, --mega-side and --mega-bottom
+ * give the card's shadow room inside the clipped (overflow hidden) box. The card itself is the panel.
+ */
 .mega-viewport {
-    height: var(--radix-navigation-menu-viewport-height);
+    --mega-bridge: 20px;
+    --mega-gap: 8px;
+    --mega-top: calc(var(--mega-bridge) + var(--mega-gap));
+    --mega-side: 24px;
+    --mega-bottom: 40px;
+    overflow: hidden;
+    margin: calc(-1 * var(--mega-bridge)) calc(-1 * var(--mega-side)) 0;
+    height: calc(var(--radix-navigation-menu-viewport-height) + var(--mega-top) + var(--mega-bottom));
     transition: height 220ms cubic-bezier(0.22, 1, 0.36, 1);
     transform-origin: top center;
 }

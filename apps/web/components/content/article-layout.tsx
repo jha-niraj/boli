@@ -7,22 +7,29 @@ import { DISPLAY } from "@repo/brand/type"
 import { KURA, WELCOME_CREDITS } from "@repo/boli"
 import { DocsToc } from "@/app/(public)/docs/_components/docs-toc"
 import { KEYS_URL, KURA_URL } from "@/lib/app-links"
-import { adjacent, entryHref, formatContentDate, related, type ContentEntry } from "@/lib/content"
+import { adjacent, entryHref, formatContentDate, getAuthor, related, type ContentEntry } from "@/lib/content"
+import { AuthorAvatar, AuthorBlock } from "./author"
 import { Breadcrumb } from "./breadcrumb"
 import { ContentBody } from "./content-body"
+import { ContentFaqSection, FAQ_ANCHOR, FAQ_TITLE } from "./content-faq"
+import { KeyTakeaways } from "./key-takeaways"
+import { TopicChips } from "./topic-chips"
 import { Cover } from "./cover"
 import { DraftBadge } from "./draft-badge"
 import { PostCard } from "./post-card"
 
 /**
- * A long read (a blog post or a guide): breadcrumb, title, summary, byline, the cover, then the article in a reading
- * column with the docs' bending "On this page" line on the right from xl, then "Read next" and the older / newer pager.
- * One h1 (the title); the body's ## are h2, ### h3; "Read next" is an h2 with h3 cards.
+ * A long read (a blog post or a guide): breadcrumb, title, summary, byline, topic chips, the cover, then the article in
+ * a reading column - "Key takeaways" first, the body, the questions (frontmatter faqs, same list as the page's FAQPage
+ * JSON-LD), "Written by" - with the docs' bending "On this page" line on the right from xl, then "Read next" and the
+ * older / newer pager. One h1 (the title); the body's ## are h2, ### h3; "Read next" is an h2 with h3 cards.
  */
 export function ArticleLayout({ entry, crumbs, aside }: { entry: ContentEntry; crumbs: readonly { name: string; href: string }[]; aside?: ReactNode }) {
     const next = related(entry, 3)
     const { newer, older } = adjacent(entry)
     const updated = entry.updated && entry.updated !== entry.date ? entry.updated : undefined
+    const author = getAuthor(entry.author)
+    const toc = entry.faqs.length ? [...entry.toc, { id: FAQ_ANCHOR, title: FAQ_TITLE, depth: 2 as const }] : entry.toc
     return (
         <article className="mx-auto w-full max-w-6xl px-4 pb-20 pt-8 font-sans sm:px-6 sm:pt-10 lg:px-10">
             <header className="max-w-3xl">
@@ -32,7 +39,10 @@ export function ArticleLayout({ entry, crumbs, aside }: { entry: ContentEntry; c
                 </h1>
                 <p className="mt-5 text-lg leading-8 text-boli-text">{entry.summary}</p>
                 <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-boli-muted">
-                    <span className="text-boli-ink">{entry.author}</span>
+                    <span className="flex items-center gap-2 text-boli-ink">
+                        <AuthorAvatar author={author} size={24} />
+                        {author.name}
+                    </span>
                     <span aria-hidden>-</span>
                     <time dateTime={entry.date}>{formatContentDate(entry.date)}</time>
                     {updated ? (
@@ -47,19 +57,23 @@ export function ArticleLayout({ entry, crumbs, aside }: { entry: ContentEntry; c
                     <span>{entry.readingMinutes} min read</span>
                     <DraftBadge draft={entry.draft} />
                 </p>
+                <TopicChips topics={entry.topics} className="mt-4" />
             </header>
 
             <Cover name={entry.cover} rounded="rounded-3xl" className="mt-10 shadow-[0_1px_2px_rgba(20,20,20,0.04),0_12px_32px_-18px_rgba(20,20,20,0.18)]" />
 
             <div className="mt-12 grid gap-12 xl:grid-cols-[minmax(0,1fr)_208px]">
                 <div className="min-w-0 max-w-3xl">
+                    <KeyTakeaways items={entry.takeaways} className="mb-10" />
                     <ContentBody entry={entry} />
+                    <ContentFaqSection items={entry.faqs} />
+                    <AuthorBlock authorId={entry.author} className="mt-14" />
                     {aside ?? <EndCta />}
                 </div>
-                {entry.toc.length > 1 ? (
+                {toc.length > 1 ? (
                     <nav aria-label="On this page" className="hidden xl:block">
                         <div className="sticky top-[6.5rem]">
-                            <DocsToc headings={entry.toc} />
+                            <DocsToc headings={toc} />
                         </div>
                     </nav>
                 ) : null}

@@ -1,4 +1,4 @@
-import { getEntry, listPosts } from "@/lib/content"
+import { getAuthor, getEntry, listPosts } from "@/lib/content"
 import { OG_CONTENT_TYPE, OG_SIZE, ogImage } from "@/lib/og"
 
 /** A card per post (its title and its own cover), prerendered at build. */
@@ -16,7 +16,7 @@ export default async function PostOgImage({ params }: { params: Promise<{ slug: 
     return ogImage({
         title: post?.title ?? "Boli blog",
         kicker: post?.category ? `Blog - ${post.category}` : "Blog",
-        footer: post?.author ?? "The Boli team",
+        footer: getAuthor(post?.author ?? "boli-team").name,
         cover: post?.cover ?? "dhaka",
     })
 }

@@ -3,10 +3,25 @@ title: Reading Nepali bills with open models
 date: 2026-11-24
 category: Research
 summary: We tested open models and open OCR on 39 public Nepal government notices. Digits are the weak spot - and they fail silently. What we measured, the traps we found, and what comes next.
-author: The Boli team
+author: boli-team
 cover: bill
 draft: true
 tags: [Document intelligence, Research, OCR]
+topics: [document-intelligence, open-models]
+takeaways:
+  - "We tested open models and open OCR on 39 public Nepal government documents: digital PDFs, scans, phone photos and degraded copies."
+  - "Digits are the weak spot: the vision model got 71.7% of digits right on digital PDFs, and about 1 digit in 13 was a real misread."
+  - "Tesseract read better than the vision model (0.21 against 0.29 character error rate), and the hybrid route got the most dates right (13 of 16)."
+  - "Digital PDFs hide three traps: Preeti fonts, broken Unicode text layers and junk OCR layers from scanners."
+faqs:
+  - q: Can open models read Nepali documents reliably?
+    a: Not yet for numbers. On digital PDFs the open vision model got 71.7% of digits right, and about 1 digit in 13 was a real misread that changed meaning, such as a year or an amount. The output reads fluently, so the errors are easy to miss.
+  - q: Is OCR better than a vision model for Nepali text?
+    a: In this test, yes. Tesseract had a character error rate of 0.21 against the vision model's 0.29 across 18 pages, got 81.6% of digits right against 73.8%, and took about 1 second a page instead of about 19.
+  - q: What is the Preeti font problem?
+    a: Some Nepali PDFs are typed in Preeti-style fonts, so the text layer holds Latin key codes instead of Nepali - "g]kfn ;/sf/" for नेपाल सरकार. A converter fixes it; handed the raw text, the model invented a date.
+  - q: When will Boli read documents?
+    a: Document intelligence is next on the roadmap and ships when it reads digits reliably. The plan is to check text layers, read digits twice (OCR and the model), fix the small things that break numbers, then fine-tune.
 ---
 
 Document intelligence is next on Boli's roadmap: give it a photo of a bill or a scanned notice in Nepali, get back the text, or the fields as JSON. Before building it, we wanted to know how far open models get today on real Nepali paperwork. So we built a test set and measured.

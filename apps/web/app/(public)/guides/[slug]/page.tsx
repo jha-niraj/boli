@@ -3,9 +3,9 @@ import { notFound } from "next/navigation"
 import { GetKeyCard } from "@/app/(public)/docs/_components/prose"
 import { ArticleLayout } from "@/components/content/article-layout"
 import { JsonLd } from "@/components/json-ld"
-import { getEntry, lastModified, listGuides } from "@/lib/content"
+import { getAuthor, getEntry, lastModified, listGuides } from "@/lib/content"
 import { ROUTES } from "@/lib/routes"
-import { articleSchema, breadcrumbSchema } from "@/lib/schema"
+import { articleSchema, breadcrumbSchema, faqSchema } from "@/lib/schema"
 import { absoluteUrl, pageMeta } from "@/lib/seo"
 
 export const dynamicParams = false
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         type: "article",
         publishedTime: guide.date,
         modifiedTime: lastModified(guide),
-        authors: [guide.author],
+        authors: [getAuthor(guide.author).name],
         section: "Guides",
         tags: guide.tags,
         noindex: guide.draft,
@@ -46,6 +46,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
                         { name: "Guides", path: ROUTES.guides },
                         { name: guide.title, path: ROUTES.guide(slug) },
                     ]),
+                    ...(guide.faqs.length ? [faqSchema(guide.faqs)] : []),
                 ]}
             />
             <ArticleLayout

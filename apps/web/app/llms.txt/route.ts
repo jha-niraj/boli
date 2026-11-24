@@ -1,6 +1,6 @@
 import { SITE } from "@repo/core/site"
 import { API_PATHS, BOLI_CHAT, BRAND, CREDIT_PACKS, KURA, RATE_LIMIT_PER_MIN, WELCOME_CREDITS } from "@repo/boli"
-import { entryHref, publishedEntries } from "@/lib/content"
+import { entryHref, publishedEntries, publishedTopics, TOPICS } from "@/lib/content"
 import { DOCS_PAGES, ROUTES } from "@/lib/routes"
 import { APP_URL } from "@/lib/app-links"
 
@@ -45,6 +45,15 @@ ${list("blog")}
 ## Guides
 
 ${list("guides")}
+
+## Topics
+
+${publishedTopics().map((t) => `- [${TOPICS[t].title}](${u(ROUTES.blogTopic(t))}): ${TOPICS[t].description}`).join("\n") || "- None published yet."}
+
+## Feeds and markdown
+
+- [Blog RSS](${u(ROUTES.blogRss)}) and [changelog RSS](${u(ROUTES.changelogRss)})
+- Every published post and guide is also available as markdown: send \`Accept: text/markdown\` to its URL.
 
 ## Company
 

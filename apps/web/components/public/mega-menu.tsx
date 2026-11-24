@@ -37,14 +37,20 @@ export function MegaMenu({ menus }: { menus: readonly MegaMenuEntry[] }) {
                                 className="h-3.5 w-3.5 text-boli-muted transition-transform duration-200 group-data-[state=open]:rotate-180 motion-reduce:transition-none"
                             />
                         </NavigationMenu.Trigger>
-                        <NavigationMenu.Content onClick={closeOnLink} className="mega-content absolute inset-x-0 top-0 w-full">
+                        <NavigationMenu.Content onClick={closeOnLink} className="mega-content absolute inset-x-[var(--mega-side)] top-[var(--mega-top)]">
                             {m.panel}
                         </NavigationMenu.Content>
                     </NavigationMenu.Item>
                 ))}
             </NavigationMenu.List>
-            <div className="absolute inset-x-0 top-full">
-                <NavigationMenu.Viewport className="mega-viewport relative w-full overflow-hidden border-b border-boli-line bg-white shadow-[0_24px_48px_-32px_rgba(20,20,20,0.28)]" />
+            {/* A floating rounded card the width of the nav row (owner, 2026-11-24: not a full-bleed band), its edges under
+                the logo and the Sign up button. The Viewport itself is transparent and starts just under the triggers (a
+                bridge strip), so the pointer never leaves the menu on its way from a tab down to the card - Radix closes
+                150ms after the pointer leaves both. The card look is on each panel (see Panel). */}
+            <div className="pointer-events-none absolute inset-x-0 top-full">
+                <div className="pointer-events-auto mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-10">
+                    <NavigationMenu.Viewport className="mega-viewport relative" />
+                </div>
             </div>
         </NavigationMenu.Root>
     )

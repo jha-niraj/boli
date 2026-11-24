@@ -2,10 +2,25 @@
 title: Your first call in 5 languages
 date: 2026-11-24
 summary: Make your first Boli API call with cURL, Python, TypeScript, JavaScript or Go, using the official OpenAI SDKs and a Romanized Nepali question.
-author: The Boli team
+author: boli-team
 cover: docsDesk
 draft: true
 tags: [API, Quickstart]
+topics: [api]
+takeaways:
+  - "Boli's API speaks the OpenAI format, so the official OpenAI SDK for your language works - point it at Boli's /v1 base URL."
+  - "Your key starts with {{keyPrefix}} and is shown once; keep it in an environment variable, not in your code."
+  - "The answer is in choices[0].message.content, and the usage block says how many tokens you paid for."
+  - "401 means a bad key, 402 means no credits left, 429 means more than {{rateLimit}} requests in a minute."
+faqs:
+  - q: Do I need a Boli SDK?
+    a: No. Boli's API speaks the OpenAI format, so the official OpenAI SDK for Python, TypeScript, JavaScript or Go works once you set the base URL to Boli's /v1 endpoint and use your Boli key.
+  - q: Which fields go beyond the OpenAI spec?
+    a: Two - top_k and think. Python and Go send them as extra body fields.
+  - q: What does error 402 mean?
+    a: You are out of credits. Add more on the Billing page in the app and the next call goes through.
+  - q: How many requests can I send?
+    a: Up to {{rateLimit}} requests a minute per account. Past that the API answers 429; wait and retry.
 ---
 
 Boli's API speaks the OpenAI format. You do not need a Boli SDK: the official OpenAI library for your language works once you point it at Boli. This guide takes you from no account to a printed answer, in whichever of five languages you use.

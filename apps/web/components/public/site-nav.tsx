@@ -67,7 +67,7 @@ function featureCard(id: NavGroupId): Card {
 
 function Panel({ group, card }: { group: NavGroup; card: Card }) {
     return (
-        <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-7 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:px-10">
+        <div className="grid w-full gap-8 rounded-2xl border border-boli-line bg-white p-5 shadow-[0_24px_60px_-24px_rgba(20,20,20,0.28),0_2px_6px_rgba(20,20,20,0.04)] lg:grid-cols-[minmax(0,1fr)_300px] lg:p-6">
             <div className="min-w-0">
                 <p className="px-3 text-xs text-boli-muted">{group.label}</p>
                 <ul className="mt-2 grid gap-1 md:grid-cols-2">

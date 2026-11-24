@@ -1,0 +1,16 @@
+# Cloudflare Workers static-asset headers (served before the Worker).
+
+# Per-page markdown for agents (scripts/build-content.ts -> public/md/**; middleware.ts redirects an
+# `Accept: text/markdown` request for a post or guide here). The Content-Type is the load-bearing line: it is what the
+# client receives. Not content-hashed, so a short max-age.
+/md/*
+  Content-Type: text/markdown; charset=utf-8
+  Cache-Control: public, max-age=3600
+  Access-Control-Allow-Origin: *
+
+# The whole published site as one text file. The charset matters: it holds Devanagari, which is mojibake in a client
+# that falls back to latin-1.
+/llms-full.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600
+  Access-Control-Allow-Origin: *

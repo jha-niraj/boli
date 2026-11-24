@@ -1,7 +1,7 @@
 import { SITE } from "@repo/core/site"
 import type { MetadataRoute } from "next"
 import { BOLI_CHAT } from "@repo/boli"
-import { lastModified, publishedEntries } from "@/lib/content"
+import { lastModified, publishedEntries, publishedOnTopic, publishedTopics } from "@/lib/content"
 import { DOCS_PAGES, ROUTES } from "@/lib/routes"
 
 /*
@@ -11,7 +11,8 @@ import { DOCS_PAGES, ROUTES } from "@/lib/routes"
  * lastmod (learned from gurukulhq): the static pages report a FIXED date, not build time - if every URL said "changed
  * just now" on each deploy, Google learns to ignore our lastmod, including the accurate per-post dates. Bump
  * STATIC_LAST_MODIFIED only when the static pages are genuinely revised. Posts and guides report their own
- * `updated ?? date`; the blog, guides and changelog indexes report their newest entry.
+ * `updated ?? date`; the blog, guides and changelog indexes and each topic hub report their newest entry. A topic hub is
+ * listed only once something on it is published (lib/content.ts publishedTopics). Feeds (rss.xml) are not pages.
  */
 const STATIC_LAST_MODIFIED = "2026-11-24"
 
@@ -36,6 +37,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
         page(ROUTES.docs, 0.8, "weekly"),
         ...DOCS_PAGES.map((d) => page(ROUTES.doc(d.slug), 0.8, "weekly")),
         page(ROUTES.blog, 0.7, "weekly", newest(posts)),
+        ...(publishedTopics().length ? [page(ROUTES.blogTopics, 0.5, "weekly", newest([...posts, ...guides]))] : []),
+        ...publishedTopics().map((t) => page(ROUTES.blogTopic(t), 0.6, "weekly", newest(publishedOnTopic(t)))),
         ...posts.map((p) => page(ROUTES.post(p.slug), 0.7, "monthly", lastModified(p))),
         page(ROUTES.guides, 0.7, "weekly", newest(guides)),
         ...guides.map((g) => page(ROUTES.guide(g.slug), 0.7, "monthly", lastModified(g))),

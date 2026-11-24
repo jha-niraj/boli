@@ -96,10 +96,12 @@ const DEVA: Readonly<Record<string, readonly string[]>> = {
     ma: ["#######", "#.#..#.", "#.#..#.", ".##..#.", "....##.", ".....#.", ".....#."],
     na: ["#######", "....#..", "###.#..", "..###..", "....#..", "....#..", "....#.."],
     ga: ["#######", ".#..#..", ".#..#..", ".#..#..", ".##.#..", "....#..", "....#.."],
-    "2": [".###.", "#...#", "....#", "...#.", "..#..", ".#...", "#####"],
-    "0": [".....", ".###.", "#...#", "#...#", "#...#", ".###.", "....."],
-    "8": ["..#..", ".#.#.", "#...#", "#...#", "#...#", "#...#", "....."],
-    "3": ["###..", "...#.", ".##..", "...#.", "...#.", "###..", "....."],
+    // Nepali digits traced from Kohinoor Devanagari at 9 rows (owner check 2026-11-24: hand-drawn 5x7 digits read as
+    // Latin - "2oC3", "2oΛ3"). Traced shapes stay true to the script at this size.
+    "2": ["####.", "...#.", "...##", "#..#.", "###..", ".#...", "..#..", "..##.", "....."],
+    "0": ["....", "....", ".##.", "#..#", "#..#", "#..#", ".##.", "....", "...."],
+    "8": ["...#.", "..#..", ".##..", ".#...", "#....", "#....", "#....", ".####", "....."],
+    "3": ["###.", "...#", "...#", ".##.", "...#", "...#", "#..#", "###.", "..#."],
 }
 
 /** One Devanagari glyph at half scale, painted with `key`. */
@@ -114,7 +116,7 @@ function deva(name: keyof typeof DEVA, key: string): Grid {
 function devaRow(names: readonly (keyof typeof DEVA)[], key: string, gap = 2): Grid {
     const glyphs = names.map((n) => deva(n, key))
     const w = glyphs.reduce((s, g) => s + g.w + gap, -gap)
-    const out = new Grid(Math.max(1, w), 7)
+    const out = new Grid(Math.max(1, w), Math.max(...glyphs.map((g) => g.h)))
     let x = 0
     for (const g of glyphs) {
         stamp(out, g, x, 0)
@@ -338,16 +340,16 @@ function bill(): CoverScene {
         [6, 1],
     ] as const)
         tick.rect(x, y, 1, 1, "led")
-    const highlight = new Grid(16, 5)
-    highlight.rect(0, 0, 16, 5, "jarA")
+    const highlight = new Grid(15, 6)
+    highlight.rect(0, 0, 15, 6, "jarA")
 
     return {
         grid: g,
         variant: "day",
         label: "Pixel illustration: a printed government notice on a desk, a magnifier over its date showing the Nepali digits large, a green tick beside them, a red seal on the page",
         overlays: [
-            { kind: "layer", grid: highlight, x: 51, y: 12 },
-            { kind: "half", grid: date, x: 52.5, y: 12.75 },
+            { kind: "layer", grid: highlight, x: 50, y: 12 },
+            { kind: "half", grid: date, x: 51.5, y: 12.75 },
             { kind: "blink", grid: outlined(tick, "line"), x: 69, y: 8, dur: 2.6 },
             { kind: "layer", grid: chiya(), x: 84, y: 48 },
         ],

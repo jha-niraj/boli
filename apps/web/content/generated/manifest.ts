@@ -8,11 +8,14 @@ export const ENTRIES: readonly ContentEntry[] = [
         "title": "OpenAI-compatible API and API keys",
         "date": "2026-11-24",
         "summary": "Call boli-chat from your own code with an OpenAI-compatible API, your own keys, streaming and a clear rate limit.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "draft": true,
         "tags": [
             "API"
         ],
+        "topics": [],
+        "takeaways": [],
+        "faqs": [],
         "words": 66,
         "readingMinutes": 1,
         "toc": []
@@ -23,11 +26,14 @@ export const ENTRIES: readonly ContentEntry[] = [
         "title": "Smaller fixes from testing",
         "date": "2026-11-24",
         "summary": "max_tokens can now go as low as 1, failed calls show as failed in Usage, and the usage chart says when nothing was spent.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "draft": true,
         "tags": [
             "API"
         ],
+        "topics": [],
+        "takeaways": [],
+        "faqs": [],
         "words": 39,
         "readingMinutes": 1,
         "toc": []
@@ -38,11 +44,14 @@ export const ENTRIES: readonly ContentEntry[] = [
         "title": "Credit packs",
         "date": "2026-11-24",
         "summary": "Buy credits in packs with a bonus on the larger ones, or pick any amount.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "draft": true,
         "tags": [
             "Billing"
         ],
+        "topics": [],
+        "takeaways": [],
+        "faqs": [],
         "words": 31,
         "readingMinutes": 1,
         "toc": []
@@ -53,11 +62,14 @@ export const ENTRIES: readonly ContentEntry[] = [
         "title": "Docs with code in five languages",
         "date": "2026-11-24",
         "summary": "A quickstart, authentication and errors, chat completions and models - with highlighted examples in cURL, Python, TypeScript, JavaScript and Go.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "draft": true,
         "tags": [
             "Docs"
         ],
+        "topics": [],
+        "takeaways": [],
+        "faqs": [],
         "words": 31,
         "readingMinutes": 1,
         "toc": []
@@ -68,12 +80,39 @@ export const ENTRIES: readonly ContentEntry[] = [
         "title": "Your first call in 5 languages",
         "date": "2026-11-24",
         "summary": "Make your first Boli API call with cURL, Python, TypeScript, JavaScript or Go, using the official OpenAI SDKs and a Romanized Nepali question.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "cover": "docsDesk",
         "draft": true,
         "tags": [
             "API",
             "Quickstart"
+        ],
+        "topics": [
+            "api"
+        ],
+        "takeaways": [
+            "Boli's API speaks the OpenAI format, so the official OpenAI SDK for your language works - point it at Boli's /v1 base URL.",
+            "Your key starts with boli_sk_ and is shown once; keep it in an environment variable, not in your code.",
+            "The answer is in choices[0].message.content, and the usage block says how many tokens you paid for.",
+            "401 means a bad key, 402 means no credits left, 429 means more than 30 requests in a minute."
+        ],
+        "faqs": [
+            {
+                "q": "Do I need a Boli SDK?",
+                "a": "No. Boli's API speaks the OpenAI format, so the official OpenAI SDK for Python, TypeScript, JavaScript or Go works once you set the base URL to Boli's /v1 endpoint and use your Boli key."
+            },
+            {
+                "q": "Which fields go beyond the OpenAI spec?",
+                "a": "Two - top_k and think. Python and Go send them as extra body fields."
+            },
+            {
+                "q": "What does error 402 mean?",
+                "a": "You are out of credits. Add more on the Billing page in the app and the next call goes through."
+            },
+            {
+                "q": "How many requests can I send?",
+                "a": "Up to 30 requests a minute per account. Past that the API answers 429; wait and retry."
+            }
         ],
         "words": 275,
         "readingMinutes": 2,
@@ -122,13 +161,42 @@ export const ENTRIES: readonly ContentEntry[] = [
         "date": "2026-11-24",
         "category": "Product",
         "summary": "Romanized Nepali, English and the mix in between. Why small models answer in Devanagari when you did not ask, and how Boli answers in kind.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "cover": "keyboard",
         "draft": true,
         "tags": [
             "Kura",
             "Romanized Nepali",
             "Models"
+        ],
+        "topics": [
+            "romanized-nepali",
+            "open-models",
+            "kura"
+        ],
+        "takeaways": [
+            "People in Nepal write the same thought in English, Romanized Nepali or a mix - and Romanized Nepali has no fixed spelling (cha, xa, chha).",
+            "Small open models often answer Romanized Nepali in Devanagari, because most Nepali text they learned from is in Devanagari.",
+            "Kura uses a system prompt that maps each way of writing to the same way of answering; without that line, answers drift.",
+            "With it, the model stayed in the user's script in 6 of 8 test prompts; the other small open model tested managed about 3 of 8."
+        ],
+        "faqs": [
+            {
+                "q": "What is Romanized Nepali?",
+                "a": "Nepali written with Latin letters, as most people type it on a phone - for example \"mero exam sakiyo, aba k garne?\". It has no fixed spelling, so cha, xa and chha are the same word."
+            },
+            {
+                "q": "Why do AI models answer Romanized Nepali in Devanagari?",
+                "a": "Most Nepali text on the web that models train on is in Devanagari, and Hindi is close by. When a model recognises Nepali, Devanagari is the likely continuation, even when the person typed in Latin letters."
+            },
+            {
+                "q": "How does Boli answer in the same script?",
+                "a": "Kura sends a system prompt that maps each way of writing to the same way of answering: English to English, Romanized Nepali to Romanized Nepali, a mix to the same mix, and Devanagari only when you write in Devanagari. You can send the same prompt with your own API calls."
+            },
+            {
+                "q": "Does it always get the script right?",
+                "a": "No. In our tests the model stayed in the user's script in 6 of 8 prompts. It still slips on grammar, sometimes uses a Hindi word and sometimes answers in English."
+            }
         ],
         "words": 505,
         "readingMinutes": 3,
@@ -162,13 +230,46 @@ export const ENTRIES: readonly ContentEntry[] = [
         "date": "2026-11-24",
         "category": "Launch",
         "summary": "Boli runs open AI models for Nepal. Chat in Kura or call the same model from your code, in Romanized Nepali, English or both, and pay in rupees.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "cover": "launch",
         "draft": true,
         "tags": [
             "Kura",
             "API",
             "Launch"
+        ],
+        "topics": [
+            "open-models",
+            "kura",
+            "api"
+        ],
+        "takeaways": [
+            "Boli runs an open model that reads Romanized Nepali, English, Devanagari and the mix, and answers in the script you wrote in.",
+            "Kura is the chat; the API is the same model behind an OpenAI-compatible endpoint - change the base URL and the key.",
+            "Prices are per token in rupees: 1 credit = Rs 1, and 100 free credits when you verify your email.",
+            "API calls store metadata only - never your prompts or the answers."
+        ],
+        "faqs": [
+            {
+                "q": "What is Boli?",
+                "a": "Boli runs open AI models for Nepal. You can chat with the model in Kura or call the same model from your code through an OpenAI-compatible API, and you pay in Nepali rupees."
+            },
+            {
+                "q": "Which model does Boli run?",
+                "a": "boli-chat, which is Gemma 4 E4B, 4-bit: open weights under Apache 2.0, with 8,192 tokens of context. Boli runs only open models - no closed model sits behind the API or Kura."
+            },
+            {
+                "q": "Can I use the OpenAI SDK with Boli?",
+                "a": "Yes. The official OpenAI SDKs for Python, TypeScript, JavaScript and Go work as they are. Change the base URL to Boli's /v1 endpoint and use your Boli key."
+            },
+            {
+                "q": "How much does a call cost?",
+                "a": "Each call costs its input and output tokens - Rs 2 per million input tokens and Rs 6 per million output tokens. A short reply costs a fraction of a rupee. Credits do not expire and nothing renews."
+            },
+            {
+                "q": "Does Boli keep my prompts?",
+                "a": "Not from the API. API calls store metadata only - the model, the token counts, the cost, the time and the status. Kura conversations are saved to your account so you can come back to them."
+            }
         ],
         "words": 394,
         "readingMinutes": 2,
@@ -206,11 +307,14 @@ export const ENTRIES: readonly ContentEntry[] = [
         "title": "Kura, the chat",
         "date": "2026-11-24",
         "summary": "Chat with Boli's model in Nepali, English or both - with a thinking switch, saved chats and the cost of every reply.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "draft": true,
         "tags": [
             "Kura"
         ],
+        "topics": [],
+        "takeaways": [],
+        "faqs": [],
         "words": 56,
         "readingMinutes": 1,
         "toc": []
@@ -221,12 +325,15 @@ export const ENTRIES: readonly ContentEntry[] = [
         "title": "Clearer loading and empty screens",
         "date": "2026-11-24",
         "summary": "Pages show their shape while they load, and empty, missing and error screens say what happened.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "draft": true,
         "tags": [
             "Kura",
             "Site"
         ],
+        "topics": [],
+        "takeaways": [],
+        "faqs": [],
         "words": 44,
         "readingMinutes": 1,
         "toc": []
@@ -237,12 +344,15 @@ export const ENTRIES: readonly ContentEntry[] = [
         "title": "A new look",
         "date": "2026-11-24",
         "summary": "New type, a sky-blue accent, a new logo and pixel art of the valley across the site and the app.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "draft": true,
         "tags": [
             "Site",
             "Kura"
         ],
+        "topics": [],
+        "takeaways": [],
+        "faqs": [],
         "words": 39,
         "readingMinutes": 1,
         "toc": []
@@ -253,12 +363,15 @@ export const ENTRIES: readonly ContentEntry[] = [
         "title": "Boli runs on its own open model",
         "date": "2026-11-24",
         "summary": "Chat now runs on boli-chat, an open model, with credits in rupees and 100 free credits on verification.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "draft": true,
         "tags": [
             "Models",
             "Billing"
         ],
+        "topics": [],
+        "takeaways": [],
+        "faqs": [],
         "words": 48,
         "readingMinutes": 1,
         "toc": []
@@ -270,13 +383,41 @@ export const ENTRIES: readonly ContentEntry[] = [
         "date": "2026-11-24",
         "category": "Research",
         "summary": "We tested open models and open OCR on 39 public Nepal government notices. Digits are the weak spot - and they fail silently. What we measured, the traps we found, and what comes next.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "cover": "bill",
         "draft": true,
         "tags": [
             "Document intelligence",
             "Research",
             "OCR"
+        ],
+        "topics": [
+            "document-intelligence",
+            "open-models"
+        ],
+        "takeaways": [
+            "We tested open models and open OCR on 39 public Nepal government documents: digital PDFs, scans, phone photos and degraded copies.",
+            "Digits are the weak spot: the vision model got 71.7% of digits right on digital PDFs, and about 1 digit in 13 was a real misread.",
+            "Tesseract read better than the vision model (0.21 against 0.29 character error rate), and the hybrid route got the most dates right (13 of 16).",
+            "Digital PDFs hide three traps: Preeti fonts, broken Unicode text layers and junk OCR layers from scanners."
+        ],
+        "faqs": [
+            {
+                "q": "Can open models read Nepali documents reliably?",
+                "a": "Not yet for numbers. On digital PDFs the open vision model got 71.7% of digits right, and about 1 digit in 13 was a real misread that changed meaning, such as a year or an amount. The output reads fluently, so the errors are easy to miss."
+            },
+            {
+                "q": "Is OCR better than a vision model for Nepali text?",
+                "a": "In this test, yes. Tesseract had a character error rate of 0.21 against the vision model's 0.29 across 18 pages, got 81.6% of digits right against 73.8%, and took about 1 second a page instead of about 19."
+            },
+            {
+                "q": "What is the Preeti font problem?",
+                "a": "Some Nepali PDFs are typed in Preeti-style fonts, so the text layer holds Latin key codes instead of Nepali - \"g]kfn ;/sf/\" for नेपाल सरकार. A converter fixes it; handed the raw text, the model invented a date."
+            },
+            {
+                "q": "When will Boli read documents?",
+                "a": "Document intelligence is next on the roadmap and ships when it reads digits reliably. The plan is to check text layers, read digits twice (OCR and the model), fix the small things that break numbers, then fine-tune."
+            }
         ],
         "words": 769,
         "readingMinutes": 4,
@@ -314,13 +455,41 @@ export const ENTRIES: readonly ContentEntry[] = [
         "title": "Build a Romanized Nepali support bot with the API",
         "date": "2026-11-24",
         "summary": "A customer support bot that answers in the customer's own mix of Romanized Nepali and English - a system prompt that holds, short memory, and what it costs per message.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "cover": "contactPasal",
         "draft": true,
         "tags": [
             "API",
             "Guide",
             "Romanized Nepali"
+        ],
+        "topics": [
+            "api",
+            "romanized-nepali"
+        ],
+        "takeaways": [
+            "Keep Boli's script-mapping line in the system prompt word for word - without it, small models drift into Devanagari.",
+            "Put the facts the bot may use in the prompt itself; a small model will invent a delivery date if you do not give it one.",
+            "Each call is independent: send the system prompt plus the last few turns, not the whole history.",
+            "About 600 tokens in and 80 out per customer message costs a fraction of a rupee; max_tokens caps each reply."
+        ],
+        "faqs": [
+            {
+                "q": "How do I stop the bot answering in Devanagari?",
+                "a": "Keep the script-mapping line in the system prompt - English to English, Romanized Nepali to Romanized Nepali, a mix to the same mix in Latin letters, Devanagari only when the customer writes in Devanagari."
+            },
+            {
+                "q": "How much history should the bot send?",
+                "a": "The system prompt plus the last few messages - the guide keeps 6. The whole request must fit in 8,192 tokens, and every token you resend costs money."
+            },
+            {
+                "q": "What does one reply cost?",
+                "a": "With a system prompt of about 150 tokens, six recent messages of about 450 and a reply of about 80, a message is roughly 600 tokens in and 80 out - a fraction of a rupee at Rs 2 in and Rs 6 out per million tokens."
+            },
+            {
+                "q": "When should the bot hand over to a person?",
+                "a": "When the customer asks for one, or when the bot says it does not know. A simple check on the reply is enough to start routing those conversations to your team."
+            }
         ],
         "words": 391,
         "readingMinutes": 2,
@@ -358,11 +527,14 @@ export const ENTRIES: readonly ContentEntry[] = [
         "title": "The site gets its own home",
         "date": "2026-11-24",
         "summary": "bolihq.com is now the public site - with a blog, guides, a changelog and model pages - and the app lives at app.bolihq.com.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "draft": true,
         "tags": [
             "Site"
         ],
+        "topics": [],
+        "takeaways": [],
+        "faqs": [],
         "words": 49,
         "readingMinutes": 1,
         "toc": []
@@ -373,11 +545,14 @@ export const ENTRIES: readonly ContentEntry[] = [
         "title": "Sign in, sign up and a short welcome",
         "date": "2026-11-23",
         "summary": "New sign-in and sign-up pages, a live password checklist and a four-step welcome.",
-        "author": "The Boli team",
+        "author": "boli-team",
         "draft": true,
         "tags": [
             "Account"
         ],
+        "topics": [],
+        "takeaways": [],
+        "faqs": [],
         "words": 51,
         "readingMinutes": 1,
         "toc": []

@@ -1,4 +1,6 @@
 import type { CoverId } from "@repo/brand/art/covers/cover"
+import type { AuthorId } from "../content/authors"
+import type { TopicId } from "../content/topics"
 
 /*
  * The content contract (Blog, Guides, Changelog), shared by the build script (scripts/build-content.ts, run before
@@ -26,6 +28,13 @@ export type CoverName = (typeof COVER_NAMES)[number]
 
 export type TocItem = { id: string; title: string; depth: 2 | 3 }
 
+/** One question a piece answers (frontmatter `faqs`). Rendered at the end of the piece and as FAQPage JSON-LD. */
+export type ContentFaq = { q: string; a: string }
+
+/** How many "Key takeaways" lines a piece may carry (frontmatter `takeaways`). */
+export const TAKEAWAYS_MIN = 3
+export const TAKEAWAYS_MAX = 5
+
 /** One file's frontmatter after checking, plus what the script derives from its body. */
 export type ContentEntry = {
     kind: ContentKind
@@ -38,10 +47,17 @@ export type ContentEntry = {
     /** Blog only. */
     category?: BlogCategory
     summary: string
-    author: string
+    /** An id from content/authors.ts. */
+    author: AuthorId
     cover?: CoverName
     draft: boolean
     tags: string[]
+    /** Ids from content/topics.ts (blog and guides; the hubs under /blog/topics). */
+    topics: TopicId[]
+    /** 3-5 short lines for the "Key takeaways" box at the top (empty = no box). */
+    takeaways: string[]
+    /** Questions answered at the end of the piece (empty = no section, no FAQPage). */
+    faqs: ContentFaq[]
     readingMinutes: number
     words: number
     toc: TocItem[]

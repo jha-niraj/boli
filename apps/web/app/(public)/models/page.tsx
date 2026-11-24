@@ -10,14 +10,12 @@ import { BOLI_CHAT, KURA } from "@repo/boli"
 import { Band, Kicker, Lead, SectionTitle, revealStep } from "@/components/public/section"
 import { JsonLd } from "@/components/json-ld"
 import { ROUTES } from "@/lib/routes"
-import { breadcrumbSchema } from "@/lib/schema"
+import { breadcrumbSchema, collectionPageSchema } from "@/lib/schema"
 import { pageMeta } from "@/lib/seo"
 
-export const metadata: Metadata = pageMeta({
-    title: "Models",
-    description: `Boli's open models: ${BOLI_CHAT.id} (${BOLI_CHAT.label}) for chat in Nepali, Romanized Nepali and English today; document reading next; speech later.`,
-    path: ROUTES.models,
-})
+const DESCRIPTION = `Boli's open models: ${BOLI_CHAT.id} (${BOLI_CHAT.label}) for chat in Nepali, Romanized Nepali and English today; document reading next; speech later.`
+
+export const metadata: Metadata = pageMeta({ title: "Models", description: DESCRIPTION, path: ROUTES.models })
 
 type Card = { name: string; stage: "Live" | "Next" | "Later"; line: string; facts: string[]; href?: string; art: CoverId }
 
@@ -57,7 +55,18 @@ const ROADMAP: readonly { stage: string; title: string; line: string; now?: bool
 export default function ModelsPage() {
     return (
         <>
-            <JsonLd data={breadcrumbSchema([{ name: "Models", path: ROUTES.models }])} />
+            <JsonLd
+                data={[
+                    // Only models with a page (live ones); "Next" and "Later" are roadmap, not offerings.
+                    collectionPageSchema({
+                        name: "Boli models",
+                        description: DESCRIPTION,
+                        path: ROUTES.models,
+                        items: CARDS.flatMap((c) => (c.href ? [{ name: c.name, path: c.href }] : [])),
+                    }),
+                    breadcrumbSchema([{ name: "Models", path: ROUTES.models }]),
+                ]}
+            />
             <div className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10 font-sans sm:px-6 sm:pt-14 lg:px-10">
                 <header className="max-w-3xl">
                     <Kicker reveal={false}>Models</Kicker>

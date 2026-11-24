@@ -5,16 +5,15 @@ import { Kicker } from "@/components/public/section"
 import { ContentBody } from "@/components/content/content-body"
 import { DraftBadge } from "@/components/content/draft-badge"
 import { JsonLd } from "@/components/json-ld"
-import { formatContentDate, listChangelog } from "@/lib/content"
+import { entryHref, formatContentDate, listChangelog, publishedEntries } from "@/lib/content"
+import { CHANGELOG_FEED } from "@/lib/feed"
 import { ROUTES } from "@/lib/routes"
-import { breadcrumbSchema } from "@/lib/schema"
+import { breadcrumbSchema, collectionPageSchema } from "@/lib/schema"
 import { pageMeta } from "@/lib/seo"
 
-export const metadata: Metadata = pageMeta({
-    title: "Changelog",
-    description: "Every change to Boli as it ships: the API, Kura, billing, docs and the site, newest first.",
-    path: ROUTES.changelog,
-})
+const DESCRIPTION = "Every change to Boli as it ships: the API, Kura, billing, docs and the site, newest first."
+
+export const metadata: Metadata = pageMeta({ title: "Changelog", description: DESCRIPTION, path: ROUTES.changelog, feeds: [CHANGELOG_FEED] })
 
 /**
  * The changelog: one timeline, newest first. Each entry is a dated MDX file (content/changelog) with tags for what it
@@ -24,7 +23,17 @@ export default function ChangelogPage() {
     const entries = listChangelog()
     return (
         <div className="mx-auto w-full max-w-6xl px-4 pb-24 pt-10 font-sans sm:px-6 sm:pt-14 lg:px-10">
-            <JsonLd data={breadcrumbSchema([{ name: "Changelog", path: ROUTES.changelog }])} />
+            <JsonLd
+                data={[
+                    collectionPageSchema({
+                        name: "Boli changelog",
+                        description: DESCRIPTION,
+                        path: ROUTES.changelog,
+                        items: publishedEntries("changelog").map((e) => ({ name: e.title, path: entryHref(e) })),
+                    }),
+                    breadcrumbSchema([{ name: "Changelog", path: ROUTES.changelog }]),
+                ]}
+            />
             <header className="max-w-3xl">
                 <Kicker reveal={false}>Changelog</Kicker>
                 <h1 className="mt-3 text-[42px] leading-[1.02] text-boli-ink sm:text-[56px]" style={DISPLAY.display}>

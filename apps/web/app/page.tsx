@@ -12,7 +12,7 @@ import { Story } from "./_landing/story"
 import { Who } from "./_landing/who"
 import { JsonLd } from "@/components/json-ld"
 import { FAQ } from "@/components/public/faq-section"
-import { faqSchema, softwareApplicationSchemas } from "@/lib/schema"
+import { faqSchema, serviceSchemas } from "@/lib/schema"
 import { pageMeta } from "@/lib/seo"
 
 /**
@@ -26,7 +26,7 @@ export const metadata: Metadata = pageMeta({ title: `${BRAND.name} - ${BRAND.tag
 export default function LandingPage() {
     return (
         <PublicShell>
-            <JsonLd data={[...softwareApplicationSchemas(), faqSchema(FAQ.map((f) => ({ q: f.q, a: typeof f.a === "string" ? f.a : "" })).filter((f) => f.a))]} />
+            <JsonLd data={[...serviceSchemas(), faqSchema(FAQ.map((f) => ({ q: f.q, a: typeof f.a === "string" ? f.a : "" })).filter((f) => f.a))]} />
             <Hero />
             <Story />
             <Products />

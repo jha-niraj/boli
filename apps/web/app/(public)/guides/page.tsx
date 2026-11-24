@@ -4,23 +4,31 @@ import { DISPLAY } from "@repo/brand/type"
 import { Kicker } from "@/components/public/section"
 import { PostCard } from "@/components/content/post-card"
 import { JsonLd } from "@/components/json-ld"
-import { listGuides } from "@/lib/content"
+import { entryHref, listGuides, publishedEntries } from "@/lib/content"
 import { DOCS_PAGES, ROUTES } from "@/lib/routes"
-import { breadcrumbSchema } from "@/lib/schema"
+import { breadcrumbSchema, collectionPageSchema } from "@/lib/schema"
 import { pageMeta } from "@/lib/seo"
 
-export const metadata: Metadata = pageMeta({
-    title: "Guides",
-    description: "Step-by-step guides for building with Boli's API: your first call in five languages, a Romanized Nepali support bot, and more.",
-    path: ROUTES.guides,
-})
+const DESCRIPTION = "Step-by-step guides for building with Boli's API: your first call in five languages, a Romanized Nepali support bot, and more."
+
+export const metadata: Metadata = pageMeta({ title: "Guides", description: DESCRIPTION, path: ROUTES.guides })
 
 /** Guides: evergreen how-tos (the blog holds dated stories). A grid of cards, then the docs for reference. */
 export default function GuidesIndex() {
     const guides = listGuides()
     return (
         <div className="mx-auto w-full max-w-6xl px-4 pb-24 pt-10 font-sans sm:px-6 sm:pt-14 lg:px-10">
-            <JsonLd data={breadcrumbSchema([{ name: "Guides", path: ROUTES.guides }])} />
+            <JsonLd
+                data={[
+                    collectionPageSchema({
+                        name: "Boli guides",
+                        description: DESCRIPTION,
+                        path: ROUTES.guides,
+                        items: publishedEntries("guides").map((g) => ({ name: g.title, path: entryHref(g) })),
+                    }),
+                    breadcrumbSchema([{ name: "Guides", path: ROUTES.guides }]),
+                ]}
+            />
             <header className="max-w-3xl">
                 <Kicker reveal={false}>Guides</Kicker>
                 <h1 className="mt-3 text-[42px] leading-[1.02] text-boli-ink sm:text-[56px]" style={DISPLAY.display}>
