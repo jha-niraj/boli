@@ -1,0 +1,51 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	/*
+	 * apps/web, the public site. TOP LEVEL = STAGING, so a bare `wrangler deploy` can never reach the live site.
+	 * Production is `env.prod`. Deploy only with `pnpm deploy:staging web` / `pnpm deploy:prod web` (a person runs these).
+	 * Bindings do NOT inherit into env.prod: a new binding goes in both places.
+	 *
+	 * account_id: pin it (same account as apps/main/wrangler.jsonc).
+	 */
+	"account_id": "__CLOUDFLARE_ACCOUNT_ID__",
+	"name": "boli-web-staging",
+	// OpenNext generates the Worker at .open-next/worker.js during `opennextjs-cloudflare build`. No custom worker.ts:
+	// the site has no sign-out fast path, no crons and no Durable Objects.
+	"main": ".open-next/worker.js",
+	// TODO(owner): routes stay commented until apps/main declares its own (its wrangler.jsonc has them commented too).
+	// Staging host to decide (e.g. web-staging.bolihq.com); production below is bolihq.com + www as custom domains.
+	// "routes": [{ "pattern": "web-staging.bolihq.com", "custom_domain": true }],
+	/*
+	 * minify: without it wrangler re-prints OpenNext's handler unminified and the upload can outgrow the 64 MiB limit.
+	 * keep_names false: esbuild's __name helper leaks into next-themes' inline theme script and every page throws
+	 * "e is not defined" before paint.
+	 */
+	"minify": true,
+	"keep_names": false,
+	"compatibility_date": "2025-11-01",
+	// nodejs_compat: the Neon driver (contact form) and Next's runtime need it. Never remove it.
+	"compatibility_flags": ["nodejs_compat"],
+	// Next to the database (the contact form writes one row), like apps/main.
+	"placement": { "region": "aws:ap-southeast-1" },
+	"assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+	"r2_buckets": [
+		// OpenNext incremental cache; the binding name is required by r2IncrementalCache. Shared bucket with apps/main.
+		{ "bucket_name": "basecode-next-cache", "binding": "NEXT_INC_CACHE_R2_BUCKET" }
+	],
+	// The cache bucket is shared with apps/main: this prefix keeps the site's entries apart.
+	"vars": { "NEXT_INC_CACHE_R2_PREFIX": "boli-web-cache" },
+	// Staging runs no crons (nor does the site anywhere).
+	"triggers": { "crons": [] },
+	"observability": { "enabled": true, "head_sampling_rate": 1 },
+	"env": {
+		"prod": {
+			"name": "boli-web",
+			// "routes": [{ "pattern": "bolihq.com", "custom_domain": true }, { "pattern": "www.bolihq.com", "custom_domain": true }],
+			"r2_buckets": [
+				{ "bucket_name": "basecode-next-cache-prod", "binding": "NEXT_INC_CACHE_R2_BUCKET" }
+			],
+			"vars": { "NEXT_INC_CACHE_R2_PREFIX": "boli-web-cache" },
+			"triggers": { "crons": [] }
+		}
+	}
+}

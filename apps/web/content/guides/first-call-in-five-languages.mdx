@@ -1,0 +1,67 @@
+---
+title: Your first call in 5 languages
+date: 2026-11-24
+summary: Make your first Boli API call with cURL, Python, TypeScript, JavaScript or Go, using the official OpenAI SDKs and a Romanized Nepali question.
+author: The Boli team
+cover: docsDesk
+draft: true
+tags: [API, Quickstart]
+---
+
+Boli's API speaks the OpenAI format. You do not need a Boli SDK: the official OpenAI library for your language works once you point it at Boli. This guide takes you from no account to a printed answer, in whichever of five languages you use.
+
+## 1. Get a key
+
+[Sign up](app:/signup) and verify your email - you get <Fact name="welcomeCredits" /> free credits. Then open [API keys](app:/keys) and create one. It starts with `boli_sk_` and is shown **once**: copy it now.
+
+## 2. Keep the key out of your code
+
+Put it in an environment variable:
+
+```bash
+export BOLI_API_KEY="boli_sk_..."
+```
+
+On Windows PowerShell: `$env:BOLI_API_KEY = "boli_sk_..."`. In a project, a `.env` file listed in `.gitignore` works too.
+
+## 3. Install the OpenAI SDK
+
+Skip this for cURL.
+
+<InstallSamples />
+
+## 4. Make the call
+
+Every example sends the same thing: Boli's default system prompt and a question in Romanized Nepali, to the model <Fact name="model" />. Pick your language:
+
+<CodeSamples />
+
+The base URL is the only Boli-specific line: <Fact name="apiBase" />. Two fields go beyond the OpenAI spec - `top_k` and `think` - so Python and Go send them as extra body fields.
+
+## 5. Read the answer
+
+The reply comes back in the OpenAI shape. The answer is in `choices[0].message.content`, and a `usage` block says how many tokens the call used - which is what you pay for.
+
+```json
+{
+  "model": "boli-chat",
+  "choices": [{ "index": 0, "message": { "role": "assistant", "content": "..." }, "finish_reason": "stop" }],
+  "usage": { "prompt_tokens": 120, "completion_tokens": 80, "total_tokens": 200 }
+}
+```
+
+<CostExample input={120} output={80} />
+
+## When something goes wrong
+
+- **401** - the key is missing, mistyped or revoked.
+- **402** - you are out of credits. Add more on [Billing](app:/billing).
+- **429** - more than <Fact name="rateLimit" /> requests in a minute. Wait and retry.
+
+Every code and its fix: [Authentication and errors](/docs/authentication).
+
+## Next
+
+- [Chat completions](/docs/chatcompletions): streaming, thinking, every field.
+- [boli-chat](/models/boli-chat): what the model is good at, and what it is not.
+- [Build a Romanized Nepali support bot](/guides/romanized-nepali-support-bot): a real use, start to finish.

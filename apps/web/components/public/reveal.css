@@ -1,0 +1,32 @@
+/*
+ * Entrance motion for the public pages (owner, 2026-11-24): kickers, titles, lines and cards fade up a few pixels the
+ * first time they scroll into view. Opt in with `data-reveal` (a value 0-5 staggers it by 70ms steps).
+ *
+ * Server-rendered content is VISIBLE by default: nothing here applies until RevealObserver (reveal-observer.tsx) puts
+ * `data-reveal-on` on <html> after hydration - and it never does under prefers-reduced-motion. Elements already on
+ * screen at that moment are marked shown first, so nothing that was visible blinks. Transform and opacity only: no
+ * layout shift. Never used on the landing hero headline or any other LCP element.
+ */
+html[data-reveal-on] [data-reveal]:not([data-shown]) {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+}
+html[data-reveal-on] [data-reveal] {
+    transition:
+        opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+html[data-reveal-on] [data-reveal="1"] { transition-delay: 70ms; }
+html[data-reveal-on] [data-reveal="2"] { transition-delay: 140ms; }
+html[data-reveal-on] [data-reveal="3"] { transition-delay: 210ms; }
+html[data-reveal-on] [data-reveal="4"] { transition-delay: 280ms; }
+html[data-reveal-on] [data-reveal="5"] { transition-delay: 350ms; }
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-reveal-on] [data-reveal],
+    html[data-reveal-on] [data-reveal]:not([data-shown]) {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}

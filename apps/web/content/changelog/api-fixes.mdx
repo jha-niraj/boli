@@ -1,0 +1,9 @@
+---
+title: Smaller fixes from testing
+date: 2026-11-24
+summary: max_tokens can now go as low as 1, failed calls show as failed in Usage, and the usage chart says when nothing was spent.
+tags: [API]
+draft: true
+---
+
+`max_tokens` now accepts any value from 1, as OpenAI's does (the default stays <Fact name="maxTokensDefault" />). A call that failed shows as failed in Usage instead of looking like a success, and the usage chart says plainly when no credits were spent.

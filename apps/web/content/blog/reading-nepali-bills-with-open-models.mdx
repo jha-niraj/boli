@@ -1,0 +1,76 @@
+---
+title: Reading Nepali bills with open models
+date: 2026-11-24
+category: Research
+summary: We tested open models and open OCR on 39 public Nepal government notices. Digits are the weak spot - and they fail silently. What we measured, the traps we found, and what comes next.
+author: The Boli team
+cover: bill
+draft: true
+tags: [Document intelligence, Research, OCR]
+---
+
+Document intelligence is next on Boli's roadmap: give it a photo of a bill or a scanned notice in Nepali, get back the text, or the fields as JSON. Before building it, we wanted to know how far open models get today on real Nepali paperwork. So we built a test set and measured.
+
+## The test set
+
+39 documents, all public and official, all from Nepal government websites:
+
+| Kind | Count |
+| --- | --- |
+| Digital PDFs (with a text layer) | 11 |
+| Scanned PDFs | 16 |
+| Phone photos and image exports | 5 |
+| Degraded copies (low resolution, heavy compression, blur) | 7 |
+
+Notices, press releases, tender notices, a citizen charter, blank tax forms. We left out anything that listed private people - candidate lists, plate numbers, exam symbol numbers - and kept documents that name people only as office holders. The files are used only for evaluation: not redistributed, not used for training.
+
+We tried three ways to read each page, all open:
+
+1. **The image route** - an open vision model (the same Gemma 4 E4B family Boli runs, with its vision add-on) reads the page image and writes it out.
+2. **The OCR route** - Tesseract, the open-source OCR engine, reads the page; the model only turns its text into fields.
+3. **The hybrid route** - the model gets the image AND the OCR text, told to trust OCR for digits and the image for words.
+
+## Digits fail, and they fail silently
+
+On digital PDFs, the image route got **71.7% of digits right** (405 of 565). On the degraded copies, 77.9%. Most misses were digits simply left out - phone numbers in a letterhead, table cells, whole lines. But about **1 digit in 13 was a real misread**, and those change meaning:
+
+- A rating that rose by `०.१९` was written `०.११`.
+- A law from `२०५२` became `२०७२` everywhere it appeared - a five read as a seven, again and again.
+- An amount of `१,०४,९६,९०९` came back as `१,०४,१६,१०१`, while the amount in words on the same line said ninety-six thousand.
+
+The output reads fluently, so nobody would notice. That is the dangerous part: a wrong date or amount that looks perfectly plausible.
+
+## Old-fashioned OCR read better
+
+Tesseract beat the vision model at reading. Across 18 pages with a text key, its character error rate was 0.21 against the image route's 0.29, and it got 81.6% of digits right against 73.8%. It also took about 1 second a page, where the vision pass took about 19.
+
+Dates on scans and photos, checked by hand on 16 documents:
+
+| Route | Dates right |
+| --- | --- |
+| Image | 5 of 16 |
+| OCR | 12 of 16 |
+| Hybrid | 13 of 16 |
+
+Tesseract has its own failure: it keeps everything, including junk digits read from seals and signatures. That is why the hybrid route - the model reading the image with the OCR text beside it - came out best on dates.
+
+## Three traps in "digital" PDFs
+
+A PDF with a text layer sounds like the easy case: skip the reading, use the text. On real government PDFs, that went wrong three ways.
+
+**Legacy fonts (Preeti).** 3 of the 11 digital PDFs were typed in Preeti-style fonts, where the text layer is Latin key codes, not Nepali: `g]kfn ;/sf/` for नेपाल सरकार. Handed that, the model invented a date that appears nowhere on the page. A converter fixes it - and converted Preeti turned out to be the cleanest text in the whole set.
+
+**Broken Unicode.** 7 of the 8 Unicode PDFs came from word processors that wrote a broken text layer: `ववभाग` for विभाग, `सूचर्ना` for सूचना. Measured against hand-corrected text, the PDFs' own layers had character error rates of 24% and 15% - worse than OCR on the same page.
+
+**Junk OCR layers.** 7 of the 16 scans carried a hidden text layer added by the scanner: a Latin-letter OCR of a Devanagari page. The file "has text", so a naive reader trusts pure garbage.
+
+## What comes next
+
+What we will build on, in order:
+
+1. **Check the text layer, do not just trust that it exists.** Use it only when it passes; convert Preeti; fall back to reading the page when it is junk.
+2. **Read digits twice.** OCR for the digits, the model for the words, and a check where the page states a number both in figures and in words.
+3. **Fix the small things that break numbers**, like the danda `।` used between the parts of a date, which OCR reads as the digit one.
+4. **Then fine-tune**, on exactly the confusions we measured (eight, seven and six; nine and one; five and seven).
+
+Document intelligence ships when it reads digits reliably - not before. Follow it on the [roadmap](/models#roadmap) and the [changelog](/changelog).

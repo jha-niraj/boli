@@ -1,0 +1,22 @@
+# Boli - Open AI for Nepal
+
+> Boli runs open AI models for Nepal: chat in English, Romanized Nepali or both, and an OpenAI-compatible API with 100 free credits.
+
+This file is the published text of bolihq.com in one place. The short index is /llms.txt.
+
+## Facts
+
+- Model: boli-chat (Gemma 4 E4B, 4-bit; google/gemma-4-E4B-it (Apache 2.0), quantized by ggml-org). Licence: Apache 2.0. Context: 8192 tokens.
+- Languages: English, Romanized Nepali, Nepali (Devanagari), Code-mixed.
+- Price per 1M tokens: Rs 2 input, Rs 6 output. 1 credit = Rs 1 (NPR).
+- 100 free credits when the email is verified. Credit packs: Rs 100 -> 100 credits, Rs 500 -> 500 credits, Rs 1000 -> 1050 credits, Rs 5000 -> 5500 credits.
+- Rate limit: 30 requests per minute per account.
+- API: OpenAI-compatible, base URL https://app.bolihq.com/v1, POST /v1/chat/completions. Boli runs only open models.
+
+## Docs
+
+- Quickstart: https://bolihq.com/docs/quickstart
+- Authentication and errors: https://bolihq.com/docs/authentication
+- Chat completions: https://bolihq.com/docs/chatcompletions
+- Models, pricing and limits: https://bolihq.com/docs/models
+- Model page: https://bolihq.com/models/boli-chat

@@ -1,0 +1,9 @@
+---
+title: OpenAI-compatible API and API keys
+date: 2026-11-24
+summary: Call boli-chat from your own code with an OpenAI-compatible API, your own keys, streaming and a clear rate limit.
+tags: [API]
+draft: true
+---
+
+The API is live at `/v1/chat/completions`, in the OpenAI format, so the official OpenAI SDKs work with a Boli key. Create up to <Fact name="maxKeys" /> keys on the API keys page; each is shown once and stored only as a fingerprint, and you can revoke it any time. Streaming works, and the limit is <Fact name="rateLimit" /> requests a minute per account. Usage shows every call with its tokens and cost.

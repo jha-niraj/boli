@@ -1,0 +1,88 @@
+---
+title: Build a Romanized Nepali support bot with the API
+date: 2026-11-24
+summary: A customer support bot that answers in the customer's own mix of Romanized Nepali and English - a system prompt that holds, short memory, and what it costs per message.
+author: The Boli team
+cover: contactPasal
+draft: true
+tags: [API, Guide, Romanized Nepali]
+---
+
+Your customers write *order kaile aaucha?* and *refund milcha ki nai?*. This guide builds a small support bot that answers them in the same words they used, remembers the last few messages, and costs a fraction of a rupee per reply. The code is Python with the official OpenAI SDK; the same ideas work in any language.
+
+Before you start, make your [first call](/guides/first-call-in-five-languages) so you have a key in `BOLI_API_KEY`.
+
+## The system prompt
+
+The system prompt does two jobs. It tells the model who it is and what it knows about your shop, and it keeps the model in the customer's script. Keep Boli's script mapping word for word - without it, small models drift into Devanagari.
+
+```text
+You are the support assistant for an online tea shop in Kathmandu.
+Always reply in the same language AND script as the customer's latest message: English -> English; Romanized Nepali (Nepali in Latin letters) -> Romanized Nepali; a mix -> the same mix in Latin letters. Never switch to Devanagari unless the customer writes in Devanagari.
+Keep replies under 60 words. Be warm and direct.
+Facts you may use: delivery inside the valley takes 1-2 days, outside 3-5 days. Refunds within 7 days of delivery. Support hours 9am-6pm, Sunday to Friday.
+If you do not know something, say so and offer to connect the customer to a person. Never invent order details.
+```
+
+Put the facts the bot may use in the prompt itself. A small model will happily invent a delivery date if you do not give it one.
+
+## Short memory
+
+Each API call is independent: the model only knows what you send. To hold a conversation, send the recent history with every call. But not all of it - the whole request must fit in <Fact name="context" /> tokens, and every token you resend costs money.
+
+Keep the system prompt plus the last few turns:
+
+```python
+import os
+from openai import OpenAI
+
+client = OpenAI(base_url="https://app.bolihq.com/v1", api_key=os.environ["BOLI_API_KEY"])
+
+SYSTEM = open("system_prompt.txt").read()
+MAX_TURNS = 6  # the last 6 messages (3 from the customer, 3 replies)
+
+def reply(history: list[dict], message: str) -> str:
+    history.append({"role": "user", "content": message})
+    recent = history[-MAX_TURNS:]
+    res = client.chat.completions.create(
+        model="boli-chat",
+        messages=[{"role": "system", "content": SYSTEM}, *recent],
+        max_tokens=200,
+        temperature=0.5,
+    )
+    answer = res.choices[0].message.content or ""
+    history.append({"role": "assistant", "content": answer})
+    return answer
+
+history: list[dict] = []
+print(reply(history, "order kaile aaucha? pokhara ma chu"))
+print(reply(history, "ani refund milcha ki nai?"))
+```
+
+`max_tokens` caps the reply (and its cost). A lower temperature keeps answers steadier for support.
+
+## What it costs
+
+Say the system prompt is about 150 tokens, six recent messages about 450, and the reply about 80. That is roughly 600 tokens in and 80 out per customer message:
+
+<CostExample input={600} output={80} />
+
+Two levers bring it down further: a shorter system prompt and fewer remembered turns. Two things raise it: long pasted messages, and `think: true`, whose thinking tokens count as output.
+
+## Handing over to a person
+
+Small models make mistakes. Give the bot a way out: when the customer asks for a person, or the bot says it does not know, route the conversation to your team. A simple check on the reply is enough to start:
+
+```python
+def needs_person(answer: str) -> bool:
+    words = ["person", "manche", "team lai", "connect"]
+    return any(w in answer.lower() for w in words)
+```
+
+## Before you ship
+
+- Test with real messages from your customers, in every spelling (*cha*, *xa*, *chha*).
+- Check every fact the bot states against the prompt. If it says something the prompt does not contain, tighten the prompt.
+- Watch the [rate limit](/docs/models): <Fact name="rateLimit" /> requests a minute per account, shared by all your keys.
+
+Every request field is in [Chat completions](/docs/chatcompletions), and what the model is good at is on the [boli-chat page](/models/boli-chat).
