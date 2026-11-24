@@ -127,7 +127,7 @@ export function SetupFlow({ initialStep, bot: initialBot, initialPages, initialJ
             extra={<div className="hidden w-[44rem] max-w-[58vw] min-w-0 pr-4 lg:block"><FlowSteps steps={STEPS.map((s) => s.label)} current={index} size="sm" /></div>}
             actions={[{ key: "skip", label: "Skip for now", href: ROUTES.jawaf, variant: "ghost" }]}
         >
-            <div className="mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-6 pb-10 pt-2">
+            <div className="flex w-full min-w-0 max-w-6xl flex-col gap-6 pb-10 pt-2">
                 <div className="lg:hidden"><FlowSteps steps={STEPS.map((s) => s.label)} current={index} size="sm" /></div>
 
                 {!canManage && !bot ? (

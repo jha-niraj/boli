@@ -33,7 +33,7 @@ export interface JawafBotOption {
  * The bot switcher at the top of Jawaf's sidebar. Prop-driven: Wave 2 (plan/main/jawaf/jawaf-v1.md task 7) passes the
  * workspace's bots and what switching does. With no bot yet it is a quiet card that leads to the setup.
  *
- * `compact`: the collapsed sidebar's 64px icon rail (Sarvam-style) - the bot as a round avatar (its initial) that opens
+ * `compact`: the collapsed sidebar's 64px icon rail (Sarvam-style) - the bot as a round avatar (the Jawaf mark) that opens
  * the same menu to the right; with no bot, a Jawaf icon that leads to the setup. Names in tooltips.
  */
 export function JawafBotSwitcher({ bots, currentId, onSwitch, compact = false }: {
@@ -81,8 +81,9 @@ export function JawafBotSwitcher({ bots, currentId, onSwitch, compact = false }:
                         label={`Bot - ${current.name}. Switch bot`}
                         hint={current.name}
                         icon={
-                            <span aria-hidden className="flex size-7 items-center justify-center rounded-full bg-boli-sky-soft text-xs font-semibold text-boli-sky-ink">
-                                {current.name.trim()[0]?.toUpperCase() ?? '?'}
+                            // The same Jawaf mark as the open switcher (owner, 2026-11-25), until the business uploads a logo.
+                            <span aria-hidden className="flex size-7 items-center justify-center rounded-full bg-boli-sky-soft text-boli-sky-ink">
+                                <JawafIcon className="size-4" />
                             </span>
                         }
                     />
