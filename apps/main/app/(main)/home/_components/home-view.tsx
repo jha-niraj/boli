@@ -7,7 +7,6 @@ import { SITE } from "@repo/core/site"
 import { AppLink } from "@repo/ui/components/app-link"
 import { ChartPanel } from "@repo/ui/components/charts/panel-charts"
 import { Button } from "@repo/ui/components/ui/button"
-import { EmptyState } from "@repo/ui/components/ui/empty-state"
 import { Page } from "@repo/ui/components/ui/page"
 import { RelativeTime } from "@repo/ui/components/ui/relative-time"
 import { ScrollArea } from "@repo/ui/components/ui/scroll-area"
@@ -17,6 +16,7 @@ import { StatBand, type StatBandItem } from "@repo/ui/components/ui/stat-band"
 import { cn } from "@repo/ui/lib/utils"
 import { getHomeData } from "@/actions/usage.action"
 import { CodeTabs, CopyButton } from "@/components/brand/code-tabs"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import { RequestDetailRows } from "@/components/platform/request-detail"
 import { SKY_LINK } from "@/components/platform/sky"
 import { SpendChart } from "@/components/platform/spend-chart"
@@ -89,11 +89,12 @@ export function HomeView({ initialData, startedHidden }: { initialData: HomeData
                             <AppLink href={ROUTES.usage} className={cn("shrink-0 text-xs", SKY_LINK)}>Open usage</AppLink>
                         </div>
                         {data.recent.length === 0 ? (
-                            <EmptyState
-                                className="flex-1 p-4 sm:p-4"
-                                icon={<MessagesSquare />}
-                                title="Nothing here yet"
-                                description="Chat in Kura or call the API and it shows up here."
+                            <BoliEmpty
+                                kind="usage"
+                                compact
+                                className="flex-1"
+                                title="No activity yet"
+                                description="Your first Kura message or API call shows here within a minute."
                             />
                         ) : (
                             <ScrollArea orientation="vertical" className="mt-2 min-w-0" viewportClassName="max-h-[16rem]">

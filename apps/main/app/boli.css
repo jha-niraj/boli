@@ -16,6 +16,8 @@
  * accent; prefer the `boli-sky-*` names in new code.
  */
 @import "@repo/ui/styles/globals.css";
+/* Boli's loaders, status scenes and empty-state motion (bl-*). */
+@import "../components/loaders/loaders.css";
 
 @theme {
     /* Fraunces (app/fonts.ts). Its SOFT and WONK settings are applied by the `.font-serif` rule below. */
@@ -145,3 +147,54 @@ textarea:not([data-no-pill]) {
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 [id] { scroll-margin-top: 5rem; }
+
+/*
+ * Skeleton tone K1b (owner, 2026-11-24): warm sand blocks, pill-round text lines, a slow soft sweep, no blue. Applied
+ * to the shared Skeleton / Shimmer through their `data-slot="skeleton"` hook, so every skeleton in this app gets it and
+ * the admin app keeps its own. Unlayered on purpose (beats the block's layered utilities). The radius is a fixed
+ * 0.625rem: a text line up to 20px tall renders as a full pill, a bigger block as a soft rounded rectangle; circles,
+ * square edges and the card-sized radii a caller sets (xl / 2xl / 3xl) are kept.
+ */
+[data-slot="skeleton"] {
+    background-color: #eeeae4;
+}
+.dark [data-slot="skeleton"] {
+    background-color: #262422;
+}
+[data-slot="skeleton"]:not(.rounded-full):not(.rounded-none):not(.rounded-xl):not(.rounded-2xl):not(.rounded-3xl) {
+    border-radius: 0.625rem;
+}
+[data-slot="skeleton"]::after {
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.75) 50%, transparent 100%);
+    animation-duration: 1.9s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+.dark [data-slot="skeleton"]::after {
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 248, 240, 0.06) 50%, transparent 100%);
+}
+@media (prefers-reduced-motion: reduce) {
+    [data-slot="skeleton"]::after { display: none; }
+}
+
+/*
+ * Route bar N1 (owner, 2026-11-24): NavProgress as a 2px sky bar with a soft glow; it eases toward the end, waits,
+ * then finishes and fades (the timing lives in the shared component). Through its `data-slot` hook; admin keeps gold.
+ */
+[data-slot="nav-progress-bar"] {
+    background-image: none;
+    background-color: #3d8fd6;
+    box-shadow: 0 0 8px rgba(61, 143, 214, 0.55);
+}
+.dark [data-slot="nav-progress-bar"] {
+    background-color: #6cb2ef;
+    box-shadow: 0 0 10px rgba(108, 178, 239, 0.7);
+}
+
+/*
+ * Spinner S1 everywhere (owner, 2026-11-24): the shared Spinner inside @repo/ui controls (Page actions, ConfirmPopover,
+ * toasts, the bell's Mark all read) is lucide's three-quarter arc; trimmed through its `data-slot` to the short thin
+ * arc of components/loaders/spinners.tsx so every control in this app turns the same ring. Admin keeps the full arc.
+ */
+[data-slot="spinner"] path {
+    stroke-dasharray: 14 100;
+}

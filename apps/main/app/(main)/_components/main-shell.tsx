@@ -10,6 +10,7 @@ import { NotificationsPanel, type NotificationView } from "@repo/ui/components/u
 import type { ShellUser } from "@repo/ui/lib/shell"
 import { getNotifications, getUnreadCount, markAllAsRead, markAsRead } from "@/actions/notification.action"
 import { BoliLogo } from "@/components/brand/boli-logo"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import { FeedbackButton } from "@/components/feedback/feedback-button"
 import { CreditsRow, useBalance } from "@/components/shell/credits-chip"
 import { BRAND, formatCredits } from "@/lib/boli"
@@ -102,6 +103,13 @@ export function MainShell({ user, initialPinned, initialRailWidth, children }: {
                 notifications={list.data ?? []}
                 loading={list.isPending && panelOpen}
                 subtitle="Your latest ten."
+                renderEmpty={(tab) => (
+                    <BoliEmpty
+                        kind="notifications"
+                        title={tab === "unread" ? "You are all caught up" : "Nothing read yet"}
+                        description={tab === "unread" ? "The ghanti rings when a payment lands or a key is first used." : "Notifications you have read show here."}
+                    />
+                )}
                 onItemClick={async (n) => {
                     if (n.href) {
                         setPanelOpen(false)

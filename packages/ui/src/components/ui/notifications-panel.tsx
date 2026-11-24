@@ -153,6 +153,7 @@ export function NotificationsPanel({
 	subtitle = "Recent activity and alerts.",
 	emptyBody = "You'll see notifications here when there's activity.",
 	footer,
+	renderEmpty,
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
@@ -170,6 +171,8 @@ export function NotificationsPanel({
 	emptyBody?: string
 	/** A band under the list, e.g. a "See all" link to the app's notifications page. */
 	footer?: React.ReactNode
+	/** The app's own empty state for a tab with nothing in it; the built-in sonar scene when omitted. */
+	renderEmpty?: (tab: "unread" | "read") => React.ReactNode
 }) {
 	const [tab, setTab] = React.useState<"unread" | "read">("unread")
 	const [moduleFilter, setModuleFilter] = React.useState<string>(ALL_MODULES)
@@ -304,7 +307,7 @@ export function NotificationsPanel({
 							// a completely different height than the rows that replaced it.
 							<RowListSkeleton count={5} withIcon lines={3} card />
 						) : visible.length === 0 ? (
-							<EmptyState
+							renderEmpty ? renderEmpty(tab) : <EmptyState
 								title={tab === "unread" ? "No unread notifications" : "No read notifications"}
 								body={tab === "unread" ? emptyBody : "Notifications you've read will appear here."}
 							/>

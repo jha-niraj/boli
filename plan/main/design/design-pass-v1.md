@@ -117,7 +117,53 @@ pass, then the real-model test.
   `components/art/frame.ts`, `components/platform/{sky.ts,dhaka-band.tsx,dhaka-empty.tsx}`.
   - Verified: not run (build without checks, per the brief). Lead: one typecheck + Chrome pass.
 
+- [ ] **Wave 3 L. Loaders, status, empty states, skeleton tone** (agent L, 2026-11-24, owner picks from /design
+  Loaders): S1 ring for controls (`components/loaders/spinners.tsx` InlineLoader; the shared Spinner trimmed to the
+  same arc in boli.css), S3 for Kura writing, S4/S5 `RegionLoader`; F1 `BoliAppLoader` for the (main) fallback and the
+  sign-in hand-off, F4 in /kura's new welcome-shaped skeleton, F2 `HomeLoader` built but NOT wired (Home keeps its
+  layout skeleton - AGENTS.md 10); N1 sky route bar and K1b warm skeletons via `data-slot` hooks in packages/ui +
+  boli.css (admin unchanged); St1a/St2/St3/St4 `components/status/*` in not-found, error, global-error (new),
+  accessdenied and Kura's model-offline note; E1-E6 `components/empty/boli-empty.tsx` in keys, usage, Home activity,
+  billing payments/history, notifications page + bell panel (`renderEmpty` prop), Kura history and its search.
+  Skeleton audit: Billing, Keys, Models, Profile, Settings (notifications, accounts), Checkout and /kura redrawn to
+  their layouts. `components/platform/dhaka-empty.tsx` removed (no users left).
+  - Verified: not run (build without checks, per the brief). Lead: one typecheck + Chrome pass.
+
 ## Notes / decisions
+
+- 2026-11-24 round 4 built (public pages agent + loaders agent), typecheck main + admin exit 0. Chrome: About (new
+  hero + chapters), /contact (hero, topics, email, Kathmandu card, links), Who it's for portraits, code panel fixed
+  height (heading 349px / section 765px unchanged when switching cURL -> Go), How it works hover (title stays at 361px,
+  only the panel widens), 404 St1a. Lead fix: /contact added to the light-only list in providers.tsx (logo rendered
+  white in dark system theme). F2 (prayer flags) is built as HomeLoader but not wired - AGENTS.md keeps Home's layout
+  skeleton; owner to decide where F2 shows.
+
+- 2026-11-24 loader picks (/design Loaders tab): spinners S1 for controls, S4 (eight-dot) for small regions, S5
+  (thread drawing) also for regions where the brand fits, S3 three dots for Kura's writing state; full page F1 for app
+  routes, F4 for Kura, F2 (prayer flags) for Home (the analytics page), N1 sky route bar; status St1a 404, St2 500,
+  St3 403, St4 model resting; empty states E1-E6; skeleton tone K1b (warm sand, slow soft shimmer, no blue).
+
+- 2026-11-24 committed per area (63ee737 shell, 1471ee1 docs/code, 85aca0f brand/auth, 3588028 public, 41d9494
+  dashboard, 504ebd4 /design + plan). Owner feedback round 4 (to do, questions asked first):
+  1. Landing code section: switching languages must not shift the left column; the code panel gets a FIXED height
+     with its own ScrollArea (scrolls inside, never the page).
+  2. "Who it's for": rethink with the Dhaka art and the pixel art, properly.
+  3. PS2 "How it works" expanding panels: on hover the picture rises from the bottom and pushes the text above -
+     the motion is odd; redo it so nothing above moves.
+  4. About: a stronger hero; tell the story, the pain points and how we reached our decisions. Contact moves to its
+     own page /contact. Every public page gets a great hero from now on.
+  5. Check the skeleton of every internal page.
+  6. Loaders: a simple spinner (and a dotted one) instead of the dot-matrix; full-page loader SAMPLES about the
+     product; also 404 / 500 / 403 and empty states - samples first, opened in a new tab for review.
+  Answers: About = editorial "we" with real findings but NO company names (say what we found and what we do);
+  Products section adds Document intelligence (Next) - 3 rows is fine; /contact = topic choices + public email +
+  "Built in Kathmandu" vignette + reply time and links; every public page hero = editorial title + its own pixel
+  vignette; Who it's for = pixel portraits in Dhaka frames; add subtle entrance motion for text on public pages
+  (not too much; never on the LCP headline; reduced motion = none).
+  7. Verified 2026-11-24 in Chrome: Kura header icons (panel toggle swaps open/close icon, History, New chat +);
+     onboarding with a fresh local account (boli.tester2@example.com, signed up via the API with email sending off,
+     verified from the dev-log link): 4 steps in the golden-valley frame -> Kura with 100.00 credits. Contact email
+     decided: hello@bolihq.com (one constant). Loader/status/empty samples being built on /design (Loaders tab).
 
 - 2026-11-24 wave 2 built (3 agents, no checks during build) + lead Chrome pass and fixes. Typecheck main + admin
   exit 0. Verified in Chrome: landing top to bottom at 1512px and 390px; About at 390px; Home, Kura, Billing > Plans

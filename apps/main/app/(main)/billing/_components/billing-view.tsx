@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
-import { ArrowRight, Plus, Receipt, Wallet } from "lucide-react"
+import { ArrowRight, Plus } from "lucide-react"
 import { AppLink } from "@repo/ui/components/app-link"
 import { Button } from "@repo/ui/components/ui/button"
 import { Page } from "@repo/ui/components/ui/page"
@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn } from "@repo/ui/lib/utils"
 import { useUrlTab } from "@repo/ui/hooks/use-url-tab"
 import { getBilling } from "@/actions/billing.action"
-import { DhakaEmpty } from "@/components/platform/dhaka-empty"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import { SKY_LINK } from "@/components/platform/sky"
 import { BOLI_CHAT, formatCredits } from "@/lib/boli"
 import { ROUTES } from "@/lib/navigation"
@@ -81,7 +81,7 @@ export function BillingView({ initialData, initialTab, openAdd, preselect }: {
                     <PlansTab preselect={preselect} />
                 ) : tab === "history" ? (
                     data.history.length === 0 ? (
-                        <DhakaEmpty icon={<Wallet />} title="No history yet" description="Free credits, purchases and each day's usage show up here." />
+                        <BoliEmpty kind="payments" framed title="No history yet" description="Free credits, purchases and each day's usage show up here." />
                     ) : (
                         <section className="min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
                             <ScrollArea orientation="both" className="min-w-0" viewportClassName="max-h-[44rem]">
@@ -150,11 +150,12 @@ export function BillingView({ initialData, initialTab, openAdd, preselect }: {
 
                         <h2 className="text-base font-semibold text-neutral-900 dark:text-white">Payments</h2>
                         {data.payments.length === 0 ? (
-                    <DhakaEmpty
-                        icon={<Receipt />}
+                    <BoliEmpty
+                        kind="payments"
+                        framed
                         title="No payments yet"
-                        description="Credits you buy with eSewa or Khalti show up here."
-                        action={<Button size="sm" className="gap-1.5" onClick={() => setTab("plans")}><Plus className="h-3.5 w-3.5" /> Buy credits</Button>}
+                        description="Credit packs you buy with eSewa or Khalti show here, each with its receipt."
+                        action={<Button size="sm" className="gap-1.5" onClick={() => setTab("plans")}><Plus className="h-3.5 w-3.5" /> Add credits</Button>}
                     />
                 ) : (
                     <section className="min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">

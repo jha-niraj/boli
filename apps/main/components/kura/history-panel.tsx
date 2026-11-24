@@ -10,6 +10,7 @@ import { Skeleton } from '@repo/ui/components/ui/skeleton'
 import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui/components/ui/popover'
 import { ConfirmPopover } from '@repo/ui/components/ui/confirm-popover'
 import { cn } from '@repo/ui/lib/utils'
+import { BoliEmpty } from '@/components/empty/boli-empty'
 import { deleteConversation, listConversations, renameConversation } from '@/actions/ai/kura.action'
 import type { ConversationRow } from '@/lib/ai/types'
 import { KURA_HISTORY_KEY } from './query-keys'
@@ -85,9 +86,17 @@ export function HistoryPanel({ initial, currentId, onSelect, onDeleted }: { init
             )}
             <ScrollArea orientation="vertical" className="min-h-0 flex-1">
                 <div className="flex min-w-0 flex-col gap-4 px-3 pb-4">
-                    {filtered.length === 0 && (
-                        <p className="px-1 text-sm text-neutral-600 dark:text-neutral-400">{q ? 'No chat matches that.' : 'Your chats will show here.'}</p>
-                    )}
+                    {filtered.length === 0 && (q.trim() ? (
+                        <BoliEmpty
+                            kind="search"
+                            compact
+                            title={`No chats match "${q.trim()}"`}
+                            description="Try a shorter word - search looks at chat titles."
+                            action={<Button type="button" size="sm" variant="outline" className="cursor-pointer" onClick={() => setQ('')}>Clear search</Button>}
+                        />
+                    ) : (
+                        <BoliEmpty kind="conversations" compact title="No conversations yet" description="Ask Kura anything - in Nepali, English or both. Your chats show here." />
+                    ))}
                     {sections(filtered).map((s) => (
                         <div key={s.label} className="min-w-0">
                             <p className="mb-1 px-1 text-xs font-medium text-neutral-600 dark:text-neutral-400">{s.label}</p>

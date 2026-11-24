@@ -16,7 +16,7 @@ import { cn } from "@repo/ui/lib/utils"
 import { SITE } from "@repo/core/site"
 import { getApiKeys, revokeKey } from "@/actions/keys.action"
 import { API_PATHS, maskKey, MAX_API_KEYS } from "@/lib/boli"
-import { DhakaEmpty } from "@/components/platform/dhaka-empty"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import { SKY_LINK } from "@/components/platform/sky"
 import { ROUTES } from "@/lib/navigation"
 import { formatDay, PLATFORM_KEYS, TIME_ZONE } from "@/lib/platform-display"
@@ -102,10 +102,11 @@ export function KeysView({ initialData, openCreate }: { initialData: ApiKeyRow[]
                 {atLimit ? <p className="text-xs text-neutral-600 dark:text-neutral-400">{limitReason}</p> : null}
 
                 {keys.length === 0 ? (
-                    <DhakaEmpty
-                        icon={<KeyRound />}
+                    <BoliEmpty
+                        kind="keys"
+                        framed
                         title="No API keys yet"
-                        description="Create a key to call the Boli API from your own app. The key is shown once - keep it in your .env, never in code."
+                        description="Create one to call boli-chat from your own code. The key is shown once - keep it in your .env, never in code."
                         action={
                             <Button size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
                                 <Plus className="h-3.5 w-3.5" /> Create API key

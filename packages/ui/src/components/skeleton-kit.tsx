@@ -48,6 +48,7 @@ export function Shimmer({
     return (
         <div
             aria-hidden
+            data-slot="skeleton"
             style={delay ? { ...style, animationDelay: `${delay}s` } : style}
             className={cn(
                 "gk-shimmer rounded-md bg-neutral-200/80 dark:bg-neutral-800",

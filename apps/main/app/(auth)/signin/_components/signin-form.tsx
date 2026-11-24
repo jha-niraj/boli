@@ -11,8 +11,8 @@ import {
 import type { GoogleMode } from "@repo/auth/google"
 import { Button } from "@repo/ui/components/ui/button"
 import { Input } from "@repo/ui/components/ui/input"
-import { InlineLoader } from "@repo/ui/components/ui/inline-loader"
-import { SigningInScreen } from "@repo/ui/components/ui/signing-in-screen"
+import { InlineLoader } from "@/components/loaders/spinners"
+import { HomeLoader } from "@/components/loaders/full-page"
 import { AUTH_ROUTES } from "@/lib/auth-routes"
 import { BRAND } from "@/lib/boli"
 
@@ -130,7 +130,8 @@ export function SignInForm({ google, returnTo, initialMethod, initialEmail, noti
         }
     }
 
-    if (arriving) return <SigningInScreen />
+    // The hand-off to the app (F1): the thread draws itself until Kura takes over, so the switch never goes blank.
+    if (arriving) return <HomeLoader lines={["Welcome back...", "Taking you in...", "Waking Kura...", "Almost there..."]} />
 
     return (
         <div>

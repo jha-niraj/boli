@@ -2,11 +2,10 @@
 
 import * as React from "react"
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query"
-import { AlertTriangle, Bell, CheckCheck, CheckCircle2, Info, Trash2, XCircle } from "lucide-react"
+import { AlertTriangle, CheckCheck, CheckCircle2, Info, Trash2, XCircle } from "lucide-react"
 import { AppLink } from "@repo/ui/components/app-link"
 import { Button } from "@repo/ui/components/ui/button"
 import { ConfirmPopover } from "@repo/ui/components/ui/confirm-popover"
-import { EmptyState } from "@repo/ui/components/ui/empty-state"
 import { InlineNote } from "@repo/ui/components/ui/inline-note"
 import { ListPagination } from "@repo/ui/components/ui/list-pagination"
 import { Page } from "@repo/ui/components/ui/page"
@@ -23,6 +22,8 @@ import {
     type NotificationPage,
     type NotificationRow,
 } from "@/actions/notification.action"
+import { BoliEmpty } from "@/components/empty/boli-empty"
+import { ROUTES } from "@/lib/navigation"
 import { notificationsKey, type NotificationParams } from "./params"
 import { NotificationsListSkeleton } from "./notifications-skeleton"
 
@@ -131,12 +132,16 @@ export function NotificationsView({ initialParams, initialData, initialError }: 
                         ? <InlineNote tone="warning">{initialError}</InlineNote>
                         : <NotificationsListSkeleton />
                 ) : data.items.length === 0 ? (
-                    <EmptyState
-                        bordered
-                        icon={<Bell />}
-                        badge={params.filter === "unread" && data.total === 0 ? "check" : undefined}
+                    <BoliEmpty
+                        kind="notifications"
+                        framed
                         title={params.filter === "unread" ? "You are all caught up" : "No notifications yet"}
-                        description={params.filter === "unread" ? "Nothing unread. Read ones are under All." : "When something needs you, it shows up here and under the bell."}
+                        description={params.filter === "unread" ? "Nothing unread. Read ones are under All." : "The ghanti rings when a payment lands or a key is first used."}
+                        action={(
+                            <Button asChild size="sm" variant="outline">
+                                <AppLink href={ROUTES.settingsNotifications}>Notification settings</AppLink>
+                            </Button>
+                        )}
                     />
                 ) : (
                     <>

@@ -12,6 +12,7 @@ import { cn } from "../lib/utils"
  *
  * It creeps towards 85% on a long ease-out (a slow connection never sees it stall at an end), snaps
  * to 100% and fades when the new page commits. Under reduced motion it simply appears and goes.
+ * `data-slot="nav-progress-bar"` lets an app recolour the bar from its own CSS (apps/main: the sky with a glow).
  */
 export function NavProgress({ className }: { className?: string }) {
     // useSearchParams needs a Suspense boundary of its own or it opts the whole tree out of
@@ -66,6 +67,7 @@ function Bar({ className }: { className?: string }) {
             className={cn("pointer-events-none fixed inset-x-0 top-0 z-[100] h-[2px]", className)}
         >
             <div
+                data-slot="nav-progress-bar"
                 className={cn(
                     "h-full bg-gradient-to-r from-[#a87f1f] to-[#c9a961] motion-reduce:transition-none",
                     phase === "idle" && "w-0 opacity-0",

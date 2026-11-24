@@ -1,0 +1,112 @@
+/*
+ * Motion for Boli's loaders, status screens and empty states (approved on /design, owner 2026-11-24). Every class is
+ * prefixed `bl-`. Only transform and opacity animate, with one named exception: the R2 thread draws with
+ * stroke-dashoffset (the owner asked for the line to "draw"; paint-only, on a tiny SVG). Imported once by app/boli.css.
+ *
+ * Reduced motion: everything stops on a resting frame that still reads - the finished mark, a full set of dots, the
+ * word "namaste" - and the words beside it carry the state.
+ */
+
+/* ---------------------------------------------------------------- spinners */
+
+/* S1: a thin ring that turns. */
+.bl-spin { transform-box: fill-box; transform-origin: center; animation: bl-spin 0.8s linear infinite; }
+@keyframes bl-spin { to { transform: rotate(360deg); } }
+
+/* S3: three dots that rise and brighten in turn (Kura writing). */
+.bl-dot3 { transform-box: fill-box; transform-origin: center; opacity: 0.3; animation: bl-dot3 1.05s ease-in-out infinite; }
+@keyframes bl-dot3 {
+    0%, 70%, 100% { opacity: 0.3; transform: scale(0.78); }
+    30% { opacity: 1; transform: scale(1); }
+}
+
+/* S4: eight dots round a ring; each fades after its turn (delays set inline). */
+.bl-dot8 { opacity: 0.18; animation: bl-dot8 0.96s linear infinite; }
+@keyframes bl-dot8 { 0% { opacity: 1; } 100% { opacity: 0.18; } }
+
+/* S5: the thread draws, the dot pops, both fade, again. The path carries pathLength="1". */
+.bl-thread { stroke-dasharray: 1 1; stroke-dashoffset: 1; animation: bl-thread 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+@keyframes bl-thread {
+    0% { stroke-dashoffset: 1; opacity: 1; }
+    55% { stroke-dashoffset: 0; opacity: 1; }
+    85% { stroke-dashoffset: 0; opacity: 1; }
+    100% { stroke-dashoffset: 0; opacity: 0; }
+}
+.bl-thread-dot { transform-box: fill-box; transform-origin: center; transform: scale(0); animation: bl-thread-dot 1.6s ease-out infinite; }
+@keyframes bl-thread-dot {
+    0%, 52% { transform: scale(0); opacity: 1; }
+    62% { transform: scale(1.3); opacity: 1; }
+    70%, 85% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1); opacity: 0; }
+}
+
+/* ---------------------------------------------------------------- full-page loaders */
+
+/* The rotating line of copy: each new line fades up a little. */
+.bl-line { animation: bl-line 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes bl-line { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* The whole loader fades in after a beat, so a fast route never flashes it. */
+.bl-enter { animation: bl-enter 0.3s ease-out 0.12s both; }
+@keyframes bl-enter { from { opacity: 0; } to { opacity: 1; } }
+
+/* F1: the big mark draws itself (2.8s), the crimson dot pops with a ring, it rests, fades, again. */
+.bl-f1-path { stroke-dasharray: 1 1; stroke-dashoffset: 1; animation: bl-f1-path 2.8s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+@keyframes bl-f1-path {
+    0% { stroke-dashoffset: 1; opacity: 1; }
+    48% { stroke-dashoffset: 0; opacity: 1; }
+    88% { stroke-dashoffset: 0; opacity: 1; }
+    100% { stroke-dashoffset: 0; opacity: 0; }
+}
+.bl-f1-dot { transform-box: fill-box; transform-origin: center; transform: scale(0); animation: bl-f1-dot 2.8s ease-out infinite; }
+@keyframes bl-f1-dot {
+    0%, 47% { transform: scale(0); opacity: 1; }
+    55% { transform: scale(1.45); opacity: 1; }
+    61%, 88% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1); opacity: 0; }
+}
+.bl-f1-ring { transform-box: fill-box; transform-origin: center; opacity: 0; animation: bl-f1-ring 2.8s ease-out infinite; }
+@keyframes bl-f1-ring {
+    0%, 50% { opacity: 0; transform: scale(0.6); }
+    54% { opacity: 0.5; transform: scale(1); }
+    72%, 100% { opacity: 0; transform: scale(2.6); }
+}
+
+/* F2: a prayer flag lifts and settles, the wave running down the string (delays inline). */
+.bl-flag { transform-box: fill-box; transform-origin: top center; animation: bl-flag 1.6s steps(1, end) infinite; }
+@keyframes bl-flag {
+    0% { transform: translateY(0) skewX(0deg); }
+    12% { transform: translateY(-1px) skewX(-14deg); }
+    24% { transform: translateY(0) skewX(-6deg); }
+    36%, 100% { transform: translateY(0) skewX(0deg); }
+}
+
+/* F4: Kura types three dots, then the word lands; again. */
+.bl-say-dots { animation: bl-say-dots 3.6s steps(1, end) infinite; }
+@keyframes bl-say-dots { 0% { opacity: 1; } 55% { opacity: 0; } 100% { opacity: 0; } }
+.bl-say-word { opacity: 0; animation: bl-say-word 3.6s steps(1, end) infinite; }
+@keyframes bl-say-word { 0% { opacity: 0; } 55% { opacity: 1; } 94% { opacity: 0; } 100% { opacity: 0; } }
+.bl-type { opacity: 0.25; animation: bl-type 0.9s steps(1, end) infinite; }
+@keyframes bl-type { 0% { opacity: 1; } 33% { opacity: 0.25; } 100% { opacity: 0.25; } }
+
+/* ---------------------------------------------------------------- status and empty art */
+
+.bl-twinkle { animation: bl-twinkle 2.4s steps(1, end) infinite; }
+@keyframes bl-twinkle { 0% { opacity: 1; } 60% { opacity: 0.25; } 75% { opacity: 1; } 100% { opacity: 1; } }
+.bl-float { animation: bl-float 3.2s steps(4, end) infinite; }
+@keyframes bl-float { 0% { transform: translate(0, 0); opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { transform: translate(3px, -8px); opacity: 0; } }
+.bl-cursor { animation: bl-cursor 1s steps(1, end) infinite; }
+@keyframes bl-cursor { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 0; } }
+.bl-swing { transform-box: fill-box; transform-origin: top center; animation: bl-swing 3s steps(1, end) infinite; }
+@keyframes bl-swing { 0%, 70% { transform: rotate(0deg); } 76% { transform: rotate(-8deg); } 82% { transform: rotate(6deg); } 88% { transform: rotate(-3deg); } 94%, 100% { transform: rotate(0deg); } }
+
+/* ---------------------------------------------------------------- reduced motion: resting frames */
+
+@media (prefers-reduced-motion: reduce) {
+    [class*="bl-"] { animation: none !important; }
+    .bl-thread, .bl-f1-path { stroke-dashoffset: 0 !important; opacity: 1 !important; }
+    .bl-thread-dot, .bl-f1-dot { transform: scale(1) !important; opacity: 1 !important; }
+    .bl-f1-ring, .bl-say-dots { opacity: 0 !important; }
+    .bl-say-word, .bl-dot3, .bl-dot8, .bl-type, .bl-float, .bl-enter { opacity: 1 !important; }
+    .bl-dot3 { transform: none !important; }
+}

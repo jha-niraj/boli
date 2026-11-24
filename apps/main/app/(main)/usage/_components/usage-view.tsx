@@ -9,8 +9,7 @@ import {
     DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@repo/ui/components/ui/dropdown-menu"
-import { EmptyState } from "@repo/ui/components/ui/empty-state"
-import { InlineLoader } from "@repo/ui/components/ui/inline-loader"
+import { InlineLoader } from "@/components/loaders/spinners"
 import { ListPagination } from "@repo/ui/components/ui/list-pagination"
 import { Page } from "@repo/ui/components/ui/page"
 import { ScrollArea } from "@repo/ui/components/ui/scroll-area"
@@ -26,7 +25,7 @@ import { formatTokens } from "@/lib/format"
 import {
     addTotals, formatDateTime, formatLatency, PLATFORM_KEYS, SOURCE_LABEL, USAGE_SOURCES, USAGE_WINDOWS, windowDays,
 } from "@/lib/platform-display"
-import { DashDhaka } from "@/components/platform/dhaka-band"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import { SKY_FILL } from "@/components/platform/sky"
 import type { RequestRow, UsageBuckets, UsageData, UsageSourceFilter, UsageTotals, UsageWindow } from "@/types/platform"
 import { USAGE_DESCRIPTION, USAGE_TITLE } from "./usage-skeleton"
@@ -170,17 +169,15 @@ export function UsageView({ initialData }: { initialData: UsageData }) {
 
                     <div className="flex min-w-0 flex-col gap-2">
                         <section className="min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-                            {data.log.rows.length === 0 ? <DashDhaka height={9} /> : null}
                             <div className="px-4 pb-2 pt-4">
                                 <h2 className="text-base font-semibold text-neutral-900 dark:text-white">Requests</h2>
                                 <p className="truncate text-xs text-neutral-600 dark:text-neutral-400">Newest first. Press a row for every detail.</p>
                             </div>
                             {data.log.rows.length === 0 ? (
-                                <EmptyState
-                                    className="pb-8"
-                                    icon={<History />}
+                                <BoliEmpty
+                                    kind="usage"
                                     title="No requests in this window"
-                                    description="Chat in Kura or call the API and each request shows up here with its tokens and credits."
+                                    description="Chat in Kura or call the API and each request shows here with its tokens and credits."
                                 />
                             ) : (
                                 <ScrollArea orientation="both" className="min-w-0" viewportClassName="max-h-[44rem]">
