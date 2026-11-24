@@ -6,6 +6,7 @@ export const PUBLIC_NAV = [
     { label: "API", href: ROUTES.doc("quickstart") },
     { label: "Pricing", href: "/#pricing" },
     { label: "Docs", href: ROUTES.docs },
+    { label: "About", href: ROUTES.about },
 ] as const
 
 export const FOOTER_COLUMNS = [
@@ -13,6 +14,7 @@ export const FOOTER_COLUMNS = [
         title: "Product",
         links: [
             { label: "Kura", href: ROUTES.kura },
+            { label: "API", href: ROUTES.doc("quickstart") },
             { label: "Pricing", href: "/#pricing" },
             { label: "Models", href: ROUTES.doc("models") },
         ],
@@ -22,7 +24,8 @@ export const FOOTER_COLUMNS = [
         links: [
             { label: "Docs", href: ROUTES.docs },
             { label: "Quickstart", href: ROUTES.doc("quickstart") },
-            { label: "API reference", href: ROUTES.doc("chatcompletions") },
+            { label: "Chat completions", href: ROUTES.doc("chatcompletions") },
+            { label: "Errors", href: ROUTES.doc("authentication") },
         ],
     },
     {
@@ -30,11 +33,6 @@ export const FOOTER_COLUMNS = [
         links: [
             { label: "About", href: ROUTES.about },
             { label: "Contact", href: `${ROUTES.about}#contact` },
-        ],
-    },
-    {
-        title: "Legal",
-        links: [
             { label: "Terms", href: ROUTES.terms },
             { label: "Privacy", href: ROUTES.privacy },
         ],

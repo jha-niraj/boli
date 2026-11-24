@@ -1,4 +1,4 @@
-// Renders one @repo/legal document in the public reading layout: Instrument Serif title, a table of contents on wide
+// Renders one @repo/legal document in the public reading layout: Fraunces (font-serif) title, Instrument Sans body, a table of contents on wide
 // screens, readable body type. Server component (react-markdown renders on the server; no client JS).
 import { Children, isValidElement, type ReactNode } from 'react'
 import ReactMarkdown, { type Components } from 'react-markdown'
@@ -6,7 +6,7 @@ import remarkGfm from 'remark-gfm'
 import { AppLink } from '@repo/ui/components/app-link'
 import { SITE } from '@repo/core/site'
 import { getLegalDocument, listLegalDocuments, type LegalContext, type LegalDocumentSlug } from '@repo/legal/documents'
-import { Ornament } from '@/components/brand/ornament'
+import { DISPLAY } from '@/components/brand/type'
 import { BRAND, RATE_LIMIT_PER_MIN, WELCOME_CREDITS } from '@/lib/boli'
 
 /** The operator and address are placeholders in lib/boli.ts (BRAND) until the owner gives them (plan Q13). */
@@ -33,7 +33,7 @@ function slugify(text: string): string {
 
 const components: Components = {
     h2: ({ children }) => (
-        <h2 id={slugify(textOf(children))} className="mt-12 scroll-mt-24 font-serif text-3xl leading-tight tracking-tight text-boli-ink">
+        <h2 id={slugify(textOf(children))} className="mt-12 scroll-mt-24 font-serif text-3xl leading-tight text-boli-ink" style={DISPLAY.h3}>
             {children}
         </h2>
     ),
@@ -43,7 +43,7 @@ const components: Components = {
     ol: ({ children }) => <ol className="mt-4 list-decimal space-y-2 pl-6 text-base leading-7 text-boli-text">{children}</ol>,
     strong: ({ children }) => <strong className="font-semibold text-boli-ink">{children}</strong>,
     a: ({ href, children }) => (
-        <a href={href} className="cursor-pointer text-boli-blue underline underline-offset-2">
+        <a href={href} className="cursor-pointer text-boli-sky-ink underline underline-offset-2">
             {children}
         </a>
     ),
@@ -64,11 +64,11 @@ export function LegalDocumentPage({ slug }: { slug: LegalDocumentSlug }) {
             return { title, id: slugify(title) }
         })
     return (
-        <div className="mx-auto w-full max-w-6xl px-4 pb-24 pt-14 sm:px-6 sm:pt-20">
+        <div className="mx-auto w-full max-w-6xl px-4 pb-24 pt-14 font-sans sm:px-6 sm:pt-20 lg:px-10">
             <div className="grid gap-12 lg:grid-cols-[200px_minmax(0,1fr)]">
                 <nav aria-label="Contents" className="hidden lg:block">
                     <div className="sticky top-24 max-h-[calc(100dvh-8rem)] overflow-y-auto pt-2">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-boli-muted">Contents</p>
+                        <p className="text-xs font-medium text-boli-muted">Contents</p>
                         <ol className="mt-4 space-y-2 border-l border-boli-line">
                             {toc.map((t) => (
                                 <li key={t.id}>
@@ -82,14 +82,15 @@ export function LegalDocumentPage({ slug }: { slug: LegalDocumentSlug }) {
                 </nav>
                 <div className="mx-auto w-full min-w-0 max-w-2xl lg:mx-0">
                     <header>
-                        <Ornament className="text-boli-crimson-ink/50" />
-                        <p className="mt-6 text-xs font-semibold uppercase tracking-[0.14em] text-boli-crimson-ink">Legal</p>
-                        <h1 className="mt-3 font-serif text-5xl leading-tight tracking-tight text-boli-ink">{doc.title}</h1>
+                        <p className="text-sm font-[450] text-boli-sky-ink">Legal</p>
+                        <h1 className="mt-3 font-serif text-[44px] leading-[1.04] text-boli-ink sm:text-5xl" style={DISPLAY.h2}>
+                            {doc.title}
+                        </h1>
                         <p className="mt-3 text-sm text-boli-muted">
                             Effective {formatDate(doc.effectiveDate)} - version {doc.version}
                         </p>
                         {doc.template ? (
-                            <p role="note" className="mt-6 rounded-2xl border border-boli-crimson/25 bg-boli-crimson-soft px-4 py-3 text-sm leading-6 text-boli-ink">
+                            <p role="note" className="mt-6 rounded-2xl border border-boli-line bg-white px-4 py-3 text-sm leading-6 text-boli-ink">
                                 <strong className="font-semibold">Draft - to be reviewed by a lawyer before launch.</strong> Placeholders such as {BRAND.legalEntity}{' '}
                                 and {BRAND.contactEmail} will be filled in then.
                             </p>
@@ -103,7 +104,7 @@ export function LegalDocumentPage({ slug }: { slug: LegalDocumentSlug }) {
                     {others.length > 0 ? (
                         <nav aria-label="Other documents" className="mt-14 flex flex-wrap gap-4 border-t border-boli-line pt-6 text-sm">
                             {others.map((d) => (
-                                <AppLink key={d.slug} href={d.path} className="cursor-pointer text-boli-blue hover:underline">
+                                <AppLink key={d.slug} href={d.path} className="cursor-pointer text-boli-sky-ink hover:underline">
                                     Read the {d.title}
                                 </AppLink>
                             ))}

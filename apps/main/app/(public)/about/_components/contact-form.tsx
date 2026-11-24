@@ -2,12 +2,13 @@
 
 import { useState, useTransition, type FormEvent, type ReactNode } from "react"
 import { CheckCircle2 } from "lucide-react"
-import { Button } from "@repo/ui/components/ui/button"
 import { Input } from "@repo/ui/components/ui/input"
 import { Label } from "@repo/ui/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/ui/select"
 import { Spinner } from "@repo/ui/components/ui/spinner"
 import { Textarea } from "@repo/ui/components/ui/textarea"
+import { PillButton } from "@/components/brand/pill-button"
+import { DISPLAY } from "@/components/brand/type"
 import { submitContactMessage } from "@/actions/contact.action"
 import { CONTACT_MESSAGE_MAX, CONTACT_TOPICS, contactSchema, type ContactTopic } from "@/schemas/contact"
 
@@ -55,16 +56,18 @@ export function ContactForm() {
 
     if (sent) {
         return (
-            <div role="status" className="rounded-2xl border border-boli-line bg-white p-8 text-center">
-                <CheckCircle2 className="mx-auto h-8 w-8 text-boli-blue" aria-hidden />
-                <p className="mt-4 font-serif text-3xl text-boli-ink">Dhanyabad. Message received.</p>
+            <div role="status" className="rounded-3xl border border-boli-line bg-white p-8 text-center font-sans">
+                <CheckCircle2 className="mx-auto h-8 w-8 text-boli-sky-ink" strokeWidth={1.5} aria-hidden />
+                <p className="mt-4 text-3xl leading-tight text-boli-ink" style={DISPLAY.h3}>
+                    Dhanyabad. Message received.
+                </p>
                 <p className="mt-2 text-sm text-boli-text">We read every message and reply by email.</p>
             </div>
         )
     }
 
     return (
-        <form onSubmit={onSubmit} noValidate className="relative space-y-5 rounded-2xl border border-boli-line bg-white p-5 sm:p-8">
+        <form onSubmit={onSubmit} noValidate className="relative space-y-5 rounded-3xl border border-boli-line bg-white p-5 font-sans sm:p-8">
             <div className="grid gap-5 sm:grid-cols-2">
                 <Field id="contact-name" label="Name" error={errors.name}>
                     <Input id="contact-name" name="name" autoComplete="name" required aria-invalid={!!errors.name} aria-describedby={errors.name ? "contact-name-error" : undefined} />
@@ -112,10 +115,10 @@ export function ContactForm() {
             ) : null}
             <div className="flex flex-col-reverse items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-xs text-boli-muted">We use your email only to reply.</p>
-                <Button type="submit" disabled={pending} className="h-11 w-full gap-2 bg-boli-ink px-6 text-white hover:bg-boli-ink/90 sm:w-auto">
+                <PillButton type="submit" size="lg" disabled={pending} className="w-full sm:w-auto">
                     {pending ? <Spinner className="h-4 w-4" /> : null}
                     {pending ? "Sending" : "Send message"}
-                </Button>
+                </PillButton>
             </div>
         </form>
     )

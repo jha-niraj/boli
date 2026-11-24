@@ -11,7 +11,7 @@ const HOME = '/kura'
 /** Signed-in visitors are sent on to HOME (or their returnTo). */
 const AUTH_ONLY = ['/signin', '/signup', '/forgotpassword', '/resetpassword']
 /** Open to everyone, signed in or not. `/verifyemail` stays reachable while signed in (the link lands there). */
-const PUBLIC = ['/', '/about', '/docs', '/verifyemail', '/terms', '/privacy', '/opengraph-image']
+const PUBLIC = ['/', '/about', '/docs', '/design', '/verifyemail', '/terms', '/privacy', '/opengraph-image']
 
 export function middleware(request: NextRequest) {
     const { pathname, searchParams } = request.nextUrl
