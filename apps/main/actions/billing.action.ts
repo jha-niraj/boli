@@ -12,7 +12,7 @@ import { fail, failWith, ok, type ActionResult } from "@repo/errors"
 import { isProviderId, type CheckoutStart } from "@repo/payments"
 import { ROUTES } from "@/lib/navigation"
 import { getBillingSummary } from "@/lib/platform/usage"
-import { addCreditsSchema, type AddCreditsInput } from "@/schemas/billing"
+import { addCreditsSchema, buyPackSchema, type AddCreditsInput, type BuyPackInput } from "@/schemas/billing"
 import type { BillingData } from "@/types/platform"
 
 export async function getBilling(): Promise<ActionResult<BillingData>> {
@@ -32,13 +32,34 @@ export async function startAddCredits(input: AddCreditsInput): Promise<ActionRes
         if (!parsed.success) return failWith("validation", parsed.error.issues[0]?.message ?? "Check the amount.")
         const started = await startCreditPurchase({
             userId: session.user.id,
-            credits: parsed.data.credits,
+            purchase: { kind: "custom", credits: parsed.data.credits },
             provider: parsed.data.provider,
             returnUrl: ROUTES.billing,
         })
         return ok({ paymentId: started.paymentId, start: started.start })
     } catch (err) {
         return fail(err, "billing.add_credits")
+    }
+}
+
+/**
+ * Buy a credit pack (Billing > Plans): the payment row carries the pack code and its credits from the SERVER's pack
+ * table (@repo/billing CREDIT_PACKS); the credits (bonus included) are granted only once the gateway confirms.
+ */
+export async function startBuyPack(input: BuyPackInput): Promise<ActionResult<{ paymentId: string; start: CheckoutStart }>> {
+    try {
+        const session = await requireSession({ fresh: true })
+        const parsed = buyPackSchema.safeParse(input)
+        if (!parsed.success) return failWith("validation", parsed.error.issues[0]?.message ?? "Choose a credit pack.")
+        const started = await startCreditPurchase({
+            userId: session.user.id,
+            purchase: { kind: "pack", pack: parsed.data.pack },
+            provider: parsed.data.provider,
+            returnUrl: ROUTES.billing,
+        })
+        return ok({ paymentId: started.paymentId, start: started.start })
+    } catch (err) {
+        return fail(err, "billing.buy_pack")
     }
 }
 

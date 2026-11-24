@@ -140,8 +140,11 @@ export async function startCheckout(input: StartCheckoutInput): Promise<StartedC
 
 export interface CreditPurchaseInput {
     userId: string
-    /** Whole credits (= rupees), ADD_CREDITS_MIN..ADD_CREDITS_MAX. */
-    credits: number
+    /**
+     * What to buy: a custom whole number of credits (= rupees, ADD_CREDITS_MIN..ADD_CREDITS_MAX), or a pack by its code
+     * (CREDIT_PACKS). A pack's price and credits come from the server-side table only - never from the caller.
+     */
+    purchase: { kind: 'custom'; credits: number } | { kind: 'pack'; pack: string }
     provider: 'esewa' | 'khalti'
     /**
      * Optional; must be on this app (MAIN_APP_URL), relative paths allowed. The gateway always returns through
@@ -153,7 +156,9 @@ export interface CreditPurchaseInput {
 /**
  * Buy a custom number of credits with eSewa or Khalti (NPR; test mode while ESEWA_ENV / KHALTI_ENV say so). Returns
  * the same as startCheckout: `start.type === 'form'` for eSewa (POST `fields` to `action`), `'redirect'` for Khalti.
- * The caller checks the session and passes its user id. N credits add N * 1,000,000 micro-credits once paid.
+ * The caller checks the session and passes its user id. N credits add N * 1,000,000 micro-credits once paid; a pack
+ * stores its code and its credits (bonus included) on the payment row, and confirmPayment grants exactly `row.credits`
+ * under the key `purchase:<paymentId>` (one ledger row per payment).
  */
 export async function startCreditPurchase(input: CreditPurchaseInput): Promise<StartedCheckout> {
     if (input.provider !== 'esewa' && input.provider !== 'khalti') throw new PaymentError('invalid', 'Pay with eSewa or Khalti.')
@@ -169,7 +174,9 @@ export async function startCreditPurchase(input: CreditPurchaseInput): Promise<S
         user: buyer,
         provider: input.provider,
         currency: 'NPR',
-        request: { kind: 'custom_credits', credits: input.credits },
+        request: input.purchase.kind === 'pack'
+            ? { kind: 'credits', pack: input.purchase.pack }
+            : { kind: 'custom_credits', credits: input.purchase.credits },
     })
 }
 

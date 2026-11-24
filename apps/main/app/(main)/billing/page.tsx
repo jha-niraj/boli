@@ -3,16 +3,40 @@ import { redirect } from "next/navigation"
 import { ROUTES } from "@/lib/navigation"
 import { getBillingSummary } from "@/lib/platform/usage"
 import { getSession } from "@/lib/session"
+import { ADD_CREDITS_MAX, ADD_CREDITS_MIN, CREDIT_PACKS } from "@/lib/boli"
+import type { BillingPreselect } from "./_components/plans-tab"
 import { BillingView } from "./_components/billing-view"
 
 export const metadata: Metadata = { title: "Billing" }
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
-/** `?tab=history|payments`; `?add=1` opens Add credits (Kura's out-of-credits button can link here). */
+/**
+ * `?tab=credits|plans|history` (an old `?tab=payments` lands on Credits, which lists payments); `?add=1` opens the custom
+ * amount dialog. From the landing's pricing: `?pack=<id>` opens Plans with that pack's "Pay with" choice open, and
+ * `?amount=N` opens Plans with the custom amount filled. Both are validated here; anything else is ignored. Nothing is
+ * charged until the person picks eSewa or Khalti, and the price still comes from the server's pack table.
+ */
 export default async function BillingPage({ searchParams }: { searchParams: SearchParams }) {
     const session = await getSession()
     if (!session) redirect(`${ROUTES.signIn}?stale=1&returnTo=${ROUTES.billing}`)
     const [data, sp] = await Promise.all([getBillingSummary(session.user.id), searchParams])
-    return <BillingView initialData={data} initialTab={sp.tab} openAdd={sp.add === "1"} />
+    const preselect = parsePreselect(sp.pack, sp.amount)
+    return <BillingView initialData={data} initialTab={preselect ? "plans" : sp.tab} openAdd={sp.add === "1"} preselect={preselect} />
+}
+
+function first(v: string | string[] | undefined): string | undefined {
+    return Array.isArray(v) ? v[0] : v
+}
+
+/** A known pack id, or a whole rupee amount in ADD_CREDITS_MIN..MAX; null when neither is valid. */
+function parsePreselect(packRaw: string | string[] | undefined, amountRaw: string | string[] | undefined): BillingPreselect | null {
+    const pack = CREDIT_PACKS.find((p) => p.id === first(packRaw))
+    if (pack) return { pack: pack.id }
+    const a = first(amountRaw)
+    if (a && /^\d{1,7}$/.test(a)) {
+        const amount = Number(a)
+        if (amount >= ADD_CREDITS_MIN && amount <= ADD_CREDITS_MAX) return { amount }
+    }
+    return null
 }

@@ -117,9 +117,9 @@ export async function needsYouFor(viewer: { id: string; emailVerified: boolean }
     if (balance.status === 'fulfilled') {
         const micro = balance.value
         if (micro <= 0) {
-            items.push({ id: 'credits-out', group: 'now', title: 'You are out of credits', detail: 'Kura and the API stop until you add credits.', href: ROUTES.billing, action: 'Add credits' })
+            items.push({ id: 'credits-out', group: 'now', title: 'You are out of credits', detail: 'Kura and the API stop until you add credits.', href: `${ROUTES.billing}?tab=plans`, action: 'Add credits' })
         } else if (micro < LOW_BALANCE_MICRO) {
-            items.push({ id: 'credits-low', group: 'today', title: 'Credits running low', detail: `${formatCredits(micro)} credits left.`, href: ROUTES.billing, action: 'Add credits' })
+            items.push({ id: 'credits-low', group: 'today', title: 'Credits running low', detail: `${formatCredits(micro)} credits left.`, href: `${ROUTES.billing}?tab=plans`, action: 'Add credits' })
         }
     } else {
         console.error('[kura] needs-you: balance failed', balance.reason instanceof Error ? balance.reason.message : balance.reason)

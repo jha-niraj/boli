@@ -6,7 +6,7 @@ import { AppLink } from '@repo/ui/components/app-link'
 import { cn } from '@repo/ui/lib/utils'
 import { ROUTES } from '@/lib/navigation'
 import type { ChatNote } from '@/stores/kura-chat.store'
-import { READING_MEASURE } from './query-keys'
+import { CHAT_GUTTER } from './query-keys'
 
 /**
  * What stands between the person and a reply, drawn as a designed state above the composer - never a raw error.
@@ -24,7 +24,7 @@ export function KuraNote({ note, onRetry, onDismiss }: { note: ChatNote; onRetry
                 onDismiss={onDismiss}
             >
                 <Button asChild size="sm" className="cursor-pointer">
-                    <AppLink href={note.action?.href ?? ROUTES.billing}>Add credits</AppLink>
+                    <AppLink href={note.action?.href ?? `${ROUTES.billing}?tab=plans`}>Add credits</AppLink>
                 </Button>
                 <Button asChild size="sm" variant="ghost" className="cursor-pointer">
                     <AppLink href={ROUTES.usage}>See usage</AppLink>
@@ -50,7 +50,7 @@ export function KuraNote({ note, onRetry, onDismiss }: { note: ChatNote; onRetry
         )
     }
     return (
-        <div role="status" className={cn('mx-auto flex w-full min-w-0 items-center justify-between gap-3 px-6 pb-2 text-sm text-neutral-700 dark:text-neutral-300', READING_MEASURE)}>
+        <div role="status" className={cn('flex w-full min-w-0 items-center justify-between gap-3 pb-2 text-sm text-neutral-700 dark:text-neutral-300', CHAT_GUTTER)}>
             <p className="min-w-0">{note.message}</p>
             {note.action && (
                 <Button asChild size="sm" variant="outline" className="shrink-0">
@@ -70,7 +70,7 @@ function StatePanel({ tone, icon, title, text, onDismiss, children }: {
     children?: React.ReactNode
 }) {
     return (
-        <div className={cn('mx-auto w-full min-w-0 px-3 pb-2', READING_MEASURE)}>
+        <div className={cn('w-full min-w-0 pb-2', CHAT_GUTTER)}>
             <div role="alert" className="flex min-w-0 items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-3.5 dark:border-neutral-800 dark:bg-neutral-900">
                 <span className={cn(
                     'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',

@@ -125,7 +125,7 @@ export function useKuraSend() {
                     s.setNote({
                         kind: frame.code,
                         message: frame.message,
-                        action: frame.code === 'credits' ? { label: 'Add credits', href: ROUTES.billing } : null,
+                        action: frame.code === 'credits' ? { label: 'Add credits', href: `${ROUTES.billing}?tab=plans` } : null,
                         retry: content,
                     })
                     break

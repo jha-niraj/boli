@@ -19,14 +19,13 @@ function TableBlock({ rows, title }: { rows: number; title: string }) {
     )
 }
 
-/** /usage's body: the filter row, the band, the daily chart, the per-key table, the request log and its pager. */
+/** The header's filters (UsageFilters): one "30 days, All" button below xl, two segmented rows from xl. */
+export const USAGE_FILTERS_EXTRA = "w-[132px] rounded-full xl:w-[21rem]"
+
+/** /usage's body (the filters are in the header): the band, the daily chart, the per-key table, the request log and its pager. */
 export function UsageSkeleton() {
     return (
         <div className="flex min-w-0 flex-col gap-4 pb-6">
-            <div className="flex items-center gap-2">
-                <Skeleton className="h-9 w-48 rounded-full" />
-                <Skeleton className="h-9 w-40 rounded-full" />
-            </div>
             <StatBandSkeleton count={4} />
             <div className="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
                 <Skeleton className="h-4 w-40 rounded" />

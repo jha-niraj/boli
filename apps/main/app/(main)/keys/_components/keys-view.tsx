@@ -7,7 +7,6 @@ import { AppLink } from "@repo/ui/components/app-link"
 import { Badge } from "@repo/ui/components/ui/badge"
 import { Button } from "@repo/ui/components/ui/button"
 import { ConfirmPopover } from "@repo/ui/components/ui/confirm-popover"
-import { EmptyState } from "@repo/ui/components/ui/empty-state"
 import { Page } from "@repo/ui/components/ui/page"
 import { RelativeTime } from "@repo/ui/components/ui/relative-time"
 import { ScrollArea } from "@repo/ui/components/ui/scroll-area"
@@ -17,6 +16,8 @@ import { cn } from "@repo/ui/lib/utils"
 import { SITE } from "@repo/core/site"
 import { getApiKeys, revokeKey } from "@/actions/keys.action"
 import { API_PATHS, maskKey, MAX_API_KEYS } from "@/lib/boli"
+import { DhakaEmpty } from "@/components/platform/dhaka-empty"
+import { SKY_LINK } from "@/components/platform/sky"
 import { ROUTES } from "@/lib/navigation"
 import { formatDay, PLATFORM_KEYS, TIME_ZONE } from "@/lib/platform-display"
 import type { ApiKeyRow } from "@/types/platform"
@@ -93,7 +94,7 @@ export function KeysView({ initialData, openCreate }: { initialData: ApiKeyRow[]
                         Send the key as <code className="rounded bg-neutral-100 px-1 py-0.5 font-mono text-xs dark:bg-neutral-800">Authorization: Bearer &lt;key&gt;</code> to{" "}
                         <code className="break-all rounded bg-neutral-100 px-1 py-0.5 font-mono text-xs dark:bg-neutral-800">{SITE.url}{API_PATHS.chatCompletions}</code>
                     </p>
-                    <AppLink href={ROUTES.doc("quickstart")} className="inline-flex shrink-0 cursor-pointer items-center gap-1 text-sm font-medium text-boli-blue hover:underline dark:text-blue-300">
+                    <AppLink href={ROUTES.doc("quickstart")} className={cn("inline-flex shrink-0 cursor-pointer items-center gap-1 text-sm font-medium", SKY_LINK)}>
                         Quickstart <ArrowRight className="h-3.5 w-3.5" />
                     </AppLink>
                 </section>
@@ -101,8 +102,7 @@ export function KeysView({ initialData, openCreate }: { initialData: ApiKeyRow[]
                 {atLimit ? <p className="text-xs text-neutral-600 dark:text-neutral-400">{limitReason}</p> : null}
 
                 {keys.length === 0 ? (
-                    <EmptyState
-                        bordered
+                    <DhakaEmpty
                         icon={<KeyRound />}
                         title="No API keys yet"
                         description="Create a key to call the Boli API from your own app. The key is shown once - keep it in your .env, never in code."

@@ -1,7 +1,7 @@
 import "server-only"
 
 import { and, count, db, desc, eq, gt, gte, ne, sql, type SQL } from "@repo/db"
-import { aiConversations, apiKey, billingAccount, creditLedger, inferenceRequest as ir, payment } from "@repo/db/schema"
+import { aiConversations, apiKey, billingAccount, creditLedger, inferenceRequest as ir, payment, user } from "@repo/db/schema"
 import { formatDayKey, nepalDayKeys, nepalDayStart, REQUEST_LOG_PAGE_SIZE, windowDays, EMPTY_TOTALS, NEPAL_OFFSET_MS } from "@/lib/platform-display"
 import type {
     ActivityItem, BillingData, BillingHistoryRow, BillingPaymentRow, HomeData, KeyBreakdownRow, KuraActivity, LedgerKind,
@@ -246,7 +246,7 @@ export async function getHomeOverview(userId: string): Promise<HomeData> {
         ) from ${ir} where ${ir.conversationId} = ${aiConversations.id} and ${ir.userId} = ${userId}
     )`.mapWith(toTotals)
 
-    const [balanceMicro, [buckets, daily, [active], convs, calls]] = await Promise.all([
+    const [balanceMicro, [buckets, daily, [active], convs, calls, [started]]] = await Promise.all([
         getBalanceMicro(userId),
         db.batch([
             bucketsQuery(userId, now),
@@ -259,6 +259,12 @@ export async function getHomeOverview(userId: string): Promise<HomeData> {
                 .orderBy(desc(aiConversations.updatedAt))
                 .limit(RECENT_EACH),
             logQuery(and(eq(ir.userId, userId), eq(ir.source, "api")), RECENT_EACH, 0),
+            // Get started: has the person ever made a key, called the API, used Kura? (Any row, revoked keys included.)
+            db.select({
+                key: sql<boolean>`exists (select 1 from ${apiKey} where ${apiKey.userId} = ${userId})`.mapWith(Boolean),
+                apiCall: sql<boolean>`exists (select 1 from ${ir} where ${ir.userId} = ${userId} and ${ir.source} = 'api')`.mapWith(Boolean),
+                kura: sql<boolean>`exists (select 1 from ${ir} where ${ir.userId} = ${userId} and ${ir.source} = 'kura')`.mapWith(Boolean),
+            }).from(user).where(eq(user.id, userId)).limit(1),
         ]),
     ])
 
@@ -282,6 +288,7 @@ export async function getHomeOverview(userId: string): Promise<HomeData> {
         activeKeys: active?.n ?? 0,
         daily: shapeDaily(daily, 30, now),
         recent,
+        started: { key: !!started?.key, apiCall: !!started?.apiCall, kura: !!started?.kura },
     }
 }
 

@@ -60,7 +60,7 @@ export function CreditsChip({ className }: { className?: string }) {
 
 /**
  * The rail footer's full-width credits row (owner, 2026-11-24: "own row above the account"): "Credits 99.96" linking to
- * Billing, and an "Add" pill that opens the Add credits dialog (`/billing?add=1`). Out of credits it turns crimson.
+ * Billing, and an "Add" pill that opens Billing > Plans (`/billing?tab=plans`, the packs). Out of credits it turns crimson.
  */
 export function CreditsRow({ className }: { className?: string }) {
     const { data } = useBalance()
@@ -88,7 +88,7 @@ export function CreditsRow({ className }: { className?: string }) {
                 </span>
             </AppLink>
             <AppLink
-                href={`${ROUTES.billing}?add=1`}
+                href={`${ROUTES.billing}?tab=plans`}
                 className="shrink-0 cursor-pointer rounded-full bg-neutral-900 px-2.5 py-1 text-xs font-medium text-white outline-none transition-colors hover:bg-neutral-700 focus-visible:ring-2 focus-visible:ring-neutral-400 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
             >
                 Add

@@ -4,6 +4,9 @@ import { BookOpen, Boxes, Check, MessagesSquare } from "lucide-react"
 import { AppLink } from "@repo/ui/components/app-link"
 import { Button } from "@repo/ui/components/ui/button"
 import { Page } from "@repo/ui/components/ui/page"
+import { cn } from "@repo/ui/lib/utils"
+import { DashDhaka } from "@/components/platform/dhaka-band"
+import { SKY_SOFT, SKY_TEXT } from "@/components/platform/sky"
 import { MODELS, RATE_LIMIT_PER_MIN, type BoliModel } from "@/lib/boli"
 import { ROUTES } from "@/lib/navigation"
 import { MODELS_DESCRIPTION, MODELS_TITLE } from "./models-skeleton"
@@ -20,9 +23,11 @@ function Fact({ label, value }: { label: string; value: string }) {
 /** One catalogue card, laid out like Sarvam's: icon + name + badges, a line, the facts, the prices, Try / Docs. */
 function ModelCard({ model }: { model: BoliModel }) {
     return (
-        <article className="flex min-w-0 flex-col rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+        <article className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+            <DashDhaka height={9} />
+            <div className="flex min-w-0 flex-1 flex-col p-5">
             <div className="flex min-w-0 items-center gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-boli-crimson-soft text-boli-crimson-ink dark:bg-neutral-800 dark:text-neutral-100">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
                     <Boxes className="h-5 w-5" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -30,6 +35,9 @@ function ModelCard({ model }: { model: BoliModel }) {
                     <p className="truncate text-xs text-neutral-600 dark:text-neutral-400">{model.label}</p>
                 </div>
                 <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
+                    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium", SKY_SOFT, SKY_TEXT)}>
+                        <span aria-hidden className="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" /> Live
+                    </span>
                     <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">Chat</span>
                     <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">Open weights</span>
                 </div>
@@ -71,6 +79,7 @@ function ModelCard({ model }: { model: BoliModel }) {
                 <Button asChild variant="outline" size="sm" className="gap-1.5">
                     <AppLink href={ROUTES.doc("chatcompletions")}><BookOpen className="h-3.5 w-3.5" /> API docs</AppLink>
                 </Button>
+            </div>
             </div>
         </article>
     )

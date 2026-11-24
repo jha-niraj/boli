@@ -127,6 +127,8 @@ export interface HomeData {
     activeKeys: number
     daily: UsageDay[]
     recent: ActivityItem[]
+    /** The Get started checklist, from real rows: any API key ever made, any API call, any Kura reply. */
+    started: { key: boolean; apiCall: boolean; kura: boolean }
 }
 
 export type LedgerKind = "grant" | "purchase" | "refund" | "expiry" | "spend"

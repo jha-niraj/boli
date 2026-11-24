@@ -7,7 +7,9 @@ export const MODELS_DESCRIPTION = "Open models you can chat with in Kura and cal
 export function ModelsSkeleton() {
     return (
         <div className="grid min-w-0 gap-3 pb-6 lg:grid-cols-2">
-            <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+                <Skeleton className="h-[9px] w-full rounded-none" />
+                <div className="p-5">
                 <div className="flex items-center gap-3">
                     <Skeleton className="h-11 w-11 rounded-xl" />
                     <div className="flex-1">
@@ -24,6 +26,7 @@ export function ModelsSkeleton() {
                 <div className="mt-4 flex gap-2">
                     <Skeleton className="h-9 w-32 rounded-full" />
                     <Skeleton className="h-9 w-28 rounded-full" />
+                </div>
                 </div>
             </div>
         </div>

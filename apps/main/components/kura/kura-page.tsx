@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { History, PanelRight, SlidersHorizontal, SquarePen } from 'lucide-react'
+import { MessagesSquare, PanelRightClose, PanelRightOpen, Plus, SlidersHorizontal } from 'lucide-react'
 import { Page, type PageAction } from '@repo/ui/components/ui/page'
 import { ScrollArea } from '@repo/ui/components/ui/scroll-area'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@repo/ui/components/ui/sheet'
@@ -21,14 +21,14 @@ import { SideBodiesView, SideColumn, SideTabsStrip, type SideBodies, type SideTa
 import { HistoryFromPromise, HistorySkeleton } from './history-panel'
 import { NeedsYouFromPromise, NeedsYouSkeleton } from './needs-you'
 import { TranscriptSkeleton } from './kura-skeleton'
-import { CHAT_COLUMN, CHAT_COLUMN_STYLE, READING_MEASURE } from './query-keys'
+import { CHAT_AREA, CHAT_COLUMN, CHAT_COLUMN_STYLE, CHAT_GUTTER, CHAT_PAGE_CLASS } from './query-keys'
 import { useKuraSend } from './use-kura-send'
 import { useKuraSettings } from './use-kura-settings'
 
 /**
  * KURA - Boli's chat on our own open model, the landing after sign-in. One screen:
  *
- *   wide (lg+):  [ chat column: header, frame, welcome | transcript, note, composer ][ right column ]
+ *   wide (lg+):  [ chat area [ column between two lines: header, rule, welcome | transcript, note, composer ] ][ right column ]
  *   below lg:    the chat alone; the right column's tabs open in a sheet
  *
  * The right column holds the tabs Settings | Code | History | Needs you. Every message goes through the ONE `send`
@@ -140,7 +140,10 @@ export function KuraPage({
     }, [])
     useEffect(() => {
         const el = viewportRef.current
-        if (el && nearBottom.current) el.scrollTo({ top: el.scrollHeight })
+        if (!el) return
+        // An empty chat is the welcome screen: it opens at its top, never scrolled down (owner, 2026-11-24).
+        if (messages.length === 0) { el.scrollTo({ top: 0 }); nearBottom.current = true; return }
+        if (nearBottom.current) el.scrollTo({ top: el.scrollHeight })
     }, [messages])
 
     // ── Right column (wide only - a remembered "open" must never throw a sheet over a phone). ──
@@ -192,16 +195,20 @@ export function KuraPage({
         requestAnimationFrame(() => composerRef.current?.focus())
     }, [newChat])
 
+    // Header icons, one family and weight (owner, 2026-11-24: the old set looked mismatched). The panel toggle is drawn
+    // from its state (open shows "close", closed shows "open"); History is the stack of conversations; New chat a plus.
+    const icon = 'h-[15px] w-[15px]'
+    const stroke = 1.75
     const actions: PageAction[] = isWide
         ? [
-            { key: 'side', label: columnOpen ? 'Hide side panel' : 'Show side panel', icon: <PanelRight className="h-4 w-4" />, variant: 'ghost', onClick: () => setColumn(!columnOpen) },
-            { key: 'history', label: 'History', icon: <History className="h-4 w-4" />, variant: 'ghost', onClick: () => showTab('history') },
-            { key: 'new', label: 'New chat', icon: <SquarePen className="h-4 w-4" />, primary: true, variant: 'outline', onClick: startNew },
+            { key: 'side', label: columnOpen ? 'Hide side panel' : 'Show side panel', icon: columnOpen ? <PanelRightClose className={icon} strokeWidth={stroke} /> : <PanelRightOpen className={icon} strokeWidth={stroke} />, variant: 'ghost', onClick: () => setColumn(!columnOpen) },
+            { key: 'history', label: 'History', icon: <MessagesSquare className={icon} strokeWidth={stroke} />, variant: 'ghost', onClick: () => showTab('history') },
+            { key: 'new', label: 'New chat', icon: <Plus className={icon} strokeWidth={stroke} />, primary: true, variant: 'outline', onClick: startNew },
         ]
         : [
-            { key: 'settings', label: 'Settings and code', icon: <SlidersHorizontal className="h-4 w-4" />, variant: 'ghost', onClick: () => showTab('settings') },
-            { key: 'history', label: 'History', icon: <History className="h-4 w-4" />, variant: 'ghost', onClick: () => showTab('history') },
-            { key: 'new', label: 'New chat', icon: <SquarePen className="h-4 w-4" />, primary: true, variant: 'outline', onClick: startNew },
+            { key: 'settings', label: 'Settings and code', icon: <SlidersHorizontal className={icon} strokeWidth={stroke} />, variant: 'ghost', onClick: () => showTab('settings') },
+            { key: 'history', label: 'History', icon: <MessagesSquare className={icon} strokeWidth={stroke} />, variant: 'ghost', onClick: () => showTab('history') },
+            { key: 'new', label: 'New chat', icon: <Plus className={icon} strokeWidth={stroke} />, primary: true, variant: 'outline', onClick: startNew },
         ]
 
     const bodies: SideBodies = {
@@ -222,34 +229,36 @@ export function KuraPage({
     return (
         <>
             <div ref={rowRef} className="flex h-[var(--app-page-h)] min-h-0 w-full min-w-0 overflow-hidden">
-                <div className={cn(CHAT_COLUMN, 'relative')} style={CHAT_COLUMN_STYLE}>
-                    {isWide && <ChatFrame ruleTop={headerHeight} />}
-                    <Page title={title} actions={actions} bleed body="fill" bodyClassName="gap-0" className="[&>[data-page-header]]:px-4">
-                        <div ref={bodyRef} className="relative flex min-h-0 min-w-0 flex-1 flex-col">
-                            <ScrollArea orientation="vertical" className="min-h-0 min-w-0 flex-1" viewportRef={viewportRef}>
-                                {showWelcome ? (
-                                    <KuraWelcome busy={streaming} onPrompt={sendText} onSeed={seed} />
-                                ) : loadingConversation ? (
-                                    <TranscriptSkeleton />
-                                ) : (
-                                    <div className={cn('mx-auto flex w-full min-w-0 flex-col gap-5 px-3 py-6 sm:px-6', READING_MEASURE)}>
-                                        {messages.map((m) => <ChatMessage key={m.id} message={m} />)}
-                                    </div>
-                                )}
-                            </ScrollArea>
-                            {note && <KuraNote note={note} onRetry={note.retry ? retry : undefined} onDismiss={() => useKuraChat.getState().setNote(null)} />}
-                            <ChatComposer
-                                ref={composerRef}
-                                value={draft}
-                                onChange={setDraft}
-                                onSend={submit}
-                                onStop={stop}
-                                streaming={streaming}
-                                think={think}
-                                onThink={(on) => update({ think: on })}
-                            />
-                        </div>
-                    </Page>
+                <div className={CHAT_AREA}>
+                    <div className={CHAT_COLUMN} style={CHAT_COLUMN_STYLE}>
+                        <ChatFrame headerHeight={headerHeight} />
+                        <Page title={title} actions={actions} bleed body="fill" bodyClassName="gap-0" className={CHAT_PAGE_CLASS}>
+                            <div ref={bodyRef} className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+                                <ScrollArea orientation="vertical" className="min-h-0 min-w-0 flex-1" viewportRef={viewportRef}>
+                                    {showWelcome ? (
+                                        <KuraWelcome busy={streaming} onPrompt={sendText} onSeed={seed} />
+                                    ) : loadingConversation ? (
+                                        <TranscriptSkeleton />
+                                    ) : (
+                                        <div className={cn('flex w-full min-w-0 flex-col gap-5 py-6', CHAT_GUTTER)}>
+                                            {messages.map((m) => <ChatMessage key={m.id} message={m} />)}
+                                        </div>
+                                    )}
+                                </ScrollArea>
+                                {note && <KuraNote note={note} onRetry={note.retry ? retry : undefined} onDismiss={() => useKuraChat.getState().setNote(null)} />}
+                                <ChatComposer
+                                    ref={composerRef}
+                                    value={draft}
+                                    onChange={setDraft}
+                                    onSend={submit}
+                                    onStop={stop}
+                                    streaming={streaming}
+                                    think={think}
+                                    onThink={(on) => update({ think: on })}
+                                />
+                            </div>
+                        </Page>
+                    </div>
                 </div>
 
                 {isWide && (

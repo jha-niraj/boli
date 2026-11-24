@@ -7,6 +7,7 @@ import { AlertCircle } from 'lucide-react'
 import { ReasoningSteps } from '@repo/ui/components/ui/reasoning-steps'
 import { ScrollArea } from '@repo/ui/components/ui/scroll-area'
 import { DotmSquare11 } from '@repo/ui/components/ui/dotm-square-11'
+import { BoliAvatar } from '@/components/brand/boli-mark'
 import { MICRO_PER_CREDIT, formatCredits } from '@/lib/boli'
 import type { KuraPart, KuraUsage } from '@/lib/ai/protocol'
 import type { ChatViewMessage } from '@/lib/ai/types'
@@ -88,7 +89,10 @@ export const ChatMessage = memo(function ChatMessage({ message }: { message: Cha
     const thought = thoughtPart ? { text: thoughtPart.text, ms: thoughtPart.ms, active: !!message.thinking } : null
 
     return (
-        <div className="flex w-full min-w-0 flex-col items-stretch gap-2 text-sm text-neutral-900 dark:text-neutral-100">
+        <div className="flex w-full min-w-0 items-start gap-3">
+        {/* Kura's avatar: the Boli mark (R2) on a round tile. */}
+        <BoliAvatar size={28} className="mt-[-2px]" />
+        <div className="flex min-w-0 flex-1 flex-col items-stretch gap-2 text-sm text-neutral-900 dark:text-neutral-100">
             {message.pending && empty && (
                 <div className="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-400">
                     <DotmSquare11 size={14} dotSize={2} speed={1.5} /> Kura is writing
@@ -110,6 +114,7 @@ export const ChatMessage = memo(function ChatMessage({ message }: { message: Cha
                 }
             })}
             {usagePart && !message.pending && <MetaLine usage={usagePart.usage} />}
+        </div>
         </div>
     )
 })

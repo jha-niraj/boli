@@ -18,6 +18,7 @@ import { cn } from "@repo/ui/lib/utils"
 import { getHomeData } from "@/actions/usage.action"
 import { CodeTabs, CopyButton } from "@/components/brand/code-tabs"
 import { RequestDetailRows } from "@/components/platform/request-detail"
+import { SKY_LINK } from "@/components/platform/sky"
 import { SpendChart } from "@/components/platform/spend-chart"
 import { formatCredits, MAX_API_KEYS } from "@/lib/boli"
 import { buildSamples, codingAgentPrompt } from "@/lib/code-samples"
@@ -25,9 +26,11 @@ import { formatTokens } from "@/lib/format"
 import { ROUTES } from "@/lib/navigation"
 import { addTotals, formatFullDateTime, PLATFORM_KEYS, TIME_ZONE } from "@/lib/platform-display"
 import type { ActivityItem, HomeData } from "@/types/platform"
+import { GetStarted } from "./get-started"
 import { HOME_DESCRIPTION, HOME_TITLE } from "./home-skeleton"
+import { Launchers } from "./launchers"
 
-export function HomeView({ initialData }: { initialData: HomeData }) {
+export function HomeView({ initialData, startedHidden }: { initialData: HomeData; startedHidden: boolean }) {
     const { data } = useQuery({
         queryKey: PLATFORM_KEYS.home,
         queryFn: async () => {
@@ -61,8 +64,15 @@ export function HomeView({ initialData }: { initialData: HomeData }) {
     }
 
     return (
-        <Page title={HOME_TITLE} description={HOME_DESCRIPTION} body="page">
+        <Page
+            title={HOME_TITLE}
+            description={HOME_DESCRIPTION}
+            actions={[{ key: "kura", label: "Open Kura", icon: <MessagesSquare className="h-3.5 w-3.5" />, href: ROUTES.kura, primary: true }]}
+            body="page"
+        >
             <div className="flex min-w-0 flex-col gap-4 pb-6">
+                <Launchers />
+                <GetStarted started={data.started} hidden={startedHidden} />
                 <StatBand items={items} />
 
                 <div className="grid min-w-0 gap-3 lg:grid-cols-2">
@@ -71,8 +81,13 @@ export function HomeView({ initialData }: { initialData: HomeData }) {
                     </ChartPanel>
 
                     <section className="flex min-w-0 flex-col rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-                        <h2 className="truncate text-sm font-semibold text-neutral-900 dark:text-white">Recent activity</h2>
-                        <p className="truncate text-xs text-neutral-600 dark:text-neutral-400">Your latest Kura chats and API calls</p>
+                        <div className="flex min-w-0 items-start justify-between gap-3">
+                            <div className="min-w-0">
+                                <h2 className="truncate text-base font-semibold text-neutral-900 dark:text-white">Recent activity</h2>
+                                <p className="truncate text-xs text-neutral-600 dark:text-neutral-400">Your latest Kura chats and API calls</p>
+                            </div>
+                            <AppLink href={ROUTES.usage} className={cn("shrink-0 text-xs", SKY_LINK)}>Open usage</AppLink>
+                        </div>
                         {data.recent.length === 0 ? (
                             <EmptyState
                                 className="flex-1 p-4 sm:p-4"

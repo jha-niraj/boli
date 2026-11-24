@@ -5,11 +5,14 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { Button } from '@repo/ui/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@repo/ui/components/ui/tabs'
+import { KURA_HEADER_H } from './query-keys'
+import { SHELL_SHADOW_RIGHT, SHELL_SURFACE } from '@repo/ui/lib/surfaces'
 import { cn } from '@repo/ui/lib/utils'
 
 /**
  * THE RIGHT COLUMN of Kura (wide screens): the tabs Settings | Code | History | Needs you. On a phone the same tabs
- * open in a sheet (kura-page.tsx). The column is square, separated from the chat by a soft SHADOW, not a hairline.
+ * open in a sheet (kura-page.tsx). The column is square, on the page's own ground (SHELL_SURFACE), separated from the
+ * chat by the shell's soft SHADOW, not a hairline.
  * Width: automatic clamp(320, viewport - 1024, 560) until dragged from the left edge; the dragged width is remembered
  * per browser and a double-click on the edge goes back to automatic.
  */
@@ -124,7 +127,9 @@ export function SideColumn({
             {open && (
                 <motion.div
                     key="side-column"
-                    className="relative z-10 flex h-full min-h-0 shrink-0 overflow-hidden"
+                    // The shadow sits on THIS box: it clips its own children (the width animation), which would cut a
+                    // shadow cast by the aside inside it - and on one shared ground the shadow is the only separation.
+                    className={cn('relative z-10 flex h-full min-h-0 shrink-0 overflow-hidden', SHELL_SHADOW_RIGHT)}
                     initial={{ width: 0 }}
                     animate={{ width }}
                     exit={{ width: 0 }}
@@ -133,7 +138,7 @@ export function SideColumn({
                     <aside
                         aria-label={SIDE_TABS.find((t) => t.id === tab)?.label ?? 'Side column'}
                         style={{ width }}
-                        className="relative flex h-full min-h-0 shrink-0 flex-col bg-white shadow-[-12px_0_28px_-18px_rgb(0_0_0/0.22)] dark:bg-neutral-950 dark:shadow-[-12px_0_28px_-16px_rgb(0_0_0/0.7)]"
+                        className={cn('relative flex h-full min-h-0 shrink-0 flex-col', SHELL_SURFACE)}
                         data-sheet-keep-open
                     >
                         <div
@@ -156,8 +161,8 @@ export function SideColumn({
                         </div>
 
                         <div
-                            style={headerHeight ? { height: headerHeight } : undefined}
-                            className="flex min-h-12 shrink-0 items-center gap-1 border-b border-neutral-200 px-3 dark:border-neutral-800"
+                            style={{ height: headerHeight ?? KURA_HEADER_H }}
+                            className="flex shrink-0 items-center gap-1 border-b border-neutral-200 px-3 dark:border-neutral-800"
                         >
                             <SideTabsStrip tab={tab} onTab={onTab} />
                             <Button type="button" variant="ghost" size="icon-sm" onClick={onClose} aria-label="Close side column" title="Close side column" className="h-8 w-8 shrink-0 cursor-pointer text-neutral-600 dark:text-neutral-400">

@@ -60,7 +60,7 @@ export async function POST(req: Request): Promise<Response> {
         return json(429, 'rate', `Too many messages this minute. Try again in ${rate.retryAfterSec}s.`, { retryAfterSec: rate.retryAfterSec })
     }
     if (!(await hasBalance(me.id))) {
-        return json(402, 'credits', KURA_ERROR_MESSAGES.credits, { href: ROUTES.billing, actionLabel: 'Add credits' })
+        return json(402, 'credits', KURA_ERROR_MESSAGES.credits, { href: `${ROUTES.billing}?tab=plans`, actionLabel: 'Add credits' })
     }
 
     // The conversation: an id from the client is only used if it is this person's.

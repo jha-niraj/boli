@@ -93,11 +93,17 @@ export interface CreditPack {
     price: Partial<Record<BillingCurrency, number>>
 }
 
-export const CREDIT_PACKS: CreditPack[] = [100, 500, 1000].map((credits) => ({
-    code: String(credits),
-    credits,
-    price: { NPR: credits * PAISA_PER_CREDIT },
-}))
+/**
+ * Boli's credit packs (owner, 2026-11-24) - THE server-side price table: a pack charges `price` and grants `credits`
+ * (bonus included) once the payment is confirmed. The app's display copy (apps/main/lib/boli.ts CREDIT_PACKS) must list
+ * the same ids, rupees and credits; apps/main/lib/platform/credits.ts logs loudly if they ever disagree.
+ */
+export const CREDIT_PACKS: CreditPack[] = [
+    { code: 'pack-100', credits: 100, price: { NPR: 100 * PAISA_PER_CREDIT } },
+    { code: 'pack-500', credits: 500, price: { NPR: 500 * PAISA_PER_CREDIT } },
+    { code: 'pack-1000', credits: 1050, price: { NPR: 1000 * PAISA_PER_CREDIT } },
+    { code: 'pack-5000', credits: 5500, price: { NPR: 5000 * PAISA_PER_CREDIT } },
+]
 
 export function findPack(code: string): CreditPack | null {
     return CREDIT_PACKS.find((p) => p.code === code) ?? null

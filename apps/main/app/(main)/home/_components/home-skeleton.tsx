@@ -1,15 +1,19 @@
 import { Skeleton } from "@repo/ui/components/ui/skeleton"
 import { StatBandSkeleton } from "@repo/ui/components/ui/stat-band"
+import { GetStartedSkeleton } from "./get-started"
+import { LaunchersSkeleton } from "./launchers"
 
 export const HOME_TITLE = "Home"
 export const HOME_DESCRIPTION = "Your credits, usage and recent activity at a glance."
 
 const CARD = "rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
 
-/** /home's body: the band, the chart beside recent activity, then the start-building card. Shared by loading.tsx. */
+/** /home's body: launchers, Get started, the band, the chart beside recent activity, then start building. Shared by loading.tsx. */
 export function HomeSkeleton() {
     return (
         <div className="flex min-w-0 flex-col gap-4 pb-6">
+            <LaunchersSkeleton />
+            <GetStartedSkeleton />
             <StatBandSkeleton count={4} />
             <div className="grid min-w-0 gap-3 lg:grid-cols-2">
                 <div className={CARD}>

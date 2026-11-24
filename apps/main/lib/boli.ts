@@ -19,6 +19,19 @@ export const ADD_CREDIT_CHIPS = [100, 500, 1000] as const
 export const ADD_CREDITS_MIN = 100
 export const ADD_CREDITS_MAX = 100_000
 
+/**
+ * Credit packs (owner, 2026-11-24): pay `rupees`, receive `credits` (the bonus is the difference, granted with the
+ * purchase). The custom amount stays alongside (ADD_CREDITS_MIN..MAX, 1 rupee = 1 credit, no bonus). Shown on the
+ * landing pricing section and in Billing > Plans.
+ */
+export const CREDIT_PACKS = [
+    { id: "pack-100", name: "Try", rupees: 100, credits: 100 },
+    { id: "pack-500", name: "Starter", rupees: 500, credits: 500 },
+    { id: "pack-1000", name: "Builder", rupees: 1000, credits: 1050 },
+    { id: "pack-5000", name: "Scale", rupees: 5000, credits: 5500 },
+] as const
+export type CreditPackId = (typeof CREDIT_PACKS)[number]["id"]
+
 /** Display a micro-credit amount as credits with 2 decimals: 99_960_000 -> "99.96". */
 export function formatCredits(micro: number): string {
     return (micro / MICRO_PER_CREDIT).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })

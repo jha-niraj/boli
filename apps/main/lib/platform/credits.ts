@@ -2,8 +2,10 @@ import "server-only"
 import { db } from "@repo/db"
 import { inferenceRequest } from "@repo/db/schema"
 import { accountForUser, appliedBalance, balanceMicroForUser, creditsEnforced, grantWelcome, ledgerEntrySql } from "@repo/billing"
-import { costMicro, MICRO_PER_CREDIT, modelById, WELCOME_CREDITS } from "@/lib/boli"
-import { WELCOME_CREDITS as BILLING_WELCOME_CREDITS, MICRO_PER_CREDIT as BILLING_MICRO_PER_CREDIT } from "@repo/billing/plans"
+import { costMicro, CREDIT_PACKS, MICRO_PER_CREDIT, modelById, WELCOME_CREDITS } from "@/lib/boli"
+import {
+    CREDIT_PACKS as BILLING_PACKS, findPack, PAISA_PER_CREDIT, WELCOME_CREDITS as BILLING_WELCOME_CREDITS, MICRO_PER_CREDIT as BILLING_MICRO_PER_CREDIT,
+} from "@repo/billing/plans"
 
 /**
  * Credits for Kura and the API, in integer micro-credits (1 credit = Rs 1 = 1,000,000). Money moves INLINE, never in
@@ -12,6 +14,17 @@ import { WELCOME_CREDITS as BILLING_WELCOME_CREDITS, MICRO_PER_CREDIT as BILLING
 
 if (WELCOME_CREDITS !== BILLING_WELCOME_CREDITS || MICRO_PER_CREDIT !== BILLING_MICRO_PER_CREDIT) {
     console.error("[credits] lib/boli.ts and @repo/billing/plans disagree on WELCOME_CREDITS or MICRO_PER_CREDIT - keep them equal")
+}
+
+// The packs shown (lib/boli.ts) and the packs charged (@repo/billing, the server-side table) must be the same list.
+if (
+    CREDIT_PACKS.length !== BILLING_PACKS.length ||
+    CREDIT_PACKS.some((p) => {
+        const b = findPack(p.id)
+        return !b || b.credits !== p.credits || b.price.NPR !== p.rupees * PAISA_PER_CREDIT
+    })
+) {
+    console.error("[credits] lib/boli.ts CREDIT_PACKS and @repo/billing/plans CREDIT_PACKS disagree - keep them equal")
 }
 
 export type ChargeInput = {
