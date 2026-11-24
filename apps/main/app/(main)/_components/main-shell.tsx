@@ -3,7 +3,7 @@
 import * as React from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { ArrowRight, Coins, Users, Wallet } from "lucide-react"
+import { ArrowRight, Users, Wallet } from "lucide-react"
 import { AppShell } from "@repo/ui/components/shell/app-shell"
 import { compactRailItemClass, useProductRail } from "@repo/ui/components/shell/product-rail"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/components/ui/tooltip"
@@ -74,13 +74,13 @@ function sidebarFor(product: Product | null, kuraHistory: Promise<KuraHistorySee
     return { title: product.label, href: product.href }
 }
 
-/** The credits in the rail: the full row (Credits 99.96 + Add), or one coin icon in the collapsed sidebar's rail. */
+/** The credits in the rail: the full row (Credits 99.96 + Add), or one wallet icon in the collapsed sidebar's rail. */
 function RailCredits() {
     const { compact } = useProductRail()
     return compact ? <CompactCredits /> : <RailCreditsRow />
 }
 
-/** The coin in the 64px rail: the balance in its tooltip, a crimson dot and a link to the packs when out of credits. */
+/** The wallet in the 64px rail: the balance in its tooltip, a crimson dot and a link to the packs when out of credits. */
 function CompactCredits() {
     const { data } = useBalance()
     const value = data !== undefined ? formatCredits(data) : null
@@ -94,7 +94,7 @@ function CompactCredits() {
                     aria-label={`${label} - open Billing`}
                     className={compactRailItemClass()}
                 >
-                    <Coins aria-hidden />
+                    <Wallet aria-hidden />
                     {low ? <span aria-hidden className="absolute right-2 top-2 size-2 rounded-full bg-boli-crimson" /> : null}
                 </AppLink>
             </TooltipTrigger>

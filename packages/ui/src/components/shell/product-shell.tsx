@@ -50,13 +50,13 @@ export function ProductShell({
     const pathname = usePathname() ?? "/"
 
     // ── The icon rail: collapsed in the layout, widened over the page while hovered / focused / holding a menu. ──
-    const hover = useRailHover(pathname)
-
     // ── The product sidebar: expanded or collapsed (cookie), and its expanded width. ──
     const { expanded: expandedPref, setExpanded } = useSidebarCollapse({ initialExpanded: initialPinned, cookieName, enabled: hasSidebar })
     const width = useRailWidth(cookieName, initialRailWidth)
     const collapsed = hasSidebar && !expandedPref
     const expanded = hasSidebar && expandedPref
+
+    const hover = useRailHover(pathname, collapsed)
 
     // ── Phone sheet ──
     const [navOpen, setNavOpen] = React.useState(false)
@@ -289,8 +289,13 @@ const CLOSE_MS = 160
  * or while a menu opened from it is open (menus are portalled out, so moving into one reads as leaving the rail).
  * A press on a link inside it closes it at once (the page is changing).
  */
-function useRailHover(pathname: string) {
+function useRailHover(pathname: string, collapsed: boolean) {
     const [open, setOpen] = React.useState(false)
+    /**
+     * Hover is ignored until the pointer has left the rail once after the sidebar is expanded or collapsed (owner,
+     * 2026-11-25: pressing the expand button slid the rail back in UNDER the pointer and it widened at once).
+     */
+    const suppressed = React.useRef(false)
     const ref = React.useRef<HTMLElement | null>(null)
     const pointerIn = React.useRef(false)
     const menus = React.useRef(0)
@@ -316,6 +321,33 @@ function useRailHover(pathname: string) {
 
     // A page change always closes it and forgets any menu that unmounted without reporting its close.
     React.useEffect(() => { clear(); menus.current = 0; setOpen(false) }, [pathname])
+
+    // Where the mouse last was, so a toggle knows whether the rail is about to slide in under it.
+    const lastX = React.useRef<number | null>(null)
+    React.useEffect(() => {
+        const onMove = (e: PointerEvent) => { if (e.pointerType === "mouse") lastX.current = e.clientX }
+        window.addEventListener("pointermove", onMove, { passive: true })
+        return () => window.removeEventListener("pointermove", onMove)
+    }, [])
+
+    // Expanding or collapsing the sidebar closes it; if the mouse sits where the rail lands (the expand button is
+    // there), hover waits for the pointer to leave the rail and come back.
+    const firstRun = React.useRef(true)
+    React.useEffect(() => {
+        if (firstRun.current) { firstRun.current = false; return }
+        clear(); menus.current = 0; setOpen(false)
+        suppressed.current = lastX.current !== null && lastX.current < PRODUCT_RAIL.collapsed
+    }, [collapsed])
+
+    /** Hover widens the rail only from its products and foot: the top (brand + workspace, `data-rail-no-hover`) never
+     *  does (owner, 2026-11-25) - a press on the workspace switcher still opens it with its menu. */
+    const openFromHover = (target: EventTarget | null) => {
+        if (suppressed.current || menus.current > 0) return
+        const el = target instanceof Element ? target : null
+        if (el?.closest("[data-rail-no-hover]")) { if (!open) clear(); return }
+        if (open || timer.current) return
+        timer.current = setTimeout(() => { timer.current = null; setOpen(true) }, OPEN_MS)
+    }
 
     // Safety net while open: a press outside the rail (and outside its portalled menus) closes it, and so does the
     // pointer moving anywhere outside it once no menu is open - so it can never stay stuck open.
@@ -349,12 +381,18 @@ function useRailHover(pathname: string) {
         onPointerEnter: (e: React.PointerEvent) => {
             if (e.pointerType !== "mouse") return
             pointerIn.current = true
-            clear()
-            timer.current = setTimeout(() => { timer.current = null; setOpen(true) }, OPEN_MS)
+            if (open) clear()
+            openFromHover(e.target)
+        },
+        onPointerMove: (e: React.PointerEvent) => {
+            // Moving down from the top into the products opens it (pointerenter fired once, on the top).
+            if (e.pointerType !== "mouse") return
+            openFromHover(e.target)
         },
         onPointerLeave: (e: React.PointerEvent) => {
             if (e.pointerType !== "mouse") return
             pointerIn.current = false
+            suppressed.current = false
             closeSoon()
         },
         onFocusCapture: (e: React.FocusEvent) => {

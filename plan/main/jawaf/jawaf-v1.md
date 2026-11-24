@@ -257,6 +257,12 @@ Bars: >=85% correct, >=90% correct refusals, >=95% right script, 0 invented pric
     page items as icons with tooltips (soft pill when active, section gaps kept), then a Products menu, credits,
     feedback, notifications and the account menu as icons. The page's left offset = 64px.
   - [ ] Account pages (no sidebar), phone, admin: unchanged. Cmd/Ctrl+\ does nothing on an account page.
+  - [ ] Foot like Sarvam's (owner screenshot): open rail / phone sheet shows a grey card - a hill-coloured band with a
+    serif line and a white "See plans" pill (-> /billing?tab=plans), then "N credits left ->" (-> /billing); the 56px
+    rail shows a wallet icon. The account row is the name only + chevron up (the closed 56px rail shows the avatar), and its menu opens just above the row, not to the side.
+  - [ ] The rail no longer widens on hover over its top (brand + workspace, `data-rail-no-hover`), and after an expand
+    / collapse with the mouse where the rail lands it ignores hover until the pointer leaves it once (owner: pressing
+    expand slid the rail in under the pointer and it widened at once).
   - Verified: not yet - code written by a subagent (2026-11-25); the lead runs the scoped typecheck and one Chrome
     pass (both states on Kura / API / Jawaf, toggle + shortcut, reload in each state, light + dark, 390px unchanged).
 

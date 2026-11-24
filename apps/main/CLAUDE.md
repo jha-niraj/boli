@@ -80,6 +80,10 @@ the dashboard, Kura and the API.
     menu), the pages as icons with tooltips (active on a soft pill, gaps between groups kept), then `CompactRailFoot`
     (`shell/product-rail.tsx`): a Products menu (every product + Boli home), credits (a coin; `useProductRail().compact`
     tells the app's rows to draw compact), Feedback, the bell and the account menu. The page starts at 64px.
+  - The rail's foot (open rail and phone sheet), like Sarvam's: a grey card with a hill-coloured "See plans" band and
+    "N credits left ->", then the account row (name only + chevron up, its menu opening just above it; the closed rail shows the avatar). The rail widens on hover only from its
+    products and foot, never its top (brand + workspace); after an expand / collapse it ignores hover until the
+    pointer has left it once.
   - No hover-peek in either state: the button or the shortcut. Transitions are transform / width, 200ms, off under
     reduced motion. The choice is the cookie `MAIN_RAIL_COOKIE` (`boli_rail_hidden`, "1" = collapsed), read by the
     (main) layout -> `initialPinned` (true = expanded), so the first frame is right. On an account page (no sidebar)

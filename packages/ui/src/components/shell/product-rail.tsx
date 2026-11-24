@@ -1,9 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Bell, Check, ChevronsUpDown, House, LayoutGrid, Plus, UserRound } from "lucide-react"
+import { Bell, Check, ChevronUp, ChevronsUpDown, House, LayoutGrid, Plus } from "lucide-react"
 
 import { AppLink } from "../app-link"
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Button } from "../ui/button"
 import {
     DropdownMenu,
@@ -186,7 +187,7 @@ export function CompactRailFoot({ brand, products, activeProductId, account, not
                     openDelay={ACCOUNT_OPEN_DELAY_MS}
                     trigger={
                         <Button type="button" variant="ghost" aria-label={`Account - ${account.user.name}`} className={compactRailItemClass()}>
-                            <UserRound />
+                            <UserAvatar user={account.user} />
                         </Button>
                     }
                 />
@@ -232,6 +233,17 @@ function ProductsMenu({ brand, products, activeProductId }: { brand: ShellBrand;
     )
 }
 
+/** The person's photo, or their initials, in a 28px circle (the account row's icon cell). */
+function UserAvatar({ user }: { user: ShellAccount["user"] }) {
+    const letters = user.name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("") || "?"
+    return (
+        <Avatar className="size-7">
+            {user.image ? <AvatarImage src={user.image} alt="" /> : null}
+            <AvatarFallback className="text-xs font-medium">{letters}</AvatarFallback>
+        </Avatar>
+    )
+}
+
 function initial(name: string) {
     return name.trim()[0]?.toUpperCase() ?? "?"
 }
@@ -255,6 +267,8 @@ export function ProductRail({
     return (
         <ProductRailContext.Provider value={railState}>
         <div className={cn("flex h-full min-h-0 flex-col", sheet ? "w-full" : "w-[272px]")}>
+            {/* The top (brand + workspace) never widens the rail on hover (`data-rail-no-hover`, product-shell.tsx). */}
+            <div data-rail-no-hover="" className="flex shrink-0 flex-col">
             {/* Brand: the mark sits in the icon column; the name is revealed with the rail. */}
             <div className="flex h-14 shrink-0 items-center px-2">
                 <AppLink
@@ -282,6 +296,7 @@ export function ProductRail({
                     expanded={expanded || sheet}
                     onOpenChange={onMenuOpenChange}
                 />
+            </div>
             </div>
 
             {sheet ? (
@@ -321,27 +336,27 @@ export function ProductRail({
                         </Button>
                     ) : null}
                 </div>
-                {/* The account: ONE row (no avatar - owner, 2026-11-25), name over email, a user glyph in the icon cell
-                    so the collapsed rail keeps its column. Its menu opens on hover (after a short intent delay, with a
-                    grace on leave so the pointer can cross into it) and on a click or Enter. */}
+                {/* The account: ONE row like dashboard.sarvam.ai (owner, 2026-11-25): open, the NAME ONLY and a chevron up;
+                    in the closed 56px rail the avatar alone, so the column keeps an icon. Its menu opens JUST ABOVE the
+                    row (owner: not to the side), on hover after a short intent delay (with a grace on leave so the
+                    pointer can cross into it) and on a click or Enter. */}
                 <AccountRow
                     account={account}
                     onNavigate={onNavigate}
                     menu={{ open: accountOpen, onOpenChange: setAccountOpen }}
-                    collapsed
                     openDelay={ACCOUNT_OPEN_DELAY_MS}
                     trigger={
                         <Button
                             type="button"
                             variant="ghost"
                             aria-label={`Account - ${account.user.name}`}
-                            className={cn(ROW, ROW_IDLE, ROW_OPEN, "h-11")}
+                            className={cn(ROW, ROW_IDLE, ROW_OPEN, "h-11", (expanded || sheet) && "pl-3")}
                         >
-                            <span className={CELL}><UserRound /></span>
-                            <span aria-hidden className={cn(label(expanded || sheet), "flex flex-col leading-tight")}>
-                                <span className="truncate text-sm font-medium text-neutral-900 dark:text-white">{account.user.name}</span>
-                                <span className="truncate text-xs font-normal text-neutral-600 dark:text-neutral-400">{account.user.email}</span>
+                            {expanded || sheet ? null : <span className={CELL}><UserAvatar user={account.user} /></span>}
+                            <span aria-hidden className={cn(label(expanded || sheet), "text-sm font-medium text-neutral-900 dark:text-white")}>
+                                {account.user.name}
                             </span>
+                            <ChevronUp aria-hidden className={cn("size-4 shrink-0 text-neutral-500 transition-opacity", expanded || sheet ? "opacity-100" : "opacity-0")} />
                         </Button>
                     }
                 />
