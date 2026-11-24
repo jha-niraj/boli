@@ -13,3 +13,4 @@ One row per doc. Status: Planned / In progress / Done / Dropped.
 | [repo/ml/small-llm.md](repo/ml/small-llm.md) | Planned | 2026-11-23 | Own small chat model (Gemma 4 / Qwen 3.5, local and Workers AI) for everyday tasks, Claude for heavy ones |
 | [repo/platform/inference-platform.md](repo/platform/inference-platform.md) | Planned | 2026-11-23 | Boli inference platform: open chat behind our own API keys (gateway + developer page), then fine-tune, hosting, speech |
 | [main/platform/platform-v0.md](main/platform/platform-v0.md) | Planned (ready) | 2026-11-24 | Platform v0: sign up, 100 credits, API keys, playground, usage, billing, landing; OpenAI-compatible /v1 API |
+| [main/design/design-pass-v1.md](main/design/design-pass-v1.md) | Planned | 2026-11-24 | Design pass from owner feedback: shell alignment, no red, logo + font options on /design, Sarvam-grade landing/about/docs, eSewa/Khalti sandbox |

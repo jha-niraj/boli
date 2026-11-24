@@ -1,0 +1,840 @@
+<title>Boli Document Intelligence</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap">
+<style>
+/* Layout: one reading column with a sticky contents rail on wide screens; diagrams sit on fixed light "paper" panels (black text on light fills in both themes). */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #15171c;
+  --muted: #4b5160;
+  --line: #dde1e8;
+  --accent: #1d4fb8;      /* ink-stamp blue */
+  --accent-soft: #e6edfb;
+  --stamp: #b3261e;       /* the red of an official seal, used once per idea at most */
+  --good: #1f7a45;
+  --good-soft: #e3f3e9;
+  --bad-soft: #fbe7e5;
+  --code-bg: #f0f2f6;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-deva: "Noto Sans Devanagari", "Kohinoor Devanagari", "Mangal", sans-serif;
+  /* diagram paper: always light, text always black */
+  --paper: #ffffff;
+  --paper-ink: #000000;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111317; --surface: #191c22; --ink: #e8eaef; --muted: #a8afbd; --line: #2b303a;
+    --accent: #8fb1ff; --accent-soft: #1d2740; --stamp: #ff8a80; --good: #7fd6a0; --good-soft: #17301f;
+    --bad-soft: #3a1f1d; --code-bg: #20242c; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111317; --surface: #191c22; --ink: #e8eaef; --muted: #a8afbd; --line: #2b303a;
+  --accent: #8fb1ff; --accent-soft: #1d2740; --stamp: #ff8a80; --good: #7fd6a0; --good-soft: #17301f;
+  --bad-soft: #3a1f1d; --code-bg: #20242c; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 32px 80px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; }
+@media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; } .toc { display: none; } }
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 13px; }
+.toc p { font-family: var(--font-display); font-weight: 600; margin: 0 0 8px; color: var(--muted); letter-spacing: .04em; font-size: 12px; text-transform: uppercase; }
+.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.toc a { display: block; padding: 4px 8px; border-radius: 6px; color: var(--muted); text-decoration: none; }
+.toc a:hover, .toc a:focus-visible { background: var(--accent-soft); color: var(--ink); }
+main { min-width: 0; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.2; }
+h1 { font-size: clamp(2rem, 4.5vw, 3rem); margin: 0 0 12px; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.6rem; margin: 64px 0 12px; font-weight: 700; padding-top: 8px; }
+h3 { font-size: 1.15rem; margin: 32px 0 8px; font-weight: 600; }
+p, li { max-width: 70ch; }
+a { color: var(--accent); }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; color: var(--stamp); text-transform: uppercase; margin: 0 0 8px; }
+.lede { font-size: 1.15rem; color: var(--muted); max-width: 62ch; }
+.deva { font-family: var(--font-deva); }
+code, pre, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+:not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; overflow-x: auto; line-height: 1.5; margin: 12px 0 16px; }
+.codebox { position: relative; }
+.copy { position: absolute; top: 8px; right: 8px; font: 500 12px var(--font-body); border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 6px; padding: 3px 8px; cursor: pointer; }
+.copy:focus-visible, .q button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.tablebox { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); margin: 12px 0 20px; }
+.tablebox table { min-width: 720px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+th { font-family: var(--font-display); font-weight: 600; font-size: 13px; background: var(--code-bg); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
+.tag.yes { background: var(--good-soft); border-color: transparent; color: var(--good); }
+.tag.no { background: var(--bad-soft); border-color: transparent; color: var(--stamp); }
+.tag.maybe { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+.note { border-left: 3px solid var(--stamp); background: var(--surface); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; max-width: 76ch; }
+.note strong:first-child { color: var(--stamp); }
+.defs { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin: 16px 0; }
+.def { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+.def b { font-family: var(--font-display); display: block; margin-bottom: 2px; }
+/* hero: bill to JSON */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr); gap: 12px; align-items: center; margin: 28px 0 8px; }
+@media (max-width: 760px) { .hero { grid-template-columns: minmax(0, 1fr); } .hero .arrow { transform: rotate(90deg); justify-self: center; } }
+.bill { background: #fbfbf7; color: #000; border: 1px solid #c9cbd1; border-radius: 4px; padding: 18px 18px 14px; font-family: var(--font-deva); font-size: 14px; line-height: 1.7; box-shadow: 0 1px 0 #c9cbd1, 0 8px 24px rgba(20, 30, 60, .08); transform: rotate(-0.6deg); position: relative; }
+.bill h4 { margin: 0 0 6px; text-align: center; font-size: 16px; font-weight: 600; border-bottom: 1px dashed #888; padding-bottom: 6px; }
+.bill .row { display: flex; justify-content: space-between; gap: 12px; }
+.bill .seal { position: absolute; right: 14px; bottom: 12px; width: 62px; height: 62px; border: 2px solid #b3261e; border-radius: 50%; color: #b3261e; font-size: 11px; display: grid; place-items: center; text-align: center; transform: rotate(-14deg); opacity: .8; }
+.bill small { display: block; margin-top: 8px; font-family: var(--font-body); color: #444; font-size: 11px; }
+.arrow { font-family: var(--font-mono); font-size: 22px; color: var(--muted); text-align: center; }
+.json { background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.55; overflow-x: auto; margin: 0; white-space: pre; }
+.json .k { color: var(--accent); }
+.json .s { font-family: var(--font-deva), var(--font-mono); }
+/* diagrams: fixed light paper with black text */
+figure { margin: 20px 0 28px; }
+.diagram { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px; overflow-x: auto; }
+.diagram svg { display: block; width: 100%; height: auto; min-width: 760px; }
+.diagram svg text { fill: var(--paper-ink); font-family: var(--font-body); }
+figcaption { font-size: 13px; color: var(--muted); margin-top: 8px; max-width: 80ch; }
+/* stages */
+.stages { display: grid; gap: 16px; margin: 16px 0; }
+.stage { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+.stage header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; margin-bottom: 6px; }
+.stage h3 { margin: 0; }
+.stage .effort { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.stage dl { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 6px 14px; margin: 10px 0 0; font-size: 15px; }
+@media (max-width: 560px) { .stage dl { grid-template-columns: minmax(0, 1fr); } .stage dt { margin-top: 6px; } }
+.stage dt { font-weight: 600; color: var(--muted); font-size: 13px; padding-top: 2px; }
+.stage dd { margin: 0; min-width: 0; }
+.stage dd ul { margin: 0; padding-left: 18px; }
+/* quizzes */
+.quiz { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin: 24px 0; }
+.quiz > p.qhead { font-family: var(--font-mono); font-size: 12px; color: var(--stamp); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 6px; }
+.q { margin: 0 0 18px; }
+.q:last-child { margin-bottom: 0; }
+.q p { margin: 0 0 8px; font-weight: 500; }
+.q .opts { display: grid; gap: 6px; }
+.q button { text-align: left; font: inherit; font-size: 15px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.q button:hover { border-color: var(--accent); }
+.q button.right { background: var(--good-soft); border-color: var(--good); }
+.q button.wrong { background: var(--bad-soft); border-color: var(--stamp); }
+.q .why { margin-top: 8px; font-size: 14px; color: var(--muted); }
+.recommend { background: var(--accent-soft); border-radius: 12px; padding: 16px 20px; margin: 20px 0; }
+.recommend ol { margin: 6px 0 0; padding-left: 20px; }
+.recommend li { margin: 4px 0; }
+.sources ol { padding-left: 22px; font-size: 14px; }
+.sources li { margin: 4px 0; overflow-wrap: anywhere; }
+footer { margin-top: 48px; font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <p>Contents</p>
+  <ol>
+    <li><a href="#what">1. What it is</a></li>
+    <li><a href="#two-ways">2. Two ways to build it</a></li>
+    <li><a href="#inside">3. Inside a VLM</a></li>
+    <li><a href="#models">4. The open models</a></li>
+    <li><a href="#nepali">5. Nepali specifics</a></li>
+    <li><a href="#on-boli">6. Running it on Boli</a></li>
+    <li><a href="#eval">7. Measuring quality</a></li>
+    <li><a href="#path">8. The path</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+<header>
+  <p class="eyebrow">Boli - product step 2 - learning guide, 2026-11-24</p>
+  <h1>Boli Document Intelligence</h1>
+  <p class="lede">How a computer reads a scanned Nepali bill, a citizenship card or a government notice and hands back clean data, and the stage-by-stage path to selling that on Boli with only open models.</p>
+
+  <div class="hero" aria-label="Example: a scanned electricity bill becomes JSON">
+    <div class="bill" role="img" aria-label="An invented Nepali electricity bill">
+      <h4>बिजुली महसुल बिल</h4>
+      <div class="row"><span>ग्राहकको नाम:</span><span>राम बहादुर थापा</span></div>
+      <div class="row"><span>ग्राहक नं.:</span><span>०१२.०३४.०५६</span></div>
+      <div class="row"><span>बिल महिना:</span><span>कात्तिक २०८२</span></div>
+      <div class="row"><span>अघिल्लो रिडिङ:</span><span>४५२१</span></div>
+      <div class="row"><span>हालको रिडिङ:</span><span>४६७३</span></div>
+      <div class="row"><span>खपत युनिट:</span><span>१५२</span></div>
+      <div class="row"><span>जम्मा रकम:</span><span>रु. १,२४०.००</span></div>
+      <div class="row"><span>भुक्तानी अन्तिम मिति:</span><span>२०८२/०८/१५</span></div>
+      <div class="seal">भुक्तानी<br>बाँकी</div>
+      <small>Invented example: no real customer, no real utility.</small>
+    </div>
+    <div class="arrow" aria-hidden="true">-&gt;</div>
+<pre class="json" aria-label="The JSON Boli would return">{
+  <span class="k">"customer_name"</span>: <span class="s">"राम बहादुर थापा"</span>,
+  <span class="k">"customer_no"</span>: "012.034.056",
+  <span class="k">"bill_month_bs"</span>: "2082-07",
+  <span class="k">"previous_reading"</span>: 4521,
+  <span class="k">"current_reading"</span>: 4673,
+  <span class="k">"units_kwh"</span>: 152,
+  <span class="k">"amount_paisa"</span>: 124000,
+  <span class="k">"due_date_bs"</span>: "2082-08-15",
+  <span class="k">"due_date_ad"</span>: "2025-12-01",
+  <span class="k">"checks"</span>: { <span class="k">"units_match_readings"</span>: true }
+}</pre>
+  </div>
+  <p style="font-size:14px;color:var(--muted)">Notice three things the rest of this guide explains: Nepali digits became ASCII digits, the Bikram Sambat date was also converted to AD (by our code, not by the model), and the money is an integer in paisa, as Boli's rules require. The <code>checks</code> field is free quality control: 4673 - 4521 = 152, so the readings and units agree.</p>
+</header>
+
+<!-- 1 -->
+<section id="what">
+<h2>1. What "document intelligence" is</h2>
+<p>Document intelligence (also called document AI, document understanding or "doc digitisation") is turning a <b>picture of a document</b> into <b>data a program can use</b>. The input is a photo, a scan or a PDF. The output is text, structure (headings, tables), and named fields like "amount due". Sarvam sells this today as <a href="https://docs.sarvam.ai/api/getting-started/models/sarvam-vision" target="_blank" rel="noopener">Sarvam Vision / Document AI</a>: a 3B-parameter model for 23 languages, async jobs, output as Markdown or HTML plus page-level JSON, at most 10 pages per PDF.</p>
+
+<p>It is not one task. It is a stack of smaller tasks, and every product in this space is some mix of them:</p>
+
+<div class="tablebox"><table>
+<thead><tr><th>Sub-task</th><th>Plain meaning</th><th>On our electricity bill</th></tr></thead>
+<tbody>
+<tr><td><b>OCR</b> (optical character recognition)</td><td>Turn pixels of letters into characters you can copy.</td><td>The shape "राम" becomes the three Unicode characters र, ा, म.</td></tr>
+<tr><td><b>Layout analysis</b></td><td>Find the regions on a page and label them: title, paragraph, table, stamp, photo, signature. Each region is a <b>bounding box</b> (x, y, width, height in pixels).</td><td>The title band, the label/value block, the red seal.</td></tr>
+<tr><td><b>Reading order</b></td><td>Decide which region comes first. Two-column notices and forms break naive left-to-right reading.</td><td>Label then value, row by row; the seal is read last.</td></tr>
+<tr><td><b>Table structure</b></td><td>Rebuild rows, columns and merged cells, not just the words inside.</td><td>A tariff slab table: units 0-20, 21-30, and so on.</td></tr>
+<tr><td><b>Key-value extraction</b></td><td>Fill a fixed set of named fields (a <b>schema</b>) from the page.</td><td><code>amount_paisa = 124000</code>.</td></tr>
+<tr><td><b>Classification</b></td><td>Say what kind of document this is, so the right schema is used.</td><td>"electricity_bill", not "citizenship_card".</td></tr>
+<tr><td><b>Handwriting (HTR)</b></td><td>OCR for handwritten text: much harder, more varied.</td><td>A meter reader's pen note in the margin.</td></tr>
+<tr><td><b>Document VQA</b> (visual question answering)</td><td>Answer a question about the page: "When is this due?"</td><td>"२०८२ मंसिर १५".</td></tr>
+<tr><td><b>Summary / translation</b></td><td>Run a normal language model on the extracted text.</td><td>"Electricity bill for Kartik, Rs 1,240, due 15 Mangsir." in English.</td></tr>
+</tbody></table></div>
+
+<p>The last row matters for planning: once you have good text, summaries, translation and Q&amp;A are ordinary chat tasks. Boli already serves a chat model, so <b>the new, hard part is the reading</b>, not the writing.</p>
+</section>
+
+<!-- 2 -->
+<section id="two-ways">
+<h2>2. Two ways to build it</h2>
+<p>There are two architectures. <b>Architecture</b> here just means "which pieces, connected how".</p>
+
+<figure>
+<div class="diagram">
+<svg viewBox="0 0 980 330" role="img" aria-label="Classic pipeline of five specialised models versus one vision-language model">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#333"/></marker>
+  </defs>
+  <text x="20" y="28" font-size="15" font-weight="700">(a) Classic pipeline: several specialised models, each does one job</text>
+  <g font-size="12.5" text-anchor="middle">
+    <rect x="20" y="44" width="110" height="78" rx="8" fill="#eef1f5" stroke="#8a93a3"/>
+    <text x="75" y="78">Page image</text><text x="75" y="96">(scan / photo)</text>
+    <rect x="152" y="44" width="130" height="78" rx="8" fill="#e6eefc" stroke="#6f8fd0"/>
+    <text x="217" y="70" font-weight="600">Layout model</text><text x="217" y="88">boxes: title, table,</text><text x="217" y="104">text, stamp</text>
+    <rect x="304" y="44" width="140" height="78" rx="8" fill="#e6eefc" stroke="#6f8fd0"/>
+    <text x="374" y="70" font-weight="600">Detect + OCR lines</text><text x="374" y="88">per line: Tesseract,</text><text x="374" y="104">PaddleOCR, Surya</text>
+    <rect x="466" y="44" width="130" height="78" rx="8" fill="#e6eefc" stroke="#6f8fd0"/>
+    <text x="531" y="70" font-weight="600">Table structure</text><text x="531" y="88">rows, columns,</text><text x="531" y="104">merged cells</text>
+    <rect x="618" y="44" width="120" height="78" rx="8" fill="#e6eefc" stroke="#6f8fd0"/>
+    <text x="678" y="78" font-weight="600">Reading order</text><text x="678" y="96">sort the boxes</text>
+    <rect x="760" y="44" width="110" height="78" rx="8" fill="#fdf0d9" stroke="#c99a3c"/>
+    <text x="815" y="70" font-weight="600">LLM</text><text x="815" y="88">text -&gt; fields</text><text x="815" y="104">(Gemma chat)</text>
+    <rect x="892" y="44" width="72" height="78" rx="8" fill="#e3f3e9" stroke="#4f9a6b"/>
+    <text x="928" y="88" font-weight="600">JSON</text>
+  </g>
+  <g stroke="#333" stroke-width="1.5" marker-end="url(#ah)">
+    <line x1="130" y1="83" x2="150" y2="83"/><line x1="282" y1="83" x2="302" y2="83"/><line x1="444" y1="83" x2="464" y2="83"/>
+    <line x1="596" y1="83" x2="616" y2="83"/><line x1="738" y1="83" x2="758" y2="83"/><line x1="870" y1="83" x2="890" y2="83"/>
+  </g>
+  <text x="20" y="150" font-size="12.5">Errors add up: a missed box is text the OCR never sees; the LLM only sees text, never the page.</text>
+
+  <line x1="20" y1="172" x2="960" y2="172" stroke="#c9ced8" stroke-dasharray="4 4"/>
+
+  <text x="20" y="204" font-size="15" font-weight="700">(b) End-to-end VLM: one model looks at the page and writes the answer</text>
+  <g font-size="12.5" text-anchor="middle">
+    <rect x="20" y="222" width="110" height="78" rx="8" fill="#eef1f5" stroke="#8a93a3"/>
+    <text x="75" y="256">Page image</text><text x="75" y="274">+ instruction</text>
+    <rect x="200" y="222" width="430" height="78" rx="8" fill="#e6eefc" stroke="#6f8fd0"/>
+    <text x="415" y="250" font-weight="600">Vision-language model (Gemma 4, Qwen3-VL ...)</text>
+    <text x="415" y="270">reads pixels directly; writes Markdown, HTML tables or JSON;</text>
+    <text x="415" y="288">a JSON schema can force the shape of the output</text>
+    <rect x="700" y="222" width="150" height="78" rx="8" fill="#fdf0d9" stroke="#c99a3c"/>
+    <text x="775" y="250" font-weight="600">Our code</text><text x="775" y="268">validate, digits,</text><text x="775" y="286">BS -&gt; AD, paisa</text>
+    <rect x="892" y="222" width="72" height="78" rx="8" fill="#e3f3e9" stroke="#4f9a6b"/>
+    <text x="928" y="266" font-weight="600">JSON</text>
+  </g>
+  <g stroke="#333" stroke-width="1.5" marker-end="url(#ah)">
+    <line x1="130" y1="261" x2="198" y2="261"/><line x1="630" y1="261" x2="698" y2="261"/><line x1="850" y1="261" x2="890" y2="261"/>
+  </g>
+</svg>
+</div>
+<figcaption>Blue boxes are models; the yellow box is ordinary code or a text LLM; green is the result. Real products blur the line: PaddleOCR-VL runs a small layout model first, then a VLM on each region.</figcaption>
+</figure>
+
+<div class="tablebox"><table>
+<thead><tr><th></th><th>(a) Classic pipeline</th><th>(b) End-to-end VLM</th></tr></thead>
+<tbody>
+<tr><td><b>Strengths</b></td><td>Exact bounding boxes for every word; small, fast, runs on CPU; each stage can be swapped and tested alone.</td><td>One model, one call; understands context ("this number is the total because it is next to जम्मा"); handles odd layouts, stamps, photos of crumpled paper; can answer questions.</td></tr>
+<tr><td><b>Weaknesses</b></td><td>Many moving parts; errors chain; old OCR engines struggle on Devanagari conjuncts and real scans.</td><td>Needs a GPU for speed; can <b>hallucinate</b> (write plausible text that is not on the page) or loop; boxes are rough unless the model was trained to output them.</td></tr>
+<tr><td><b>Fits Boli?</b></td><td>As a helper (layout boxes for the playground preview, a cheap first OCR pass).</td><td><b>Yes, as the core.</b> Boli already runs llama-server, which accepts images once the mmproj is loaded.</td></tr>
+</tbody></table></div>
+
+<p>Two open "frameworks" wrap these ideas so you do not wire them by hand: <a href="https://github.com/docling-project/docling" target="_blank" rel="noopener">Docling</a> (IBM, MIT licence; PDF parsing, layout, tables, plug-in OCR, and a VLM mode with granite-docling) and MinerU (OpenDataLab; its MinerU2.5-Pro model is 1.2B, Apache 2.0 with additional terms). They are useful to study and to compare against, but both are tuned mostly on English and Chinese.</p>
+
+<div class="quiz" data-quiz>
+  <p class="qhead">Check yourself</p>
+  <div class="q" data-answer="1">
+    <p>A government notice has two columns. Which sub-task decides that the left column is read fully before the right one?</p>
+    <div class="opts"><button type="button">OCR</button><button type="button">Reading order</button><button type="button">Key-value extraction</button></div>
+    <p class="why" hidden>Reading order sorts the regions that layout analysis found. OCR only turns each region's pixels into characters.</p>
+  </div>
+  <div class="q" data-answer="2">
+    <p>Why is a VLM usually better than "OCR then LLM" at picking the right number as the total?</p>
+    <div class="opts"><button type="button">It runs faster</button><button type="button">It never makes mistakes</button><button type="button">It sees the page, so position and nearby labels (जम्मा) inform the answer</button></div>
+    <p class="why" hidden>The LLM in a pipeline only gets a flat string; the VLM sees where the number sits. It can still hallucinate, which is why we validate in code.</p>
+  </div>
+</div>
+</section>
+
+<!-- 3 -->
+<section id="inside">
+<h2>3. Inside a vision-language model</h2>
+<p>A <b>VLM</b> (vision-language model) is a normal language model, like the Gemma 4 E4B Boli already serves, with an extra front door for pictures. The language model only understands <b>tokens</b> (numbered pieces of text, each turned into a long list of numbers called a vector). So the picture must be turned into vectors that look like tokens. That is all the extra parts do.</p>
+
+<figure>
+<div class="diagram">
+<svg viewBox="0 0 980 380" role="img" aria-label="Image to patches to vision encoder to projector to image tokens into the language model">
+  <defs>
+    <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#333"/></marker>
+  </defs>
+  <!-- image -->
+  <rect x="20" y="60" width="120" height="150" rx="4" fill="#fbfbf7" stroke="#8a93a3"/>
+  <g stroke="#b9bec8"><line x1="32" y1="84" x2="128" y2="84"/><line x1="32" y1="100" x2="118" y2="100"/><line x1="32" y1="116" x2="124" y2="116"/><line x1="32" y1="132" x2="110" y2="132"/><line x1="32" y1="148" x2="126" y2="148"/></g>
+  <circle cx="112" cy="185" r="14" fill="none" stroke="#b3261e"/>
+  <text x="80" y="232" font-size="13" text-anchor="middle" font-weight="600">1. Page image</text>
+  <text x="80" y="250" font-size="12" text-anchor="middle">resized to fit a</text>
+  <text x="80" y="266" font-size="12" text-anchor="middle">token budget</text>
+  <!-- patches -->
+  <g fill="#e6eefc" stroke="#6f8fd0">
+    <rect x="180" y="60" width="36" height="36"/><rect x="218" y="60" width="36" height="36"/><rect x="256" y="60" width="36" height="36"/>
+    <rect x="180" y="98" width="36" height="36"/><rect x="218" y="98" width="36" height="36"/><rect x="256" y="98" width="36" height="36"/>
+    <rect x="180" y="136" width="36" height="36"/><rect x="218" y="136" width="36" height="36"/><rect x="256" y="136" width="36" height="36"/>
+    <rect x="180" y="174" width="36" height="36"/><rect x="218" y="174" width="36" height="36"/><rect x="256" y="174" width="36" height="36"/>
+  </g>
+  <text x="236" y="232" font-size="13" text-anchor="middle" font-weight="600">2. Patches</text>
+  <text x="236" y="250" font-size="12" text-anchor="middle">small square tiles</text>
+  <text x="236" y="266" font-size="12" text-anchor="middle">of pixels</text>
+  <!-- encoder + projector bracket -->
+  <rect x="320" y="60" width="150" height="150" rx="10" fill="#e6eefc" stroke="#6f8fd0"/>
+  <text x="395" y="122" font-size="13" text-anchor="middle" font-weight="600">3. Vision encoder</text>
+  <text x="395" y="142" font-size="12" text-anchor="middle">one vector per patch</text>
+  <text x="395" y="158" font-size="12" text-anchor="middle">(~150M params in E4B)</text>
+  <rect x="490" y="60" width="130" height="150" rx="10" fill="#fdf0d9" stroke="#c99a3c"/>
+  <text x="555" y="122" font-size="13" text-anchor="middle" font-weight="600">4. Projector</text>
+  <text x="555" y="142" font-size="12" text-anchor="middle">maps vectors into</text>
+  <text x="555" y="158" font-size="12" text-anchor="middle">the LLM's token space</text>
+  <path d="M320 40 H620" stroke="#333" fill="none"/><path d="M320 40 V52 M620 40 V52" stroke="#333"/>
+  <text x="470" y="30" font-size="13" text-anchor="middle" font-weight="700">the mmproj file in llama.cpp holds both 3 and 4</text>
+  <!-- tokens -->
+  <g>
+    <rect x="650" y="70" width="22" height="22" fill="#cfdcf7" stroke="#6f8fd0"/><rect x="674" y="70" width="22" height="22" fill="#cfdcf7" stroke="#6f8fd0"/><rect x="698" y="70" width="22" height="22" fill="#cfdcf7" stroke="#6f8fd0"/><rect x="722" y="70" width="22" height="22" fill="#cfdcf7" stroke="#6f8fd0"/>
+    <text x="760" y="86" font-size="12">280 to 1120 image tokens</text>
+    <rect x="650" y="100" width="22" height="22" fill="#eef1f5" stroke="#8a93a3"/><rect x="674" y="100" width="22" height="22" fill="#eef1f5" stroke="#8a93a3"/><rect x="698" y="100" width="22" height="22" fill="#eef1f5" stroke="#8a93a3"/>
+    <text x="760" y="116" font-size="12">+ text tokens: "Return JSON"</text>
+  </g>
+  <rect x="650" y="140" width="310" height="70" rx="10" fill="#e3f3e9" stroke="#4f9a6b"/>
+  <text x="805" y="168" font-size="13" text-anchor="middle" font-weight="600">5. Language model (Gemma 4 E4B)</text>
+  <text x="805" y="188" font-size="12" text-anchor="middle">the same GGUF Boli serves today</text>
+  <g stroke="#333" stroke-width="1.5" marker-end="url(#ah2)">
+    <line x1="140" y1="135" x2="176" y2="135"/><line x1="294" y1="135" x2="316" y2="135"/><line x1="470" y1="135" x2="486" y2="135"/>
+    <path d="M620 110 C 635 110, 635 95, 646 90" fill="none"/>
+    <line x1="805" y1="126" x2="805" y2="138"/>
+  </g>
+  <rect x="650" y="250" width="310" height="60" rx="10" fill="#fbfbf7" stroke="#8a93a3"/>
+  <text x="805" y="276" font-size="13" text-anchor="middle" font-weight="600">6. Output text tokens</text>
+  <text x="805" y="296" font-size="12" text-anchor="middle">{"amount_paisa": 124000, ...}</text>
+  <line x1="805" y1="210" x2="805" y2="246" stroke="#333" stroke-width="1.5" marker-end="url(#ah2)"/>
+  <text x="20" y="320" font-size="12.5">More image tokens = more detail kept = better OCR on small Devanagari print, but slower and more memory.</text>
+  <text x="20" y="340" font-size="12.5">Gemma 4 lets you pick the budget per image: 70, 140, 280, 560 or 1120 tokens. Google's card says use the high end for OCR and documents.</text>
+  <text x="20" y="360" font-size="12.5">Put the image before the text in the message (also from the card).</text>
+</svg>
+</div>
+<figcaption>Today Boli starts llama-server with <code>--no-mmproj</code>, which skips steps 1 to 4. Removing that flag is the first step of this whole product.</figcaption>
+</figure>
+
+<div class="defs">
+  <div class="def"><b>Patch</b>A small square tile cut from the image, the visual equivalent of a word piece.</div>
+  <div class="def"><b>Vision encoder</b>A neural network (usually a ViT, "vision transformer") that turns each patch into a vector describing what it shows.</div>
+  <div class="def"><b>Projector</b>A small layer that translates encoder vectors into the exact vector "language" the LLM expects. Short for multimodal projector, hence <code>mmproj</code>.</div>
+  <div class="def"><b>Token budget</b>How many image tokens one picture becomes. A page at 1120 tokens costs about as much prefill as 1,120 words of prompt.</div>
+  <div class="def"><b>Prefill vs decode</b>Prefill reads the input (image + prompt, fast, measured 130-680 tokens/s on the M5). Decode writes the output (slow, 25-35 tokens/s). A full page of text out is the slow part.</div>
+  <div class="def"><b>Hallucination</b>The model writes something plausible that is not on the page. For documents this is the main danger, so we validate fields in code.</div>
+</div>
+
+<p><b>A worked time estimate on the M5 Mac:</b> one page at 1120 image tokens is about 2-8 seconds of prefill; writing 600 tokens of Markdown at ~30 tokens/s is about 20 seconds. So one dense page takes roughly half a minute on the Mac, and a 10-page PDF several minutes. That is why PDFs become background jobs (section 6), and why a GPU host matters for this product more than for chat.</p>
+
+<div class="quiz" data-quiz>
+  <p class="qhead">Check yourself</p>
+  <div class="q" data-answer="0">
+    <p>Boli's server runs with <code>--no-mmproj</code>. What is missing as a result?</p>
+    <div class="opts"><button type="button">The vision encoder and projector, so images cannot be turned into tokens</button><button type="button">The chat template</button><button type="button">The language model weights</button></div>
+    <p class="why" hidden>The mmproj GGUF carries the encoder and projector. The language weights are in the main GGUF and are already loaded.</p>
+  </div>
+  <div class="q" data-answer="2">
+    <p>A tiny-print Nepali form reads badly. Which change is most likely to help first, before any fine-tuning?</p>
+    <div class="opts"><button type="button">Lower the image token budget to 70 to save time</button><button type="button">Raise the temperature</button><button type="button">Raise the image token budget (e.g. 1120) and send a sharper, higher-DPI image</button></div>
+    <p class="why" hidden>Detail lost when the image is squeezed into few tokens cannot be recovered by the language model. More tokens and a cleaner scan keep the conjuncts readable.</p>
+  </div>
+</div>
+</section>
+
+<!-- 4 -->
+<section id="models">
+<h2>4. The open models worth testing</h2>
+<p>Model size is not a constraint, so this list is about quality, licence and Nepali support. Rule from the owner: <b>only open models in the product</b>. A <b>licence</b> is the legal permission to use the weights; Apache 2.0 and MIT allow commercial use. "Devanagari" below means the model card or paper says so; "not stated" means you must test it yourself. Facts checked on 2026-11-24; re-check the card before you commit.</p>
+
+<div class="tablebox"><table>
+<thead><tr><th>Model</th><th>Kind</th><th>Size</th><th>Licence</th><th>Devanagari / Nepali</th><th>Runs on</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><b>Gemma 4 E4B</b> (what Boli serves)</td><td>General VLM</td><td class="num">~4B effective; ~150M vision encoder</td><td><span class="tag yes">Apache 2.0</span></td><td><span class="tag maybe">140+ languages pre-trained; OCR incl. multilingual and handwriting listed</span></td><td>llama.cpp (<code>ggml-org/gemma-4-E4B-it-GGUF</code>), vLLM</td><td>Zero new infra: same server, add the mmproj. 128K context. Start here.</td></tr>
+<tr><td><b>Gemma 4 26B A4B / 31B</b></td><td>General VLM</td><td class="num">26B MoE (4B active) / 31B dense; ~550M encoder</td><td><span class="tag yes">Apache 2.0</span></td><td><span class="tag maybe">same family; bigger encoder</span></td><td>llama.cpp GGUFs from ggml-org, vLLM</td><td>The "bigger model" step if E4B misreads. 256K context.</td></tr>
+<tr><td><b>Qwen3-VL</b> 2B / 4B / 8B / 32B, 30B-A3B, 235B-A22B</td><td>General VLM</td><td class="num">2B to 235B</td><td><span class="tag yes">Apache 2.0</span> (check per size)</td><td><span class="tag maybe">over 70% accuracy on 32 of 39 OCR languages tested; Nepali not stated</span></td><td>vLLM; llama.cpp via community GGUFs</td><td>Strong document reader. On a 2026 Devanagari stress test, Qwen3-VL-8B was one of the systems compared.</td></tr>
+<tr><td><b>PaddleOCR-VL</b> (1.6 is current)</td><td>OCR-specialised VLM + layout model</td><td class="num">0.9B</td><td><span class="tag yes">Apache 2.0</span></td><td><span class="tag yes">Nepali listed in its Devanagari group (109 languages; 1.6 says 111)</span></td><td>PaddleOCR, vLLM</td><td>Tops OmniDocBench v1.6 (96.3). Gives layout boxes. Best "specialist" candidate.</td></tr>
+<tr><td><b>MinerU2.5-Pro</b></td><td>OCR-specialised VLM</td><td class="num">1.2B</td><td><span class="tag maybe">Apache 2.0 + additional terms</span></td><td><span class="tag maybe">109 languages; Nepali not named</span></td><td>MinerU, vLLM</td><td>OmniDocBench v1.6 95.75. Read the extra terms.</td></tr>
+<tr><td><b>dots.ocr</b></td><td>OCR-specialised VLM</td><td class="num">~1.7B</td><td><span class="tag yes">MIT</span></td><td><span class="tag maybe">~100 languages; not stated</span></td><td>vLLM</td><td>Outputs layout with boxes and reading order in one pass.</td></tr>
+<tr><td><b>DeepSeek-OCR</b></td><td>OCR-specialised VLM</td><td class="num">~3B MoE</td><td><span class="tag yes">MIT</span></td><td><span class="tag no">rare runaway repetition on Devanagari (up to 71x the text length)</span></td><td>vLLM, SGLang</td><td>Clever compression; test carefully.</td></tr>
+<tr><td><b>olmOCR 2</b> (Ai2)</td><td>OCR VLM (Qwen-based)</td><td class="num">7B</td><td><span class="tag yes">Apache 2.0</span></td><td><span class="tag no">weakest open VLM on real Devanagari scans (chrF++ 40.5)</span></td><td>vLLM</td><td>Built for English PDFs. Skip for Nepali.</td></tr>
+<tr><td><b>GLM-OCR</b></td><td>OCR VLM</td><td class="num">0.9B</td><td><span class="tag yes">MIT</span></td><td><span class="tag no">8 languages, no Devanagari</span></td><td>-</td><td>Not for us.</td></tr>
+<tr><td><b>Chandra OCR 2</b></td><td>OCR VLM</td><td class="num">-</td><td><span class="tag no">modified OpenRAIL-M, commercial use restricted</span></td><td><span class="tag maybe">90+ languages</span></td><td>-</td><td>Licence blocks a paid product.</td></tr>
+<tr><td><b>Surya</b> (Datalab)</td><td>Classic pipeline: OCR, layout, reading order, tables</td><td class="num">small</td><td><span class="tag maybe">code Apache 2.0; weights free only under $5M funding/revenue</span></td><td><span class="tag maybe">Hindi listed (Surya 2.5: 67.6%); Nepali not named</span></td><td>Python, GPU or CPU</td><td>Good helper for word boxes in a pipeline.</td></tr>
+<tr><td><b>Tesseract</b></td><td>Classic OCR engine</td><td class="num">tiny</td><td><span class="tag yes">Apache 2.0</span></td><td><span class="tag yes">has a <code>nep</code> language pack</span></td><td>CPU anywhere</td><td>Fast baseline for clean print; weak on real scans and conjuncts.</td></tr>
+<tr><td><b>granite-docling</b> / GOT-OCR 2.0</td><td>Small OCR VLMs</td><td class="num">258M / 580M</td><td><span class="tag yes">Apache 2.0</span></td><td><span class="tag no">mainly English / Devanagari not named</span></td><td>vLLM</td><td>Not for Nepali.</td></tr>
+</tbody></table></div>
+
+<div class="note"><strong>The honest picture.</strong> No open model has published Nepali document scores. A June 2026 Devanagari stress test found every system scores 91-98 chrF++ on clean computer-rendered text, but on 300 real printed scans the field spread across 76 points: the best closed model scored 86.3, a classic engine fell from 93.6 to 58.3, and olmOCR-7B scored 40.5. Clean text tells you nothing; <b>your own test set of real Nepali scans decides</b> (section 7). chrF++ is a character n-gram similarity score from 0 to 100; higher is better.</div>
+
+<p><b>Shortlist for the bake-off:</b> Gemma 4 E4B (free to try, already deployed), Gemma 4 31B or 26B A4B (same API, bigger), Qwen3-VL-8B and 32B (strong readers), and PaddleOCR-VL 1.6 (the specialist with Nepali on its list and real boxes). Sarvam's own API can be a <i>scoring reference</i> in the test (the repo already has <code>@repo/sarvamai</code> <code>digitiseDocument</code>), but never runs behind Boli's product.</p>
+</section>
+
+<!-- 5 -->
+<section id="nepali">
+<h2>5. Nepali and Devanagari specifics</h2>
+
+<h3>Why Devanagari is harder to read than English</h3>
+<ul>
+  <li><b>Conjuncts</b> (संयुक्ताक्षर): two or more consonants fused into one shape, e.g. <span class="deva">क्ष, त्र, ज्ञ, द्ध, श्र, ह्म</span>. The shape on paper does not look like its parts, and one wrong stroke changes the word.</li>
+  <li><b>Matras</b> (vowel signs) sit above, below, before or after the consonant: in <span class="deva">कि</span> the ि is drawn <i>before</i> क but stored <i>after</i> it in Unicode. Models that read in pixel order get this wrong.</li>
+  <li><b>Halant</b> (्) and the <b>shirorekha</b> (the top line joining letters) make word and letter boundaries fuzzy for line-based OCR.</li>
+  <li><b>Unicode normalisation</b>: the same visible word can be stored as different code-point sequences. Always normalise to NFC before comparing or storing, or your accuracy numbers and searches lie.</li>
+</ul>
+
+<h3>The Preeti trap (the big Nepal-only one)</h3>
+<p>Many Nepali government PDFs and old Word files were typed in <b>legacy fonts</b> such as <b>Preeti</b>, Kantipur or Sagarmatha. These fonts draw Devanagari shapes on top of plain English keyboard letters. On screen you see <span class="deva">नेपाल</span>; the file actually stores <code>g]kfn</code>. Copy the text, or extract it with a PDF library, and you get gibberish that <b>looks like a working text layer</b>.</p>
+<div class="tablebox"><table>
+<thead><tr><th>What the PDF shows</th><th>What text extraction returns</th><th>After a Preeti converter</th></tr></thead>
+<tbody><tr><td class="deva" style="font-size:18px">नेपाल</td><td><code>g]kfn</code></td><td class="deva" style="font-size:18px">नेपाल</td></tr></tbody>
+</table></div>
+<p>How to handle it in the pipeline:</p>
+<ol>
+  <li><b>Detect</b>: the PDF's font list names Preeti / Kantipur / Sagarmatha, or the extracted text is mostly ASCII but the document is supposed to be Nepali, or a Devanagari-character ratio check fails.</li>
+  <li><b>Either convert</b> the text with a mapping library (Python: <code>nepali-converter</code> handles Preeti, Kantipur, Sagarmatha, Himalb and has a PDF rescue function; <code>npttf2utf</code>; <code>nepali_unicoder</code> handles reordering like the reph and the ि matra). Converters need fixes for edge cases, so check the output.</li>
+  <li><b>Or ignore the text layer</b> and treat the page as an image: render it and let the VLM read the pixels. This sidesteps the font problem completely and is the safer default for a v1.</li>
+</ol>
+
+<h3>Digits, dates and money</h3>
+<ul>
+  <li><b>Nepali digits</b> <span class="deva">० १ २ ३ ४ ५ ६ ७ ८ ९</span> map one-to-one to 0-9. Ask the model to copy what it sees, then convert in code. Do not ask the model to "convert to English digits" while reading; one job per step is more reliable.</li>
+  <li><b>Bikram Sambat (BS) dates</b>, e.g. <span class="deva">२०८२/०८/१५</span> = BS 2082 month 8 (Mangsir) day 15. BS months have 29 to 32 days that change year to year, so BS to AD is a <b>lookup table</b>, never arithmetic and never the model's guess. Boli already has <code>@repo/calendar</code> with Bikram Sambat support; return both <code>due_date_bs</code> and <code>due_date_ad</code>.</li>
+  <li><b>Money</b>: <span class="deva">रु. १,२४०.००</span>. Indian-style grouping (1,00,000 = one lakh). Store as integer paisa (124000), per Boli's money rule.</li>
+  <li><b>Mixed script</b>: forms often mix English labels with Nepali values, or Romanized names. Keep the original script in the transcription; add transliteration only as an extra field.</li>
+</ul>
+
+<div class="note"><strong>Privacy.</strong> Citizenship cards (<span class="deva">नागरिकता</span>) carry national ID numbers, photos and family names. Decide before launch: how long uploaded files stay in R2 (for example, deleted 24 hours after the job ends), that customer documents are never used for training without written consent, and that logs never contain extracted fields.</div>
+
+<div class="quiz" data-quiz>
+  <p class="qhead">Check yourself</p>
+  <div class="q" data-answer="1">
+    <p>You extract text from a Nepali notice PDF and get <code>;"rgf</code>-style strings. What is going on?</p>
+    <div class="opts"><button type="button">The PDF is corrupted</button><button type="button">It was typed in a legacy font like Preeti; convert it or OCR the page image</button><button type="button">The OCR model is too small</button></div>
+    <p class="why" hidden>No OCR ran at all: the file has a text layer, but it is ASCII drawn with a Devanagari-looking font.</p>
+  </div>
+  <div class="q" data-answer="0">
+    <p>Who should convert <span class="deva">२०८२/०८/१५</span> to an AD date?</p>
+    <div class="opts"><button type="button">Our code, with a BS calendar table</button><button type="button">The VLM, in the same prompt that reads the page</button><button type="button">Nobody, store only BS</button></div>
+    <p class="why" hidden>BS month lengths vary by year; models guess. The model copies the BS date; <code>@repo/calendar</code> converts it, and the API returns both.</p>
+  </div>
+</div>
+</section>
+
+<!-- 6 -->
+<section id="on-boli">
+<h2>6. How it runs on Boli</h2>
+<p>Two doors into the same reading engine:</p>
+<ul>
+  <li><b>Simple door: the chat endpoint Boli already has.</b> <code>POST /v1/chat/completions</code> with an <code>image_url</code> part. Good for one image and a quick answer. Developers already know this shape from OpenAI.</li>
+  <li><b>Document door: a new <code>/v1/documents</code> job API.</b> For PDFs and anything slower than a few seconds. Upload, get a job id, poll for status, fetch the result. This is the same shape Sarvam uses (create job, poll, download).</li>
+</ul>
+
+<figure>
+<div class="diagram">
+<svg viewBox="0 0 980 470" role="img" aria-label="End-to-end request flow for a document job on Boli">
+  <defs>
+    <marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#333"/></marker>
+  </defs>
+  <text x="20" y="22" font-size="13" font-weight="700">The request (a second or two)</text>
+  <g font-size="12.5" text-anchor="middle">
+    <rect x="20" y="36" width="170" height="84" rx="8" fill="#eef1f5" stroke="#8a93a3"/>
+    <text x="105" y="70" font-weight="600">Client</text><text x="105" y="88">app, SDK or the</text><text x="105" y="104">dashboard playground</text>
+    <rect x="240" y="36" width="230" height="84" rx="8" fill="#e6eefc" stroke="#6f8fd0"/>
+    <text x="355" y="62" font-weight="600">Boli API Worker</text><text x="355" y="80">POST /v1/documents</text><text x="355" y="96">key, credits, file checks,</text><text x="355" y="112">page limit</text>
+    <rect x="520" y="30" width="200" height="40" rx="8" fill="#fdf0d9" stroke="#c99a3c"/>
+    <text x="620" y="55">R2: original file (key)</text>
+    <rect x="520" y="86" width="200" height="40" rx="8" fill="#fdf0d9" stroke="#c99a3c"/>
+    <text x="620" y="111">Neon: job row, "queued"</text>
+    <rect x="770" y="36" width="190" height="84" rx="8" fill="#e3f3e9" stroke="#4f9a6b"/>
+    <text x="865" y="70" font-weight="600">202 Accepted</text><text x="865" y="90">{ id, status: "queued" }</text>
+  </g>
+  <g stroke="#333" stroke-width="1.5" fill="none" marker-end="url(#ah3)">
+    <line x1="190" y1="78" x2="236" y2="78"/>
+    <line x1="470" y1="64" x2="516" y2="52"/><line x1="470" y1="92" x2="516" y2="104"/>
+    <path d="M720 78 H766"/>
+  </g>
+
+  <text x="20" y="173" font-size="13" font-weight="700">The background job (Cloudflare Workflow; minutes; each step retried on failure)</text>
+  <g font-size="12.5" text-anchor="middle">
+    <rect x="20" y="182" width="170" height="96" rx="8" fill="#e6eefc" stroke="#6f8fd0"/>
+    <text x="105" y="206" font-weight="600">1. Inspect</text><text x="105" y="226">pages? text layer?</text><text x="105" y="242">Preeti font?</text><text x="105" y="258">doc type?</text>
+    <rect x="210" y="182" width="170" height="96" rx="8" fill="#e6eefc" stroke="#6f8fd0"/>
+    <text x="295" y="206" font-weight="600">2. Render</text><text x="295" y="226">page -&gt; PNG</text><text x="295" y="242">at ~200 DPI</text><text x="295" y="258">(on the GPU node)</text>
+    <rect x="400" y="182" width="170" height="96" rx="8" fill="#e6eefc" stroke="#6f8fd0"/>
+    <text x="485" y="206" font-weight="600">3. Read</text><text x="485" y="226">VLM: page -&gt;</text><text x="485" y="242">Markdown + tables</text><text x="485" y="258">(faithful copy)</text>
+    <rect x="590" y="182" width="170" height="96" rx="8" fill="#e6eefc" stroke="#6f8fd0"/>
+    <text x="675" y="206" font-weight="600">4. Extract</text><text x="675" y="226">VLM + JSON schema</text><text x="675" y="242">-&gt; fields; code fixes</text><text x="675" y="258">digits, BS-&gt;AD, paisa</text>
+    <rect x="780" y="182" width="180" height="96" rx="8" fill="#e3f3e9" stroke="#4f9a6b"/>
+    <text x="870" y="206" font-weight="600">5. Finish</text><text x="870" y="226">save result to R2</text><text x="870" y="242">charge per page</text><text x="870" y="258">status "done"</text>
+  </g>
+  <g stroke="#333" stroke-width="1.5" fill="none" marker-end="url(#ah3)">
+    <path d="M620 126 V150 H105 V178"/>
+    <line x1="190" y1="230" x2="206" y2="230"/><line x1="380" y1="230" x2="396" y2="230"/><line x1="570" y1="230" x2="586" y2="230"/><line x1="760" y1="230" x2="776" y2="230"/>
+  </g>
+  <path d="M210 292 V302 H760 V292" stroke="#333" fill="none"/>
+  <text x="485" y="320" font-size="12.5" text-anchor="middle">steps 2 to 4 repeat for every page; one page = one retried step, progress written as "page 3 of 10"</text>
+
+  <g font-size="12.5" text-anchor="middle">
+    <rect x="210" y="360" width="550" height="84" rx="8" fill="#fdf0d9" stroke="#c99a3c"/>
+    <text x="485" y="386" font-weight="600">Inference node (GPU machine, behind the tunnel / private network)</text>
+    <text x="485" y="406">llama-server with Gemma 4 + mmproj (or vLLM for a bigger VLM)</text>
+    <text x="485" y="424">+ a small render helper running pdftoppm (Workers cannot render PDF pages)</text>
+    <rect x="780" y="360" width="180" height="84" rx="8" fill="#eef1f5" stroke="#8a93a3"/>
+    <text x="870" y="388" font-weight="600">Client polls</text><text x="870" y="406">GET /v1/documents/{id}</text><text x="870" y="424">until "done"</text>
+  </g>
+  <g stroke="#333" stroke-width="1.3" stroke-dasharray="5 4" fill="none" marker-end="url(#ah3)">
+    <line x1="295" y1="330" x2="295" y2="356"/><line x1="485" y1="330" x2="485" y2="356"/><line x1="675" y1="330" x2="675" y2="356"/>
+  </g>
+  <line x1="870" y1="278" x2="870" y2="356" stroke="#333" stroke-width="1.5" marker-end="url(#ah3)"/>
+</svg>
+</div>
+<figcaption>The Worker never waits for the model. Following Boli's rule (work over 30 seconds goes to a Cloudflare Workflow; the page polls), the route only stores the file and the job row and returns at once.</figcaption>
+</figure>
+
+<h3>Why two model passes (Read, then Extract)</h3>
+<p>Asking for perfect JSON straight from pixels mixes two jobs. Splitting them gives you: a faithful Markdown transcription you can store, search, summarise, translate and answer questions over; a second, short pass that fills the schema while looking at both the image and that Markdown; and a place to check one against the other (every extracted value should appear in the transcription). For a single small image, one combined pass is fine.</p>
+
+<h3>Forcing the shape: JSON schema</h3>
+<p>A <b>JSON schema</b> is a description of the exact fields and types you want. llama-server turns it into a <b>grammar</b> (a rule set that only lets the model pick tokens that keep the output valid), so the reply always parses. It accepts the OpenAI form on the chat endpoint: <code>response_format: {"type": "json_schema", "json_schema": {"schema": {...}}}</code>. Note from the llama.cpp source: the <code>strict</code> flag is ignored and the schema is always applied. vLLM has the same feature (guided decoding). Valid JSON is not the same as correct values: keep the code checks.</p>
+
+<h3>API shape (proposal)</h3>
+<div class="tablebox"><table>
+<thead><tr><th>Call</th><th>What it does</th><th>Answer</th></tr></thead>
+<tbody>
+<tr><td><code>POST /v1/chat/completions</code> with <code>image_url</code></td><td>One image, any question, optional <code>response_format</code>. Billed by tokens like chat (image tokens count as input).</td><td>Normal chat completion</td></tr>
+<tr><td><code>POST /v1/documents</code></td><td>Upload a PDF / PNG / JPG (multipart) with options: <code>outputs: ["markdown","tables","fields"]</code>, <code>schema</code> or <code>doc_type</code> (e.g. <code>electricity_bill</code>), <code>pages: "1-5"</code>, <code>languages: ["ne","en"]</code>.</td><td><code>202 {"id":"doc_...","status":"queued","pages":4}</code></td></tr>
+<tr><td><code>GET /v1/documents/{id}</code></td><td>Status and progress.</td><td><code>{"status":"running","pages_done":2,"pages":4}</code>, later <code>"done"</code> with the result inline</td></tr>
+<tr><td><code>GET /v1/documents/{id}/result?format=md|json</code></td><td>The full result, per page: Markdown, tables (HTML), fields, and boxes when the model provides them.</td><td>JSON or Markdown</td></tr>
+<tr><td><code>DELETE /v1/documents/{id}</code></td><td>Delete the file and results now.</td><td><code>204</code></td></tr>
+</tbody></table></div>
+<p>Errors reuse the gateway's OpenAI-shaped ones: 401 bad key, 402 <code>insufficient_quota</code>, 413 file too large, 422 too many pages or unreadable file, 429 rate limit.</p>
+
+<h3>Metering</h3>
+<p>Chat-with-image stays per token. Documents are easiest to understand <b>per page</b>: credits reserved at submit (pages x price), the real amount charged per finished page, the rest released; a failed page is not charged. Set the price from a measured number: <b>cost per page = GPU cost per hour / pages per hour</b>. Illustration only, not a measurement: a GPU rented at Rs 150 per hour that finishes 600 pages per hour costs Rs 0.25 per page, so a price near Rs 0.75 to 1 leaves room. For scale, Sarvam's page lists Rs 1.50 per page for digitisation (check their pricing page). Store prices as integer micro-credits like the rest of Boli.</p>
+
+<h3>The playground page in the dashboard</h3>
+<ul>
+  <li>Left: drop a file, pick a document type or paste a schema, choose outputs, "Run".</li>
+  <li>Right, three tabs: <b>Preview</b> (the page image with boxes drawn over regions or fields; click a field to highlight its box), <b>JSON</b> (fields, with a warning chip when a check fails), <b>Code</b> (curl / Python / JavaScript for the exact same request, with <code>YOUR_API_KEY</code>).</li>
+  <li>For PDFs, the browser can render page thumbnails itself with pdf.js, so the preview does not wait for the job.</li>
+  <li>Boxes: PaddleOCR-VL and dots.ocr return layout boxes; Gemma 4 lists "object detection" and "pointing" and can be asked for coordinates, but treat those as approximate until measured. A v1 can ship without boxes.</li>
+</ul>
+
+<h3>Storage and where each piece runs</h3>
+<ul>
+  <li><b>R2</b> (Cloudflare's file storage): the uploaded file and the result, saved as keys (<code>*Key</code> columns), served through signed URLs.</li>
+  <li><b>PDF to images</b>: Boli's <code>@repo/pdf</code> uses unpdf for text, and unpdf's own docs say Workers cannot render pages (no canvas). So rendering runs on the inference node (<code>pdftoppm -r 200 -png</code> from Poppler), or in the browser for the playground.</li>
+  <li><b>Text-layer shortcut</b>: if <code>@repo/pdf</code> finds a real Unicode text layer (not Preeti), the Read step can use it directly and only Extract needs the VLM. Cheaper and exact.</li>
+</ul>
+
+<div class="quiz" data-quiz>
+  <p class="qhead">Check yourself</p>
+  <div class="q" data-answer="2">
+    <p>A customer uploads a 12-page scanned PDF. Where does the model work happen?</p>
+    <div class="opts"><button type="button">Inside the POST /v1/documents request, which waits for all pages</button><button type="button">In <code>after()</code> / waitUntil after the response</button><button type="button">In a Cloudflare Workflow, one retried step per page, while the client polls</button></div>
+    <p class="why" hidden>Minutes of work that must survive a closed tab and retry a failed page is exactly Boli's "long job" rule. waitUntil is capped at 30 seconds with no retry.</p>
+  </div>
+  <div class="q" data-answer="1">
+    <p>The JSON schema guarantees that...</p>
+    <div class="opts"><button type="button">every value is correct</button><button type="button">the output parses and has the fields and types you asked for</button><button type="button">the model reads faster</button></div>
+    <p class="why" hidden>The grammar only constrains shape. A wrong amount in a valid number field is still wrong, so cross-checks (readings vs units, values present in the transcription) stay.</p>
+  </div>
+</div>
+</section>
+
+<!-- 7 -->
+<section id="eval">
+<h2>7. Measuring quality</h2>
+<p>You cannot pick a model, a token budget or a price without numbers on <b>your</b> documents. The method mirrors <code>docs/inference/02-choose-a-model.md</code>: fix everything but the model, score blind, keep the scripts.</p>
+
+<h3>The metrics</h3>
+<div class="defs">
+  <div class="def"><b>CER (character error rate)</b>(substitutions + deletions + insertions) / characters in the correct text. 0.05 = 5 wrong per 100. For Devanagari, count after NFC normalisation, and also report it per grapheme cluster (what a reader sees as one letter, e.g. <span class="deva">क्ष</span>).</div>
+  <div class="def"><b>WER (word error rate)</b>The same at word level. Harsher: one wrong matra makes the whole word wrong. Old Hindi/Marathi OCR baselines sit near 35% WER.</div>
+  <div class="def"><b>Field accuracy</b>Per field: exact match after normalising (digits, spaces, NFC). Report per field ("amount right 97%") and per document ("all fields right 81%").</div>
+  <div class="def"><b>Hallucination rate</b>Share of extracted values that do not appear on the page at all. The one to watch most.</div>
+  <div class="def"><b>Speed and cost</b>Seconds per page and pages per GPU-hour, which become the price.</div>
+</div>
+
+<h3>Build a small Nepali test set first</h3>
+<ol>
+  <li><b>80 to 150 pages</b>, split by type: electricity / water / internet bills, bank and government forms, notices (including Preeti PDFs), receipts, a few handwritten pages, and ID-card <i>look-alikes</i> made with consent or synthetic data.</li>
+  <li>Split by <b>quality</b>: clean PDF, flatbed scan, phone photo (angle, shadow), faded or stamped.</li>
+  <li>For each page write the <b>ground truth</b>: the exact text (NFC) and the correct JSON. This is slow, careful human work; budget a few days with a native reader.</li>
+  <li>Freeze it. Never tune prompts on the test pages themselves; keep a separate "dev" set for that.</li>
+  <li>Public extras exist (for example a Nepali Devanagari printed-text OCR eval set on Hugging Face), but real Nepali bills and forms are what customers will send.</li>
+</ol>
+
+<h3>When fine-tuning is needed</h3>
+<p><b>Fine-tuning</b> means continuing a model's training on your own labelled examples so it learns your documents. Do it only when all of these are true:</p>
+<ul>
+  <li>The error is <b>consistent</b> (same conjuncts, same form type, handwriting), not random.</li>
+  <li>Higher image token budget, better prompt and a <b>bigger model</b> (E4B -> 26B/31B -> Qwen3-VL-32B) did not fix it.</li>
+  <li>You have, or can make, roughly <b>1,000 to 5,000 labelled pages</b> of that kind. Synthetic pages help: render real Nepali text in many Unicode and legacy fonts, add noise, blur, stamps and rotation.</li>
+</ul>
+<p>Then a LoRA fine-tune (training small add-on weights instead of the whole model) on the chosen VLM, the same test set before and after, and a new model name behind the same API, exactly as planned for chat (<code>boli-chat-v1</code> -> <code>v2</code>).</p>
+
+<div class="quiz" data-quiz>
+  <p class="qhead">Check yourself</p>
+  <div class="q" data-answer="0">
+    <p>Model A has 3% CER, model B 4% CER. A invents a total on 2 of 100 bills; B never does. Which do you ship for bills?</p>
+    <div class="opts"><button type="button">B: a made-up amount is worse than a slightly worse transcription</button><button type="button">A: lower CER always wins</button><button type="button">Neither; average the two</button></div>
+    <p class="why" hidden>CER measures copying; customers act on fields. Field accuracy and hallucination rate decide extraction products.</p>
+  </div>
+</div>
+</section>
+
+<!-- 8 -->
+<section id="path">
+<h2>8. The path: from today to a shipped product</h2>
+
+<figure>
+<div class="diagram">
+<svg viewBox="0 0 980 250" role="img" aria-label="Roadmap from today through five stages">
+  <defs>
+    <marker id="ah4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#333"/></marker>
+  </defs>
+  <g font-size="12.5" text-anchor="middle">
+    <rect x="10" y="40" width="140" height="130" rx="10" fill="#eef1f5" stroke="#8a93a3"/>
+    <text x="80" y="66" font-weight="700">Today</text><text x="80" y="90">chat API, keys,</text><text x="80" y="106">credits, eSewa /</text><text x="80" y="122">Khalti; vision</text><text x="80" y="138">switched off</text>
+    <rect x="175" y="40" width="145" height="130" rx="10" fill="#e6eefc" stroke="#6f8fd0"/>
+    <text x="247" y="66" font-weight="700">Stage 0</text><text x="247" y="84" font-weight="600">Learn locally</text><text x="247" y="108">mmproj on, curl</text><text x="247" y="124">an image</text><text x="247" y="154">1-2 days</text>
+    <rect x="340" y="40" width="145" height="130" rx="10" fill="#e6eefc" stroke="#6f8fd0"/>
+    <text x="412" y="66" font-weight="700">Stage 1</text><text x="412" y="84" font-weight="600">Prototype</text><text x="412" y="108">image -&gt; JSON,</text><text x="412" y="124">30 pages scored</text><text x="412" y="154">~1 week</text>
+    <rect x="505" y="40" width="145" height="130" rx="10" fill="#e6eefc" stroke="#6f8fd0"/>
+    <text x="577" y="66" font-weight="700">Stage 2</text><text x="577" y="84" font-weight="600">PDFs and jobs</text><text x="577" y="108">render, Workflow,</text><text x="577" y="124">R2, polling</text><text x="577" y="154">2-3 weeks</text>
+    <rect x="670" y="40" width="145" height="130" rx="10" fill="#e6eefc" stroke="#6f8fd0"/>
+    <text x="742" y="66" font-weight="700">Stage 3</text><text x="742" y="84" font-weight="600">Product</text><text x="742" y="108">API, playground,</text><text x="742" y="124">per-page pricing</text><text x="742" y="154">2-3 weeks</text>
+    <rect x="835" y="40" width="135" height="130" rx="10" fill="#e3f3e9" stroke="#4f9a6b"/>
+    <text x="902" y="66" font-weight="700">Stage 4</text><text x="902" y="84" font-weight="600">Quality</text><text x="902" y="108">full eval set,</text><text x="902" y="124">bigger model,</text><text x="902" y="140">fine-tune</text><text x="902" y="160">ongoing</text>
+  </g>
+  <g stroke="#333" stroke-width="1.5" marker-end="url(#ah4)">
+    <line x1="150" y1="105" x2="171" y2="105"/><line x1="320" y1="105" x2="336" y2="105"/><line x1="485" y1="105" x2="501" y2="105"/><line x1="650" y1="105" x2="666" y2="105"/><line x1="815" y1="105" x2="831" y2="105"/>
+  </g>
+  <text x="10" y="210" font-size="12.5">Each stage ends with a check you can run and a number you write down. A stage that fails its check repeats; it does not move on.</text>
+  <text x="10" y="230" font-size="12.5">Efforts are rough, for one person working with Claude Code, and assume the GPU host from inference phase 5 is ready by Stage 2.</text>
+</svg>
+</div>
+</figure>
+
+<div class="stages">
+
+<article class="stage" id="stage-0">
+  <header><h3>Stage 0 - Learn and test locally</h3><span class="effort">1-2 days, on the M5 Mac</span></header>
+  <dl>
+    <dt>Goal</dt><dd>See Gemma 4 E4B read a Nepali page, and feel the speed and the failure types.</dd>
+    <dt>Build</dt><dd>Nothing in the app. A folder of 10 test images (your own bills, notices; phone photos are fine) and two scripts.</dd>
+    <dt>Verify</dt><dd>The server log says the mmproj loaded; a curl returns the bill's text; you have written down seconds per page and 3 failure examples.</dd>
+  </dl>
+  <p style="margin:14px 0 4px"><b>1. Start the server with vision on.</b> Same command as today minus <code>--no-mmproj</code>; with <code>-hf</code>, llama-server downloads the matching mmproj itself (about 1 GB more). Larger context, because one page can be 1,000+ tokens in and out.</p>
+<div class="codebox"><button class="copy" type="button">Copy</button><pre><code>llama-server -hf ggml-org/gemma-4-E4B-it-GGUF:Q4_0 \
+  -c 16384 --port 8080 --jinja --reasoning auto
+# optional, for small print: ask for the largest image budget
+#   --image-min-tokens 1120 --image-max-tokens 1120
+# (check the exact flags in your build first:)
+llama-server --help | grep -i -E "mmproj|image-(min|max)-tokens"</code></pre></div>
+  <p style="margin:4px 0"><b>2. Build the request in a file</b> (a base64 image is too long for a shell argument), then curl it.</p>
+<div class="codebox"><button class="copy" type="button">Copy</button><pre><code>python3 - bill.jpg &gt; req.json &lt;&lt;'EOF'
+import base64, json, sys
+img = base64.b64encode(open(sys.argv[1], "rb").read()).decode()
+print(json.dumps({
+  "messages": [{"role": "user", "content": [
+    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img}"}},
+    {"type": "text", "text": "Transcribe this document exactly as written, in Markdown. "
+                             "Keep Nepali in Devanagari and keep Nepali digits as they appear."}
+  ]}],
+  "temperature": 0, "max_tokens": 1500,
+  "chat_template_kwargs": {"enable_thinking": False}
+}))
+EOF
+curl -s http://127.0.0.1:8080/v1/chat/completions \
+  -H "Content-Type: application/json" -d @req.json \
+  | python3 -c "import json,sys; r=json.load(sys.stdin); print(r['choices'][0]['message']['content']); print(r['usage'])"</code></pre></div>
+  <p style="margin:4px 0"><b>3. Read the numbers.</b> <code>usage.prompt_tokens</code> now includes the image tokens; the log's prefill and decode speeds tell you where the seconds went. Try the same page at budgets 280 and 1120 and compare.</p>
+</article>
+
+<article class="stage" id="stage-1">
+  <header><h3>Stage 1 - Prototype: image to JSON</h3><span class="effort">about 1 week</span></header>
+  <dl>
+    <dt>Goal</dt><dd>One document type (electricity bills) goes from photo to correct JSON, with checks.</dd>
+    <dt>Build</dt><dd><ul>
+      <li>A script in <code>ml/docs/</code>: Read pass (Markdown), Extract pass with <code>response_format</code> json_schema, then code that converts Nepali digits, BS to AD, rupees to paisa, and runs checks (readings vs units, each value present in the Markdown).</li>
+      <li>The first 30 hand-labelled pages and a scorer (CER, field accuracy, hallucination rate).</li>
+      <li>The same script pointed at a second model (Gemma 4 26B A4B or Qwen3-VL-8B through any OpenAI-compatible server) for a first comparison.</li>
+    </ul></dd>
+    <dt>Verify</dt><dd>A table in a notes file: model, budget, CER, field accuracy, hallucinations, seconds per page. One model reaches your bar (suggestion: 95%+ of bill fields right on clean scans).</dd>
+  </dl>
+<div class="codebox"><button class="copy" type="button">Copy</button><pre><code>"response_format": {"type": "json_schema", "json_schema": {"name": "electricity_bill", "schema": {
+  "type": "object",
+  "properties": {
+    "customer_name":    {"type": "string"},
+    "customer_no":      {"type": "string"},
+    "bill_month_bs":    {"type": "string", "description": "as printed, e.g. कात्तिक २०८२"},
+    "previous_reading": {"type": "string"},
+    "current_reading":  {"type": "string"},
+    "units":            {"type": "string"},
+    "amount":           {"type": "string", "description": "as printed, e.g. रु. १,२४०.००"},
+    "due_date_bs":      {"type": "string"}
+  },
+  "required": ["customer_name", "amount", "due_date_bs"]
+}}}
+// the model copies strings as printed; our code turns them into numbers, paisa and AD dates</code></pre></div>
+</article>
+
+<article class="stage" id="stage-2">
+  <header><h3>Stage 2 - PDFs and background jobs</h3><span class="effort">2-3 weeks</span></header>
+  <dl>
+    <dt>Goal</dt><dd>A 10-page PDF goes in; per-page Markdown and fields come out, surviving a closed tab and a failed page.</dd>
+    <dt>Build</dt><dd><ul>
+      <li>On the GPU host: llama-server with mmproj (or vLLM if the Stage 1 winner is a bigger VLM), plus a tiny render helper (<code>pdftoppm -r 200 -png</code>) behind the same private access.</li>
+      <li>DB: <code>document_job</code> and <code>document_page</code> tables (additive SQL script): owner, key, file key, status, pages, pages done, cost, timestamps.</li>
+      <li>A Cloudflare Workflow: inspect (text layer, Preeti detection) -&gt; per page render, read, extract -&gt; finish. Progress written after each page.</li>
+      <li>Preeti handling: detect and either convert, or force the image route.</li>
+    </ul></dd>
+    <dt>Verify</dt><dd>Kill the GPU process mid-job: the Workflow retries that page and finishes. A Preeti PDF returns real Devanagari. A text-layer PDF skips the Read pass.</dd>
+  </dl>
+</article>
+
+<article class="stage" id="stage-3">
+  <header><h3>Stage 3 - Product: API, playground, pricing</h3><span class="effort">2-3 weeks</span></header>
+  <dl>
+    <dt>Goal</dt><dd>A developer with a Boli key processes a PDF from their own app and sees the cost; a visitor tries it in the dashboard.</dd>
+    <dt>Build</dt><dd><ul>
+      <li>Gateway routes: image input on <code>/v1/chat/completions</code>; <code>/v1/documents</code> create, status, result, delete. Limits: file size, pages per job, rate limit.</li>
+      <li>Per-page price in micro-credits: reserve at submit, charge per finished page, release the rest; usage rows tagged "documents".</li>
+      <li>Playground page: upload, Preview / JSON / Code tabs; ready-made schemas (electricity bill, generic form, notice summary).</li>
+      <li>Docs pages: quickstart, schemas, limits, retention policy. File retention (e.g. delete after 24 hours) as a cron job.</li>
+    </ul></dd>
+    <dt>Verify</dt><dd>The OpenAI SDK with an image works unchanged against Boli; a separate test app runs the document flow end to end; credits match pages; a zero balance gets 402; the playground checked at desktop and 390px.</dd>
+  </dl>
+</article>
+
+<article class="stage" id="stage-4">
+  <header><h3>Stage 4 - Quality</h3><span class="effort">ongoing; first round 2-4 weeks</span></header>
+  <dl>
+    <dt>Goal</dt><dd>Know, with numbers, how good Boli is per document type, and improve the weakest type.</dd>
+    <dt>Build</dt><dd><ul>
+      <li>The full 80-150 page test set and a script that scores every model version.</li>
+      <li>Bake-off: Gemma 4 E4B vs 26B A4B / 31B vs Qwen3-VL-8B / 32B vs PaddleOCR-VL 1.6 (Sarvam as a reference score only).</li>
+      <li>Layout boxes for the preview (PaddleOCR-VL or dots.ocr as a helper) if customers ask for them.</li>
+      <li>If one failure type persists after a bigger model: collect or synthesise 1,000-5,000 labelled pages and LoRA fine-tune; ship as a new model name.</li>
+    </ul></dd>
+    <dt>Verify</dt><dd>Before/after table per document type; no regression on the others; a public "quality" note in the docs.</dd>
+  </dl>
+</article>
+</div>
+
+<div class="recommend">
+  <b>The recommended approach in five lines</b>
+  <ol>
+    <li>Start with the end-to-end VLM Boli already has: Gemma 4 E4B with its mmproj on the same llama-server (Apache 2.0, no new infrastructure).</li>
+    <li>Two passes per page: a faithful Markdown transcription, then fields through a JSON schema; digits, BS to AD and paisa are done in code, with cross-checks.</li>
+    <li>Build a real Nepali test set early and let it choose between Gemma 4 E4B, Gemma 4 26B/31B, Qwen3-VL and PaddleOCR-VL by field accuracy, hallucinations and cost per page.</li>
+    <li>PDFs: use a real text layer when present (fix Preeti), otherwise render pages on the GPU node; run every PDF as a Workflow job with R2 storage, polling and per-page credits.</li>
+    <li>Fine-tune only when the test set shows a consistent failure that a bigger model and a higher image budget did not fix.</li>
+  </ol>
+</div>
+</section>
+
+<section id="sources" class="sources">
+<h2>Sources</h2>
+<p style="font-size:14px;color:var(--muted)">Read on 2026-11-24. Model facts move fast: re-check licences and flags on the linked page before building.</p>
+<ol>
+  <li><a href="https://huggingface.co/google/gemma-4-E4B-it" target="_blank" rel="noopener">Gemma 4 E4B model card (Google, Hugging Face)</a>: Apache 2.0, sizes, ~150M / ~550M vision encoders, token budgets 70-1120, image before text, OCR and handwriting.</li>
+  <li><a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/multimodal.md" target="_blank" rel="noopener">llama.cpp multimodal docs</a>: <code>-hf</code> downloads the mmproj, <code>--mmproj</code>, <code>--no-mmproj</code>, <code>--no-mmproj-offload</code>, Gemma 4 GGUFs, OCR-model notes.</li>
+  <li><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md" target="_blank" rel="noopener">llama-server README</a>: <code>image_url</code> (URL, base64 data URI, file), <code>response_format</code> json_schema, <code>--image-min-tokens</code> / <code>--image-max-tokens</code>, <code>--mmproj-auto</code>.</li>
+  <li><a href="https://github.com/ggml-org/llama.cpp/blob/master/tools/server/server-common.cpp" target="_blank" rel="noopener">llama-server source (server-common.cpp)</a>: json_schema to grammar; <code>strict</code> not read.</li>
+  <li><a href="https://github.com/ggml-org/llama.cpp/pull/21309" target="_blank" rel="noopener">llama.cpp PR #21309</a>: Gemma 4 vision support.</li>
+  <li><a href="https://docs.vllm.ai/projects/recipes/en/latest/Google/Gemma4.html" target="_blank" rel="noopener">vLLM recipe: Gemma 4</a>: OpenAI-compatible serving with image_url, per-image token budgets.</li>
+  <li><a href="https://github.com/QwenLM/Qwen3-VL" target="_blank" rel="noopener">Qwen3-VL (GitHub)</a> and <a href="https://arxiv.org/abs/2511.21631" target="_blank" rel="noopener">Qwen3-VL technical report (arXiv 2511.21631)</a>: sizes, 32 of 39 OCR languages above 70%.</li>
+  <li><a href="https://huggingface.co/PaddlePaddle/PaddleOCR-VL" target="_blank" rel="noopener">PaddleOCR-VL model card</a>, <a href="https://arxiv.org/abs/2510.14528" target="_blank" rel="noopener">PaddleOCR-VL paper (arXiv 2510.14528)</a> and <a href="https://www.paddleocr.ai/v3.7.0/en/version3.x/algorithm/PaddleOCR-VL/PaddleOCR-VL.html" target="_blank" rel="noopener">PaddleOCR-VL docs</a>: 0.9B, Apache 2.0, 109 languages with Nepali in the Devanagari group.</li>
+  <li><a href="https://roboflow.com/blog/best-open-source-ocr-models" target="_blank" rel="noopener">Roboflow: best open-source OCR models in 2026</a>: OmniDocBench v1.6 ranks, licences for PaddleOCR-VL 1.6, MinerU2.5-Pro, GLM-OCR, dots.mocr, Chandra OCR 2.</li>
+  <li><a href="https://www.spheron.network/blog/best-open-source-ocr-vlm-self-host-gpu-cloud-2026/" target="_blank" rel="noopener">Spheron: open OCR VLMs to self-host</a>: sizes, licences, VRAM and throughput for PaddleOCR-VL, DeepSeek-OCR, dots.ocr, GOT-OCR 2.0, granite-docling.</li>
+  <li><a href="https://arxiv.org/abs/2606.29213" target="_blank" rel="noopener">Can OCR-VLMs Read Devanagari? (arXiv 2606.29213, 2026)</a>: 10 systems, clean vs real scans, conjunct / matra / nukta errors, DeepSeek-OCR repetition.</li>
+  <li><a href="https://arxiv.org/abs/2512.17111" target="_blank" rel="noopener">Digitizing Nepal's Written Heritage (arXiv 2512.17111, ACL 2026)</a>: HTR for old Nepali manuscripts, 4.9% CER.</li>
+  <li><a href="https://arxiv.org/pdf/2609.21595" target="_blank" rel="noopener">Devanagari post-OCR correction study (arXiv 2609.21595)</a>: OCR baselines near 36% WER (Hindi) and 35% (Marathi).</li>
+  <li><a href="https://huggingface.co/datasets/himalaya-ai/nepali-deva-ocr-eval" target="_blank" rel="noopener">Nepali Devanagari OCR eval set (Hugging Face)</a>.</li>
+  <li><a href="https://huggingface.co/allenai/olmOCR-2-7B-1025" target="_blank" rel="noopener">olmOCR 2 7B model card</a>: Apache 2.0.</li>
+  <li><a href="https://github.com/datalab-to/surya" target="_blank" rel="noopener">Surya (Datalab)</a>: code Apache 2.0, weights modified OpenRAIL-M, 90+ languages.</li>
+  <li><a href="https://github.com/docling-project/docling" target="_blank" rel="noopener">Docling</a>: MIT; layout, tables, OCR, granite-docling VLM pipeline.</li>
+  <li><a href="https://pypi.org/project/nepali-converter/" target="_blank" rel="noopener">nepali-converter</a>, <a href="https://github.com/casualsnek/npttf2utf" target="_blank" rel="noopener">npttf2utf</a>, <a href="https://pypi.org/project/nepali_unicoder/" target="_blank" rel="noopener">nepali_unicoder</a>: Preeti and other legacy fonts to Unicode.</li>
+  <li><a href="https://github.com/unjs/unpdf" target="_blank" rel="noopener">unpdf</a>: <code>renderPageAsImage</code> needs a canvas; Cloudflare Workers have none.</li>
+  <li><a href="https://docs.sarvam.ai/api/getting-started/models/sarvam-vision" target="_blank" rel="noopener">Sarvam Vision docs</a> and <a href="https://sarvam.ai/apis/document-digitisation" target="_blank" rel="noopener">Sarvam document digitisation page</a>: 3B model, 23 languages, async jobs, 10 pages per PDF, Rs 1.50 per page listed.</li>
+  <li>Boli repo: <code>docs/inference/01</code>, <code>02</code>, <code>07</code>, <code>08</code>, <code>plan/main/platform/platform-v0.md</code>, <code>plan/repo/platform/inference-platform.md</code>, <code>packages/pdf/src/extract.ts</code>, <code>packages/sarvamai/src/documents.ts</code>.</li>
+</ol>
+</section>
+
+<footer>Written for the Boli owner as a learning guide. Effort estimates and the per-page price example are planning figures, not measurements.</footer>
+</main>
+</div>
+
+<script>
+(function () {
+  document.querySelectorAll('.q').forEach(function (q) {
+    var answer = parseInt(q.getAttribute('data-answer'), 10);
+    var buttons = q.querySelectorAll('.opts button');
+    var why = q.querySelector('.why');
+    buttons.forEach(function (b, i) {
+      b.addEventListener('click', function () {
+        buttons.forEach(function (x) { x.classList.remove('right', 'wrong'); });
+        if (i === answer) { b.classList.add('right'); b.textContent = b.textContent.replace(/^(Correct: )?/, 'Correct: '); }
+        else { b.classList.add('wrong'); buttons[answer].classList.add('right'); }
+        if (why) why.hidden = false;
+      });
+    });
+  });
+  document.querySelectorAll('.codebox').forEach(function (box) {
+    var btn = box.querySelector('.copy');
+    var code = box.querySelector('code');
+    btn.addEventListener('click', function () {
+      var text = code.innerText;
+      try {
+        navigator.clipboard.writeText(text).then(function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); },
+          function () { selectText(code); });
+      } catch (e) { selectText(code); }
+    });
+  });
+  function selectText(el) {
+    var r = document.createRange(); r.selectNodeContents(el);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+})();
+</script>
