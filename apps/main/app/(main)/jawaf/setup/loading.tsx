@@ -7,8 +7,8 @@ import { JAWAF_PAGES } from "../_components/jawaf-pages"
 export default function Loading() {
     const copy = JAWAF_PAGES.setup
     return (
-        <PageSkeleton title={copy.title} icon={false} actions={1} width="full">
-            <div className="mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-6 pb-10 pt-2">
+        <PageSkeleton title={copy.title} icon={false} actions={1}>
+            <div className="flex w-full min-w-0 flex-col gap-6 pb-10 pt-2">
                 <FlowStepsSkeleton count={5} size="sm" />
                 <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
                     <div className="flex flex-col gap-6">
