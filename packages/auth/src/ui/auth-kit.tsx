@@ -41,6 +41,14 @@ export interface AuthSwitchLinks {
 /** How the screens inside a frame draw their titles: the base sans, or an app's serif display face (`font-serif`). */
 type AuthDisplay = "sans" | "serif"
 const AuthDisplayContext = React.createContext<AuthDisplay>("sans")
+/** Where titles, status marks and the form mark sit: centred (the default for serif) or on the left edge of the form. */
+type AuthAlign = "center" | "start"
+const AuthAlignContext = React.createContext<AuthAlign | null>(null)
+function useCentred(): boolean {
+    const display = React.useContext(AuthDisplayContext)
+    const align = React.useContext(AuthAlignContext)
+    return align ? align === "center" : display === "serif"
+}
 
 export function AuthFrame({
     children,
@@ -54,6 +62,12 @@ export function AuthFrame({
     panel,
     formMark,
     display = "sans",
+    align,
+    formTop,
+    formFooter,
+    mobilePanel,
+    panelClassName,
+    formClassName,
     className,
 }: {
     children: React.ReactNode
@@ -66,6 +80,18 @@ export function AuthFrame({
     formMark?: React.ReactNode
     /** Title face for every screen in this frame. */
     display?: AuthDisplay
+    /** Title alignment. Defaults to centred for `serif`, left for `sans`. */
+    align?: AuthAlign
+    /** A row at the top of the form column (all widths) - an app's logo. Replaces the default top bar unless `links` is set. */
+    formTop?: React.ReactNode
+    /** A band along the bottom edge of the form column, below the legal links (all widths). */
+    formFooter?: React.ReactNode
+    /** Below `lg`, where the left panel is hidden: a short band drawn on top of the form column. */
+    mobilePanel?: React.ReactNode
+    /** Classes on the left panel's box (`panel` only), e.g. a width or an inset. Default: half the screen, edge to edge. */
+    panelClassName?: string
+    /** Classes on the form's column (its width; default `max-w-[23rem]`). A wider first-run flow passes `max-w-lg`. */
+    formClassName?: string
     /** Extra classes on the root (an app's ground colour). */
     className?: string
     /** The left panel's headline. Defaults to the product's tagline. */
@@ -88,13 +114,14 @@ export function AuthFrame({
     const year = new Date().getFullYear()
     const list = points ?? DEFAULT_POINTS
 
-    const showHeader = !formMark || Boolean(links)
+    const showHeader = (!formMark && !formTop) || Boolean(links)
 
     return (
         <AuthDisplayContext.Provider value={display}>
+        <AuthAlignContext.Provider value={align ?? null}>
         <div className={cn("flex min-h-dvh w-full bg-white text-neutral-900 dark:bg-[#121314] dark:text-white", className)}>
             {panel ? (
-                <aside className="sticky top-0 hidden h-dvh w-1/2 shrink-0 overflow-hidden lg:block">{panel}</aside>
+                <aside className={cn("sticky top-0 hidden h-dvh w-1/2 shrink-0 overflow-hidden lg:block", panelClassName)}>{panel}</aside>
             ) : (
             <aside className="relative z-10 hidden w-[46%] max-w-[44rem] shrink-0 overflow-hidden bg-[#0d0e10] text-white shadow-[10px_0_40px_-12px_rgba(0,0,0,0.45)] lg:flex">
                 <PanelGlow />
@@ -124,6 +151,8 @@ export function AuthFrame({
 
             {/* Right: the form */}
             <main className="flex min-h-dvh min-w-0 flex-1 flex-col">
+                {mobilePanel && <div className="shrink-0 lg:hidden">{mobilePanel}</div>}
+                {formTop && <div className="flex shrink-0 items-center px-5 pt-6 sm:px-8 lg:px-12 lg:pt-8">{formTop}</div>}
                 {showHeader && (
                 <header className="flex h-16 shrink-0 items-center justify-between gap-3 px-5 sm:px-8">
                     <div className={cn("lg:invisible", formMark && "invisible")}><Brand homeHref={homeHref} eyebrow={eyebrow} tone="auto" /></div>
@@ -139,8 +168,8 @@ export function AuthFrame({
                 )}
 
                 <div className="flex flex-1 items-center justify-center px-5 py-8 sm:px-8">
-                    <div className="w-full max-w-[23rem]">
-                        {formMark && <div className={cn("mb-6 flex", display === "serif" && "justify-center")}>{formMark}</div>}
+                    <div className={cn("w-full max-w-[23rem]", formClassName)}>
+                        {formMark && <div className={cn("mb-6 flex", (align ? align === "center" : display === "serif") && "justify-center")}>{formMark}</div>}
                         {children}
                     </div>
                 </div>
@@ -152,8 +181,10 @@ export function AuthFrame({
                         <AppLink href={legal.privacy} className="hover:text-neutral-900 dark:hover:text-white">Privacy</AppLink>
                     </footer>
                 )}
+                {formFooter && <div className="shrink-0">{formFooter}</div>}
             </main>
         </div>
+        </AuthAlignContext.Provider>
         </AuthDisplayContext.Provider>
     )
 }
@@ -231,11 +262,15 @@ function ProductPreview() {
 
 export function AuthTitle({ title, sub }: { title: React.ReactNode; sub?: React.ReactNode }) {
     const serif = React.useContext(AuthDisplayContext) === "serif"
+    const centred = useCentred()
     return (
-        <div className={cn("mb-7", serif && "text-center")}>
+        <div className={cn("mb-7", centred && "text-center")}>
             <h1 className={cn(
                 "text-neutral-900 dark:text-white",
-                serif ? "font-serif text-[2.5rem] font-normal leading-[1.1] tracking-tight" : "text-2xl font-semibold tracking-tight",
+                // Serif: an app's display face (main: Fraunces Soft) at a light weight and its finest optical size.
+                serif
+                    ? "font-serif text-[2.5rem] font-[360] leading-[1.04] tracking-[-0.03em] [font-variation-settings:'SOFT'_100,'WONK'_0,'opsz'_144]"
+                    : "text-2xl font-semibold tracking-tight",
             )}>{title}</h1>
             {sub && <p className={cn("text-sm leading-relaxed text-neutral-600 dark:text-neutral-400", serif ? "mt-2.5" : "mt-1.5")}>{sub}</p>}
         </div>
@@ -283,9 +318,9 @@ export function Divider({ children = "or" }: { children?: React.ReactNode }) {
 
 /** A status mark for one-line states (sent, done, failed), above the title. */
 export function StatusMark({ kind }: { kind: "mail" | "done" | "error" | "key" }) {
-    const serif = React.useContext(AuthDisplayContext) === "serif"
+    const centred = useCentred()
     return (
-        <span className={cn("mb-5 grid size-11 place-items-center rounded-xl border border-neutral-200 bg-white text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white", serif && "mx-auto")}>
+        <span className={cn("mb-5 grid size-11 place-items-center rounded-xl border border-neutral-200 bg-white text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white", centred && "mx-auto")}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 {kind === "mail" && <><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="m4 7 8 6 8-6" /></>}
                 {kind === "done" && <path d="m5 12.5 4.5 4.5L19 7.5" />}
@@ -577,10 +612,12 @@ export function MethodTabs<T extends string>({ value, options, onChange, classNa
 
 /** The form column while an auth route loads (the frame itself stays - it is the layout). Title, `fields`, a button. */
 export function AuthFormSkeleton({ fields = 2, tabs = false }: { fields?: number; tabs?: boolean }) {
+    const serif = React.useContext(AuthDisplayContext) === "serif"
+    const centred = useCentred()
     return (
         <div aria-busy="true" aria-label="Loading">
-            <Skeleton className="h-7 w-40 rounded-lg" />
-            <Skeleton className="mt-2.5 mb-6 h-4 w-64 max-w-full rounded-md" />
+            <Skeleton className={cn("rounded-lg", serif ? "h-10 w-56" : "h-7 w-40", centred && "mx-auto")} />
+            <Skeleton className={cn("mt-2.5 mb-6 h-4 w-64 max-w-full rounded-md", centred && "mx-auto")} />
             {tabs && <Skeleton className="mb-5 h-10 w-full rounded-xl" />}
             <div className="space-y-4">
                 {Array.from({ length: fields }, (_, i) => (

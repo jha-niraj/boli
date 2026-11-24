@@ -147,7 +147,7 @@ export function SignInForm({ google, returnTo, initialMethod, initialEmail, noti
             )}
 
             <MethodTabs<Method>
-                className="rounded-full"
+                className="rounded-full border border-neutral-200 bg-neutral-950/[0.03] dark:border-neutral-800"
                 value={method}
                 onChange={switchMethod}
                 options={[{ value: "password", label: "Password" }, { value: "code", label: "Email code" }]}

@@ -12,6 +12,7 @@ import { cn } from "@repo/ui/lib/utils"
 import { finishOnboarding, saveOnboardingAnswers, saveWelcomeName } from "@/actions/onboarding.action"
 import { BRAND, KURA, ONBOARDING, WELCOME_CREDITS } from "@/lib/boli"
 import { ROUTES } from "@/lib/navigation"
+import { DISPLAY } from "@/components/brand/type"
 import { ONBOARDING_OTHER_MAX, type OnboardingPicks } from "@/lib/settings-values"
 
 export interface WelcomeData {
@@ -141,10 +142,9 @@ export function WelcomeFlow({ data }: { data: WelcomeData }) {
     if (finished) return <FinishScreen />
 
     return (
-        <section className="rounded-3xl border border-boli-line bg-card shadow-[0_20px_50px_-30px_rgba(20,20,20,0.35)] dark:border-neutral-800">
-            <div className="px-6 pt-6 sm:px-8 sm:pt-7">
-                <Progress step={step} />
-            </div>
+        // Flat in the form column of the split frame (art on the left, app/(onboarding)/layout.tsx) - no card of its own.
+        <section>
+            <Progress step={step} />
 
             <form
                 className="flex flex-col"
@@ -153,7 +153,7 @@ export function WelcomeFlow({ data }: { data: WelcomeData }) {
                     if (canContinue && !busy) void onContinue()
                 }}
             >
-                <div className="min-h-[22rem] px-6 py-6 sm:px-8">
+                <div className="min-h-[22rem] py-7">
                     {step === 0 && (
                         <div className="space-y-6">
                             <StepHead title={`Welcome to ${BRAND.name}`} line="Start with your name. It is how your account and your receipts read." />
@@ -208,7 +208,7 @@ export function WelcomeFlow({ data }: { data: WelcomeData }) {
                                         <Label
                                             key={r}
                                             htmlFor={`role-${r}`}
-                                            className="flex h-11 cursor-pointer items-center gap-3 rounded-xl border border-boli-line px-3.5 text-sm font-normal transition-colors hover:bg-boli-ground has-[[data-state=checked]]:border-foreground has-[[data-state=checked]]:bg-boli-ground dark:border-neutral-800 dark:hover:bg-neutral-900 dark:has-[[data-state=checked]]:border-white dark:has-[[data-state=checked]]:bg-neutral-900"
+                                            className="flex h-11 cursor-pointer items-center gap-3 rounded-xl border border-boli-line bg-white px-3.5 text-sm font-normal transition-colors hover:bg-boli-sand/40 has-[[data-state=checked]]:border-foreground dark:border-neutral-800 dark:hover:bg-neutral-900 dark:has-[[data-state=checked]]:border-white dark:has-[[data-state=checked]]:bg-neutral-900"
                                         >
                                             <RadioGroupItem id={`role-${r}`} value={r} />
                                             {r === OTHER ? "Other" : r}
@@ -233,7 +233,7 @@ export function WelcomeFlow({ data }: { data: WelcomeData }) {
                     {error && <p role="alert" className="mt-5 text-sm text-rose-700 dark:text-rose-300">{error}</p>}
                 </div>
 
-                <div className="flex items-center justify-between gap-2 border-t border-boli-line px-6 py-4 sm:px-8 dark:border-neutral-800">
+                <div className="flex items-center justify-between gap-2 pt-2">
                     <Button type="button" variant="ghost" size="sm" className={cn("gap-1.5", step === 0 && "invisible")} disabled={busy} onClick={() => go(step - 1)}>
                         <ArrowLeft className="h-3.5 w-3.5" /> Back
                     </Button>
@@ -268,7 +268,7 @@ function Progress({ step }: { step: number }) {
         <div>
             <div className="flex gap-1.5" role="progressbar" aria-valuemin={1} aria-valuemax={STEP_COUNT} aria-valuenow={step + 1} aria-label="Onboarding progress">
                 {Array.from({ length: STEP_COUNT }, (_, i) => (
-                    <span key={i} className={cn("h-1 flex-1 rounded-full transition-colors duration-300", i <= step ? "bg-boli-crimson" : "bg-boli-sand dark:bg-neutral-800")} />
+                    <span key={i} className={cn("h-1 flex-1 rounded-full transition-colors duration-300", i <= step ? "bg-boli-sky" : "bg-boli-line")} />
                 ))}
             </div>
             <p className="mt-2.5 text-xs text-muted-foreground">Step {step + 1} of {STEP_COUNT}</p>
@@ -279,8 +279,8 @@ function Progress({ step }: { step: number }) {
 function StepHead({ title, line }: { title: string; line: string }) {
     return (
         <div>
-            <h1 className="font-serif text-3xl leading-tight tracking-tight text-foreground sm:text-[2.125rem]">{title}</h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">{line}</p>
+            <h1 className="text-4xl leading-[1.04] text-foreground sm:text-[2.5rem]" style={DISPLAY.display}>{title}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">{line}</p>
         </div>
     )
 }
@@ -352,13 +352,13 @@ function MultiStep({ title, line, options, state, onChange, otherPlaceholder }: 
 
 function FinishScreen() {
     return (
-        <section className="rounded-3xl border border-boli-line bg-card px-6 py-10 text-center shadow-[0_20px_50px_-30px_rgba(20,20,20,0.35)] sm:px-10 dark:border-neutral-800">
-            <p className="font-serif text-7xl leading-none text-boli-crimson-ink dark:text-boli-crimson">{WELCOME_CREDITS}</p>
-            <h1 className="mt-4 font-serif text-3xl leading-tight tracking-tight text-foreground">You have {WELCOME_CREDITS} free credits</h1>
-            <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+        <section>
+            <p className="text-7xl leading-none text-boli-ink" style={DISPLAY.number}>{WELCOME_CREDITS}</p>
+            <h1 className="mt-4 text-4xl leading-[1.04] text-foreground sm:text-[2.5rem]" style={DISPLAY.display}>You have {WELCOME_CREDITS} free credits</h1>
+            <p className="mt-2 max-w-sm text-sm text-muted-foreground">
                 1 credit is Rs 1 and they never expire. Spend them in {KURA.name} or through the API - the price is the same.
             </p>
-            <div className="mt-8 flex flex-col justify-center gap-2.5 sm:flex-row">
+            <div className="mt-8 flex flex-col gap-2.5 sm:flex-row">
                 <Button asChild className="h-10 gap-2 px-5">
                     <AppLink href={ROUTES.kura}><MessagesSquare className="h-4 w-4" />Open {KURA.name}</AppLink>
                 </Button>

@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next"
 import "./boli.css"
+import "@/components/art/art.css"
 import { SITE } from "@repo/core/site"
-import { geistMono, instrumentSerif, interSans } from "./fonts"
+import { fraunces, geistMono, instrumentSans } from "./fonts"
 import { Providers } from "./providers"
 
 export const metadata: Metadata = {
@@ -39,7 +40,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
-        <html lang="en" suppressHydrationWarning className={`${interSans.variable} ${instrumentSerif.variable} ${geistMono.variable}`}>
+        <html lang="en" suppressHydrationWarning className={`${instrumentSans.variable} ${fraunces.variable} ${geistMono.variable}`}>
             <body className="bg-background font-sans text-foreground antialiased dark:bg-[#121314] dark:text-neutral-100">
                 <Providers>{children}</Providers>
             </body>

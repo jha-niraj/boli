@@ -3,12 +3,22 @@
  * It imports the shared base and then sets Boli's tokens on top, so the admin app is untouched.
  *
  * Use the utilities this file adds, never hex values in components:
- *   bg-boli-ground  text-boli-ink  text-boli-text  bg-boli-crimson  text-boli-crimson-ink  bg-boli-blue  text-boli-blue
- *   border-boli-line  bg-boli-sand  font-serif (Instrument Serif)
+ *   ground and ink:  bg-boli-ground  bg-boli-sand  border-boli-line  text-boli-ink  text-boli-text  text-boli-muted
+ *   the accent (C5 "Clear Himalayan sky"):
+ *     bg-boli-sky (= bg-boli-sky-fill)               the fill - bars, focus rings, washes; never body text
+ *     bg-boli-sky-dark                               the fill on near-black (#6cb2ef): `bg-boli-sky dark:bg-boli-sky-dark`
+ *     text-boli-sky-ink                              text-safe sky (links, eyebrows): #1d64a3 light, #6cb2ef dark
+ *     bg-boli-sky-soft  bg-boli-sky-wash             tints for badges and panels (switch in dark mode)
+ *   crimson: ONLY the logo's dot and true error / out-of-credits states:
+ *     bg-boli-crimson  text-boli-crimson-ink  bg-boli-crimson-soft  fill-boli-crimson-lift (the dot on dark)
+ *   faces (T1): font-serif = Fraunces Soft (display), font-sans = Instrument Sans (UI, body), font-mono = Geist Mono
+ * `boli-blue` and `boli-blue-soft` are kept as aliases of the sky ink and tint so older links and charts follow the
+ * accent; prefer the `boli-sky-*` names in new code.
  */
 @import "@repo/ui/styles/globals.css";
 
 @theme {
+    /* Fraunces (app/fonts.ts). Its SOFT and WONK settings are applied by the `.font-serif` rule below. */
     --font-serif: var(--font-boli-serif, Georgia), "Iowan Old Style", Georgia, serif;
 
     /* Warm off-white ground (Sarvam-like), near-black ink. */
@@ -18,15 +28,26 @@
     --color-boli-ink: #141414;
     --color-boli-text: #3a3a3a;
     --color-boli-muted: #6b6560;
-    /* Nepal crimson: the fill for primary public CTAs; `-ink` is the darker shade that passes contrast as TEXT on the ground. */
+    /*
+     * Nepal crimson: the logo's dot and states where colour IS the datum (an error, out of credits) - nothing else.
+     * `-ink` passes contrast as TEXT on the ground; `-lift` is the dot on near-black.
+     */
     --color-boli-crimson: #c8102e;
     --color-boli-crimson-ink: #a50e26;
     --color-boli-crimson-soft: #fbe9ec;
-    /* Deep blue (the flag's border): links, charts, the secondary accent. */
-    --color-boli-blue: #1f3f8f;
-    --color-boli-blue-soft: #e8edf8;
-    /* Himalaya snow and sky for illustrations. */
-    --color-boli-sky: #cfe0f3;
+    --color-boli-crimson-lift: #e4344d;
+    /*
+     * The accent, C5 "Clear Himalayan sky" (owner, 2026-11-24). `boli-sky` is the fill (3:1 on white - bars, rings,
+     * washes). The ink and tints switch with the theme - they live in the `@theme inline` block below.
+     */
+    --color-boli-sky: #3d8fd6;
+    --color-boli-sky-fill: #3d8fd6;
+    --color-boli-sky-dark: #6cb2ef;
+    /* Fixed values for surfaces that never switch (a dark code panel, art). */
+    --color-boli-sky-ink-light: #1d64a3;
+    --color-boli-sky-ink-dark: #6cb2ef;
+    /* Illustration tints (the older pixel Himalaya). */
+    --color-boli-sky-pale: #cfe0f3;
     --color-boli-snow: #ffffff;
     /* Pixel-Himalaya palette (components/brand/pixel-himalaya.tsx): sky steps, rock, forest, terraces, brick, gold. */
     --color-boli-sky-deep: #a9c6e8;
@@ -44,18 +65,65 @@
     --color-boli-gold: #d9a521;
 }
 
+/*
+ * Theme-switching sky tokens. `inline` makes each utility read the variable where it is used, so a `.dark` subtree
+ * gets the dark value. `boli-blue` / `boli-blue-soft` are aliases kept for older links and charts.
+ */
+@theme inline {
+    --color-boli-sky-ink: var(--boli-sky-ink);
+    --color-boli-sky-soft: var(--boli-sky-soft);
+    --color-boli-sky-wash: var(--boli-sky-wash);
+    --color-boli-blue: var(--boli-sky-ink);
+    --color-boli-blue-soft: var(--boli-sky-soft);
+}
+
+/*
+ * The sky's theme-switching values, and the shared tokens mapped onto it: focus rings and the first chart series are
+ * the sky fill; links (`boli-blue`, `boli-sky-ink`) the text-safe sky. Buttons stay near-black pills (`--primary`),
+ * white pills in dark (the base dark palette already does that).
+ */
+:root {
+    --boli-sky-ink: #1d64a3;
+    --boli-sky-soft: #e4f0fb;
+    --boli-sky-wash: #cfe4f7;
+    --ring: #3d8fd6;
+    --sidebar-ring: #3d8fd6;
+    --chart-1: #3d8fd6;
+}
+.dark {
+    --boli-sky-ink: #6cb2ef;
+    --boli-sky-soft: #152533;
+    --boli-sky-wash: #1b3248;
+    --ring: #6cb2ef;
+    --sidebar-ring: #6cb2ef;
+    --chart-1: #6cb2ef;
+}
+
 /* Light: the page ground is the warm off-white; cards stay white so they lift off it. Dark keeps the base palette. */
 :root:not(.dark) {
     --background: #f7f5f3;
     --foreground: #141414;
     --primary: #141414;
     --primary-foreground: #ffffff;
-    --ring: #a50e26;
+}
+
+/*
+ * Fraunces as the owner approved it: SOFT 100 (the rounded terminals), WONK off (its leaning n/h/m read as a typo).
+ * The optical size follows the font size on its own (font-optical-sizing: auto). In the base layer, so a utility or an
+ * inline style (`serif()` from components/brand/type.ts) that hand-sets opsz or weight wins.
+ */
+@layer base {
+    .font-serif {
+        font-variation-settings: "SOFT" 100, "WONK" 0;
+        font-optical-sizing: auto;
+    }
 }
 
 /*
  * Pills (owner, Q25). Unlayered on purpose: unlayered CSS beats Tailwind's layered utilities, so `rounded-xl` written
  * inside a shared component cannot undo it. Multi-line textareas get a large radius instead of a full pill.
+ * `data-no-pill` opts a control out: Kura's composer textarea sits flat inside its own rounded box (the box is the one
+ * surface), so it must have no radius of its own.
  */
 [data-slot="button"],
 [role="combobox"],
@@ -67,8 +135,13 @@ textarea:not([data-no-pill]) {
     border-radius: 1.25rem;
 }
 
-/* Text selection in the brand colour. */
+/* Text selection in the sky tint. */
 ::selection {
-    background: #fbe9ec;
+    background: #cfe4f7;
     color: #141414;
 }
+
+/* Anchor links (nav "Pricing") glide instead of jumping; off for people who ask for less motion. */
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+[id] { scroll-margin-top: 5rem; }

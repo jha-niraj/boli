@@ -15,16 +15,27 @@ this file wins**. The build plan: `plan/main/platform/platform-v0.md`. The share
   id is `boli-chat`, labelled "Gemma 4 E4B, 4-bit".
 - **Credits.** 1 credit = Rs 1 (NPR). Stored in integer micro-credits (`balance_micro`, `amount_micro`, `cost_micro`);
   shown with 2 decimals via `formatCredits`. Prices, limits and copy come from `lib/boli.ts` - never a literal.
-- **Fonts.** Instrument Serif for display headings (h1/h2 on public pages, big numbers), Inter for all UI and body
-  text, Geist Mono for code. Loaded with `next/font/local` in `app/fonts.ts`.
-- **Colour.** Warm off-white ground, near-black ink, one Nepal crimson accent used sparingly (primary buttons on public
-  pages, the active rail item marker, key highlights), deep blue as a secondary for links and charts. Tokens live in
-  `app/boli.css`; use the Tailwind classes it maps (`bg-background`, `text-foreground`, `text-boli-crimson`, ...),
-  never hand-picked hex values in components.
+- **Fonts (T1).** Fraunces with SOFT 100, WONK off (`font-serif`) for display: public h1/h2, auth and welcome titles,
+  big numbers. Instrument Sans (`font-sans`, body at 400) for all UI and body text. Geist Mono (`font-mono`) for code.
+  Loaded with `next/font/local` in `app/fonts.ts` (Instrument Sans under `--font-geist-sans` so @repo/ui picks it up).
+  A hand-set optical size or weight goes through `serif()` / `DISPLAY` from `components/brand/type.ts` (inline style).
+- **Colour (C5 "Clear Himalayan sky").** Warm off-white ground, near-black ink, ONE accent: the sky. `bg-boli-sky`
+  (#3d8fd6, `boli-sky-dark` #6cb2ef on near-black) for bars, rings and washes; `text-boli-sky-ink` (#1d64a3 light,
+  #6cb2ef dark, switches by itself) for links and eyebrows; `bg-boli-sky-soft` / `bg-boli-sky-wash` for tints. Focus
+  rings and the first chart series are mapped to the sky. Buttons are near-black pills (white in dark), the rail is
+  neutral. **Crimson only in the logo's dot and true error / out-of-credits states.** Tokens live in `app/boli.css`; use
+  its classes, never hand-picked hex values in components (raw values for SVG fills: `components/brand/sky.ts`).
+- **Logo (R2 "Bo-li").** Two crests and a crimson end dot. `BoliLogo` (`components/brand/boli-logo.tsx`: the mark +
+  "Boli" in Fraunces Soft 500; `size` in px or a text class) and `BoliMark` / `BoliAvatar`
+  (`components/brand/boli-mark.tsx`). Below 32px the heavier small cut draws automatically. Never redraw it by hand;
+  favicon `app/icon.svg`, `app/apple-icon.png`, `public/icon-192.png` and `icon-512.png` come from the same geometry.
 - **Pills.** Buttons, inputs, select triggers and textareas are fully rounded in this app (overrides the base
   `rounded-xl` rule below; `app/boli.css` enforces it). Cards and sheets keep their normal radius.
 - **Public pages** (landing, about, docs, legal, auth) are light-first and must read as a professional product: real
-  typographic hierarchy, generous spacing, the pixel-Himalaya and line ornaments from `components/brand/`.
+  typographic hierarchy, generous spacing, the approved pixel art from `components/art/` (valley, story, Dhaka, Kura
+  scene, team, footer wordmark; wrap art in `ArtRoot` from `components/art/art-root.tsx` - art.css is loaded once by the
+  root layout). Auth and welcome share one split frame: the golden valley on the LEFT, the form on the right under the
+  logo with a Dhaka band at the bottom (`components/brand/auth-art.tsx`).
 - **Dashboard** keeps light and dark.
 - **API calls store metadata only** (no prompts or answers). Kura conversations are stored (they are the user's own).
 

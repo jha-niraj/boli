@@ -1,20 +1,37 @@
 import { cn } from "@repo/ui/lib/utils"
 import { BRAND } from "@/lib/boli"
+import { BoliMark, SMALL_CUT_BELOW } from "./boli-mark"
+import { serif } from "./type"
+
+/** Lockup tuning matched to the mark's stroke (approved R2 sheet): Fraunces Soft 500, opsz 24, mark 1em, gap 0.26em. */
+const LOCKUP = { weight: 500, opsz: 24, tracking: "-0.012em", gapEm: 0.26 } as const
 
 /**
- * The Boli mark: a speech bubble in Nepal crimson holding two white peaks and a sun - talk (boli) and the Himalaya in
- * one glyph. With `wordmark` (default) the name follows in Instrument Serif. Size it with `className` on the root
- * (the mark is 1.75em of the root's font size, so `text-xl` makes a bigger logo).
+ * The Boli logo: the R2 "Bo-li" mark (./boli-mark.tsx), then "Boli" in Fraunces Soft. Ink is currentColor - near-black
+ * on light, white on dark (`text-boli-ink dark:text-white` by default; override with a text class). The dot stays
+ * crimson, the only crimson in the chrome.
+ *
+ * Size it with `size` (the name's font size in px; also picks the mark's cut) or with a text class (`text-2xl`). The
+ * mark is 1em of that size. With `wordmark={false}` the mark renders alone at 1.5em and carries the accessible name.
+ * Sizes that read well: 19 (rail), 24 (site nav), 26 (auth), 44+ (hero lockups).
  */
-export function BoliLogo({ className, wordmark = true }: { className?: string; wordmark?: boolean }) {
+export function BoliLogo({ className, wordmark = true, size }: { className?: string; wordmark?: boolean; size?: number }) {
+    const fontSize = size != null ? { fontSize: size } : undefined
+    if (!wordmark) {
+        const cut = size != null && size * 1.5 >= SMALL_CUT_BELOW ? "full" : "small"
+        return (
+            <span className={cn("inline-flex items-center text-boli-ink dark:text-white", className)} style={fontSize}>
+                <BoliMark cut={cut} className="size-[1.5em]" title={BRAND.name} />
+            </span>
+        )
+    }
+    const cut = size != null && size >= SMALL_CUT_BELOW ? "full" : "small"
     return (
-        <span className={cn("inline-flex items-center gap-2 text-boli-ink", className)}>
-            <svg viewBox="0 0 32 32" aria-hidden={wordmark} role={wordmark ? undefined : "img"} aria-label={wordmark ? undefined : BRAND.name} className="h-[1.75em] w-[1.75em] shrink-0">
-                <path className="fill-boli-crimson" d="M8 3h16a5 5 0 0 1 5 5v12a5 5 0 0 1-5 5h-9.5L9 29.5V25H8a5 5 0 0 1-5-5V8a5 5 0 0 1 5-5Z" />
-                <path className="fill-boli-snow" d="M6.5 21 12.5 11.5l3 4.5 3.5-6.5 6.5 11.5Z" />
-                <circle className="fill-boli-snow" cx="22.5" cy="8.5" r="1.6" />
-            </svg>
-            {wordmark ? <span className="font-serif text-[1.5em] leading-none tracking-tight">{BRAND.name}</span> : null}
+        <span className={cn("inline-flex items-center leading-none text-boli-ink dark:text-white", className)} style={{ gap: `${LOCKUP.gapEm}em`, ...fontSize }}>
+            <BoliMark cut={cut} className="size-[1em]" />
+            <span className="leading-none" style={serif(LOCKUP.weight, LOCKUP.opsz, LOCKUP.tracking)}>
+                {BRAND.name}
+            </span>
         </span>
     )
 }
