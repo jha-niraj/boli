@@ -57,3 +57,11 @@ ml/eval/datasets/
 
 # Downloaded model weights
 ml/models/
+
+# Local Python environments (ml experiments)
+ml/.venv*/
+# Downloaded test documents stay outside git (kept in ../boli-docintel-files); source.md in each folder has the URL
+ml/docintel/testset/**/*.pdf
+ml/docintel/testset/**/*.jpg
+ml/docintel/testset/**/*.jpeg
+ml/docintel/testset/**/*.png

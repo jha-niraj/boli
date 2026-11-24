@@ -1,0 +1,15 @@
+file: moics-press29.png
+source: image  pass: both  schema: generic  dpi: 150  pages: 1-1
+page 1 pass1: 29.5s, 1230 in / 630 out, finish=stop
+page 1 fields: 11.9s, 1319 in / 391 out, finish=stop
+
+file: moics-press29.png
+source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end
+page 1 tesseract fields: 11.3s, 884 in / 357 out, finish=stop
+
+file: moics-press29.png
+source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end
+page 1 hybrid fields: 11.6s, 2135 in / 365 out, finish=stop
+
+score: null
+wall: 66.6s

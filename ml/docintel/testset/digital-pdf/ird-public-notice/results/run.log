@@ -1,0 +1,14 @@
+file: ird-public-notice.pdf
+source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1
+text layer: 2528 chars, check: ok
+text-route fields: 20.0s, 1195 in / 526 out, finish=stop
+
+file: ird-public-notice.pdf
+source: image  pass: text  schema: bill  dpi: 150  pages: 1-1
+page 1 pass1: 20.7s, 1230 in / 620 out, finish=stop
+
+file: ird-public-notice.pdf
+source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1
+
+score: {"ref_chars": 2333, "hyp_chars": 1947, "length_ratio": 0.83, "cer": 0.3108, "cer_nospace": 0.3356, "ref_digits": 99, "hyp_digits": 87, "digit_errors": 17, "digit_acc": 0.8283, "digit_acc_exact": 0.0202, "nep_to_eng": 0, "eng_to_nep": 80}
+wall: 45.3s

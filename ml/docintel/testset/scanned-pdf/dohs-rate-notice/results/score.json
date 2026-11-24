@@ -1,0 +1,16 @@
+{
+  "category": "scanned-pdf",
+  "layer": "junk-ocr",
+  "wall_s": 56.0,
+  "log": [
+    "source: auto  pass: text  schema: bill  dpi: 150  pages: 1-1",
+    "text layer: 1522 chars, check: no-devanagari",
+    "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+    "page 1 pass1: 20.7s, 1220 in / 427 out, finish=stop",
+    "page 1 fields: 9.7s, 1309 in / 237 out, finish=stop",
+    "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+    "page 1 tesseract fields: 10.7s, 499 in / 265 out, finish=stop",
+    "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+    "page 1 hybrid fields: 10.6s, 1740 in / 245 out, finish=stop"
+  ]
+}

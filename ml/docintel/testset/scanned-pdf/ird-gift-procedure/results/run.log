@@ -1,0 +1,19 @@
+file: ird-gift-procedure.pdf
+source: auto  pass: text  schema: bill  dpi: 150  pages: 1-1
+text layer: 2033 chars, check: no-devanagari
+
+file: ird-gift-procedure.pdf
+source: image  pass: both  schema: generic  dpi: 150  pages: 1-1
+page 1 pass1: 15.1s, 1220 in / 372 out, finish=stop
+page 1 fields: 9.8s, 1309 in / 334 out, finish=stop
+
+file: ird-gift-procedure.pdf
+source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1
+page 1 tesseract fields: 9.8s, 557 in / 323 out, finish=stop
+
+file: ird-gift-procedure.pdf
+source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1
+page 1 hybrid fields: 9.9s, 1798 in / 312 out, finish=stop
+
+score: null
+wall: 47.3s

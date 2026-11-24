@@ -1,0 +1,28 @@
+<!-- page 1 -->
+Government of Nepal
+Ministry of Home Affairs
+Armed Police Force, Nepal
+Nepal A.P.F Hospital, Procurement Section,
+Balbabu, Kathmandu, Nepal
+
+Amendment Notice
+Date: 2083/08/03
+
+Reference to our notice (APFH/NCB/G/06/2083/084) Dated 2083/07/13 published on Rajdhani Daily
+Newspaper. This is to inform all concerned parties that following point has been amended.
+
+Changes made in Supply, Delivery & Installation of Anesthesia Relevant Equipments (Contract ID.
+No APFH/NCB/G/06/2083/084/003)
+
+| S.N | Existing point | Amended point |
+| :--- | :--- | :--- |
+| 1. | A complete set of Bidding Documents may be purchased from the office Nepal A.P.F Hospital, Procurement Section, Balbabu Kathmandu and District treasury controller office Tripureshwor by eligible Bidders on the submission of a written application, along with the copy of company/firm registration certificate and upon payment of a non-refundable fee of mentioned respective column till 03 Mansir 2083 during office hours. | A complete set of Bidding Documents may be purchased from the office Nepal A.P.F Hospital, Procurement Section, Balbabu Kathmandu and District treasury controller office Tripureshwor by eligible Bidders on the submission of a written application, along with the copy of company/firm registration certificate and upon payment of a non-refundable fee of mentioned respective column till 11 Mansir 2083 during office hours. |
+| 2. | Sealed bids must be submitted to the office Nepal A.P.F Hospital Procurement Section Balbabu Kathmandu by hand/courier on or before 12:00 Hrs. On 04 Mansir 2083. Bids received after this deadline will be rejected. | Sealed bids must be submitted to the office Nepal A.P.F Hospital Procurement Section Balbabu Kathmandu by hand/courier on or before 12:00 Hrs. On 14 Mansir 2083. Bids received after this deadline will be rejected. |
+| 3. | The bids will be opened in the presence of Bidders' representatives who choose to attend at 13:00 hrs on 04 Mansir 2083 at the office Nepal A.P.F Hospital Procurement Section Balbabu Kathmandu. Bids must be valid for a period of 90 days from the bid submission deadline and must be accompanied by original copy of the bid security amounting to a minimum below mentioned respective column, which shall be valid for 30 days beyond the validity period of the bid (i.e. 2083/12/05 - March 2027) | The bids will be opened in the presence of Bidders' representatives who choose to attend at 13:00 hrs on 14 Mansir 2083 at the office Nepal A.P.F Hospital Procurement Section Balbabu Kathmandu. Bids must be valid for a period of 90 days from the bid submission deadline and must be accompanied by original copy of the bid security amounting to a minimum below mentioned respective column, which shall be valid for 30 days beyond the validity period of the bid (i.e. 2083/12/15 - 29- March 2027) |
+| 4. | ITB 21.1 The bid must be accompanied by bid security amounting as mentioned in page no. 2 (Two) which shall be valid for minimum 30 days beyond the bid validity period (i.e. 2083-12-05 19- March 2027) | ITB 21.1 The bid must be accompanied by bid security amounting as mentioned in page no. 2 (Two) which shall be valid for minimum 30 days beyond the bid validity period (i.e. 2083-12-29- March 2027) |
+| 5. | ITB 24.1 Date: 2083-08-04 | ITB 24.1 Date: 2083-08-14 |
+| 6. | ITB 27.1 Date: 2083-08-04 | ITB 27.1 Date: 2083-08-14 |
+| | ABG Machine | Amended Specification |
+| 4.2 | Current measure; pH, pCO2, pO2, Hb, Barometric Pressure, Na+, K+, Ca++, Cl-, urea and SrCreatinine& Blood sugar. | Shall measure; pH, pCO2, pO2, Hb, Barometric Pressure, Na+, K+, Ca++, Cl- & Blood sugar. |
+
+All other terms and conditions of above mentioned IFB No. APFH/NCB/G/06/2083/084 shall remain the same.

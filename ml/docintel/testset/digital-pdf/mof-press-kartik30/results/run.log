@@ -1,0 +1,14 @@
+file: mof-press-kartik30.pdf
+source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1
+text layer: 1073 chars, check: ok
+text-route fields: 9.6s, 544 in / 295 out, finish=stop
+
+file: mof-press-kartik30.pdf
+source: image  pass: text  schema: bill  dpi: 150  pages: 1-1
+page 1 pass1: 8.3s, 1230 in / 286 out, finish=stop
+
+file: mof-press-kartik30.pdf
+source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1
+
+score: {"ref_chars": 896, "hyp_chars": 886, "length_ratio": 0.99, "cer": 0.2667, "cer_nospace": 0.2872, "ref_digits": 23, "hyp_digits": 23, "digit_errors": 1, "digit_acc": 0.9565, "digit_acc_exact": 0.9565, "nep_to_eng": 0, "eng_to_nep": 0}
+wall: 19.4s

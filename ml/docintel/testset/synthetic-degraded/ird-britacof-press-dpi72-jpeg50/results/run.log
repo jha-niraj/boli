@@ -1,0 +1,14 @@
+file: ird-britacof-press-dpi72-jpeg50.jpg
+source: image  pass: text  schema: bill  dpi: 150  pages: 1-end
+page 1 pass1: 17.1s, 1230 in / 426 out, finish=stop
+
+file: ird-britacof-press-dpi72-jpeg50.jpg
+source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end
+page 1 tesseract fields: 9.9s, 659 in / 306 out, finish=stop
+
+file: ird-britacof-press-dpi72-jpeg50.jpg
+source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end
+page 1 hybrid fields: 16.9s, 1910 in / 395 out, finish=stop
+
+score: {"ref_chars": 1781, "hyp_chars": 1550, "length_ratio": 0.87, "cer": 0.2847, "cer_nospace": 0.3081, "ref_digits": 28, "hyp_digits": 19, "digit_errors": 12, "digit_acc": 0.5714, "digit_acc_exact": 0.5357, "nep_to_eng": 0, "eng_to_nep": 1}
+wall: 46.7s

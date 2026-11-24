@@ -1,0 +1,19 @@
+file: customs-auction-1.pdf
+source: auto  pass: text  schema: bill  dpi: 150  pages: 1-1
+text layer: 3738 chars, check: no-devanagari
+
+file: customs-auction-1.pdf
+source: image  pass: both  schema: generic  dpi: 150  pages: 1-1
+page 1 pass1: 28.2s, 1230 in / 935 out, finish=stop
+page 1 fields: 19.7s, 1319 in / 661 out, finish=stop
+
+file: customs-auction-1.pdf
+source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1
+page 1 tesseract fields: 20.5s, 1395 in / 654 out, finish=stop
+
+file: customs-auction-1.pdf
+source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1
+page 1 hybrid fields: 21.6s, 2646 in / 656 out, finish=stop
+
+score: null
+wall: 95.1s

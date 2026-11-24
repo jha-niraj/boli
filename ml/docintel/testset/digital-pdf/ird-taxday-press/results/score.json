@@ -1,0 +1,42 @@
+{
+  "category": "digital-pdf",
+  "layer": "unicode-devanagari",
+  "score": {
+    "ref_chars": 2126,
+    "hyp_chars": 1938,
+    "length_ratio": 0.91,
+    "cer": 0.1402,
+    "cer_nospace": 0.1399,
+    "ref_digits": 25,
+    "hyp_digits": 23,
+    "digit_errors": 5,
+    "digit_acc": 0.8,
+    "digit_acc_exact": 0.68,
+    "nep_to_eng": 0,
+    "eng_to_nep": 3
+  },
+  "key": "text layer",
+  "score_tesseract": {
+    "ref_chars": 2126,
+    "hyp_chars": 2104,
+    "length_ratio": 0.99,
+    "cer": 0.0517,
+    "cer_nospace": 0.0475,
+    "ref_digits": 25,
+    "hyp_digits": 24,
+    "digit_errors": 1,
+    "digit_acc": 0.96,
+    "digit_acc_exact": 0.84,
+    "nep_to_eng": 0,
+    "eng_to_nep": 3
+  },
+  "wall_s": 29.8,
+  "log": [
+    "source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+    "text layer: 2500 chars, check: ok",
+    "text-route fields: 9.8s, 859 in / 257 out, finish=stop",
+    "source: image  pass: text  schema: bill  dpi: 150  pages: 1-1",
+    "page 1 pass1: 16.6s, 1220 in / 550 out, finish=stop",
+    "source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1"
+  ]
+}

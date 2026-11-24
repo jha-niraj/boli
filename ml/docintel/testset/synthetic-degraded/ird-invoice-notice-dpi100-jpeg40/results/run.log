@@ -1,0 +1,14 @@
+file: ird-invoice-notice-dpi100-jpeg40.jpg
+source: image  pass: text  schema: bill  dpi: 150  pages: 1-end
+page 1 pass1: 9.8s, 1230 in / 170 out, finish=stop
+
+file: ird-invoice-notice-dpi100-jpeg40.jpg
+source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end
+page 1 tesseract fields: 9.5s, 346 in / 283 out, finish=stop
+
+file: ird-invoice-notice-dpi100-jpeg40.jpg
+source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end
+page 1 hybrid fields: 12.8s, 1597 in / 243 out, finish=stop
+
+score: {"ref_chars": 660, "hyp_chars": 589, "length_ratio": 0.89, "cer": 0.2727, "cer_nospace": 0.3046, "ref_digits": 6, "hyp_digits": 6, "digit_errors": 1, "digit_acc": 0.8333, "digit_acc_exact": 0.0, "nep_to_eng": 0, "eng_to_nep": 5}
+wall: 33.4s

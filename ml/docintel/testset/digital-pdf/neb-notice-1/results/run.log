@@ -1,0 +1,14 @@
+file: neb-notice-1.pdf
+source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1
+text layer: 1264 chars, check: legacy-font
+text-route fields: 18.6s, 767 in / 630 out, finish=stop
+
+file: neb-notice-1.pdf
+source: image  pass: text  schema: bill  dpi: 150  pages: 1-1
+page 1 pass1: 9.5s, 1230 in / 301 out, finish=stop
+
+file: neb-notice-1.pdf
+source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1
+
+score: {"ref_chars": 1023, "hyp_chars": 974, "length_ratio": 0.95, "cer": 0.0987, "cer_nospace": 0.1091, "ref_digits": 44, "hyp_digits": 44, "digit_errors": 1, "digit_acc": 0.9773, "digit_acc_exact": 0.9773, "nep_to_eng": 0, "eng_to_nep": 0}
+wall: 29.8s

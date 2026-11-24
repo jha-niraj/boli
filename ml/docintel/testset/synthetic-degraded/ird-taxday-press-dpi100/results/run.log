@@ -1,0 +1,14 @@
+file: ird-taxday-press-dpi100.png
+source: image  pass: text  schema: bill  dpi: 150  pages: 1-end
+page 1 pass1: 20.8s, 1220 in / 577 out, finish=stop
+
+file: ird-taxday-press-dpi100.png
+source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end
+page 1 tesseract fields: 9.2s, 822 in / 295 out, finish=stop
+
+file: ird-taxday-press-dpi100.png
+source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end
+page 1 hybrid fields: 16.2s, 2063 in / 365 out, finish=stop
+
+score: {"ref_chars": 2126, "hyp_chars": 2012, "length_ratio": 0.95, "cer": 0.151, "cer_nospace": 0.1515, "ref_digits": 25, "hyp_digits": 23, "digit_errors": 5, "digit_acc": 0.8, "digit_acc_exact": 0.68, "nep_to_eng": 0, "eng_to_nep": 3}
+wall: 49.8s

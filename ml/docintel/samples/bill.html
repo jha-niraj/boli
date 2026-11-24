@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ne">
+<head>
+<meta charset="utf-8">
+<title>Sample bill - Boli document intelligence test</title>
+<style>
+  @page { size: A4; margin: 18mm; }
+  body { font-family: "Kohinoor Devanagari", "Devanagari Sangam MN", "Helvetica Neue", sans-serif; color: #111; font-size: 13px; }
+  h1 { font-size: 20px; margin: 0; }
+  .sub { color: #444; margin: 2px 0 14px; }
+  .row { display: flex; justify-content: space-between; margin: 3px 0; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
+  th { background: #eee; }
+  .total { font-weight: bold; font-size: 15px; }
+  .note { margin-top: 16px; padding: 8px; border: 1px dashed #888; }
+  .fake { margin-top: 18px; color: #777; font-size: 11px; }
+</style>
+</head>
+<body>
+  <h1>नमुना विद्युत बिल / Sample Electricity Bill</h1>
+  <p class="sub">बोली परीक्षण विद्युत कम्पनी (Boli Test Power Co.) - काठमाडौं</p>
+
+  <div class="row"><span>ग्राहकको नाम / Customer name:</span><span>राम बहादुर थापा (Ram Bahadur Thapa)</span></div>
+  <div class="row"><span>ग्राहक नम्बर / Customer no.:</span><span>०१२-३४५-६७८</span></div>
+  <div class="row"><span>बिल मिति / Bill date:</span><span>२०८२/०८/०८ (BS)</span></div>
+  <div class="row"><span>भुक्तानी अन्तिम मिति / Due date:</span><span>2025-12-08</span></div>
+  <div class="row"><span>ठेगाना / Address:</span><span>वडा नं. ५, ललितपुर / Ward 5, Lalitpur</span></div>
+
+  <table>
+    <tr><th>विवरण / Item</th><th>युनिट / Units</th><th>दर / Rate (Rs)</th><th>रकम / Amount (Rs)</th></tr>
+    <tr><td>न्यूनतम शुल्क / Minimum charge</td><td>-</td><td>-</td><td>३००.००</td></tr>
+    <tr><td>ऊर्जा खपत / Energy used</td><td>१४२</td><td>९.५०</td><td>1,349.00</td></tr>
+    <tr><td>सेवा शुल्क / Service fee</td><td>-</td><td>-</td><td>50.00</td></tr>
+    <tr><td class="total">जम्मा / Total</td><td></td><td></td><td class="total">रु. १,६९९.००</td></tr>
+  </table>
+
+  <p class="note">कृपया अन्तिम मितिभित्र भुक्तानी गर्नुहोस्। Please pay by the due date via eSewa or Khalti. Late fee: 5% after the due date.</p>
+  <p class="fake">This is a made-up sample for testing Boli's document reading. Not a real bill, person or company.</p>
+</body>
+</html>

@@ -1,0 +1,15 @@
+file: police-cmat.pdf
+source: image  pass: both  schema: generic  dpi: 150  pages: 1-1
+page 1 pass1: 14.5s, 1220 in / 347 out, finish=stop
+page 1 fields: 11.5s, 1309 in / 368 out, finish=stop
+
+file: police-cmat.pdf
+source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1
+page 1 tesseract fields: 10.3s, 610 in / 320 out, finish=stop
+
+file: police-cmat.pdf
+source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1
+page 1 hybrid fields: 10.6s, 1851 in / 320 out, finish=stop
+
+score: null
+wall: 54.0s

@@ -1,0 +1,42 @@
+{
+  "category": "digital-pdf",
+  "layer": "legacy-preeti",
+  "score": {
+    "ref_chars": 2737,
+    "hyp_chars": 1967,
+    "length_ratio": 0.72,
+    "cer": 0.5027,
+    "cer_nospace": 0.5209,
+    "ref_digits": 135,
+    "hyp_digits": 76,
+    "digit_errors": 70,
+    "digit_acc": 0.4815,
+    "digit_acc_exact": 0.0593,
+    "nep_to_eng": 0,
+    "eng_to_nep": 57
+  },
+  "key": "text layer (Preeti converted)",
+  "score_tesseract": {
+    "ref_chars": 2737,
+    "hyp_chars": 2746,
+    "length_ratio": 1.0,
+    "cer": 0.3394,
+    "cer_nospace": 0.3442,
+    "ref_digits": 135,
+    "hyp_digits": 129,
+    "digit_errors": 41,
+    "digit_acc": 0.6963,
+    "digit_acc_exact": 0.4963,
+    "nep_to_eng": 2,
+    "eng_to_nep": 27
+  },
+  "wall_s": 61.3,
+  "log": [
+    "source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+    "text layer: 12083 chars, check: legacy-font",
+    "text-route fields: 29.7s, 2198 in / 919 out, finish=stop",
+    "source: image  pass: text  schema: bill  dpi: 150  pages: 1-1",
+    "page 1 pass1: 27.2s, 1220 in / 729 out, finish=stop",
+    "source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1"
+  ]
+}

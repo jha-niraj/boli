@@ -1,0 +1,849 @@
+<title>Building Boli's Document Model</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap">
+<style>
+/* Layout: second chapter of the document-intelligence series. One reading column with a sticky contents rail on wide screens; every diagram sits on a fixed light "paper" panel with black text on light fills, in both themes. */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --ink: #15171c;
+  --muted: #4a5060;
+  --line: #dce0e7;
+  --accent: #1d4fb8;      /* ink-stamp blue, shared with chapter one */
+  --accent-soft: #e6edfb;
+  --stamp: #b3261e;       /* seal red, used sparingly */
+  --good: #1f7a45;
+  --good-soft: #e3f3e9;
+  --bad-soft: #fbe7e5;
+  --code-bg: #eff1f5;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-deva: "Noto Sans Devanagari", "Kohinoor Devanagari", "Mangal", sans-serif;
+  --paper: #ffffff;       /* diagram panels stay light in both themes */
+  --paper-ink: #000000;
+  --paper-line: #c9cdd6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111317; --surface: #191c22; --ink: #e8eaef; --muted: #a9b0be; --line: #2c313b;
+    --accent: #8fb1ff; --accent-soft: #1d2740; --stamp: #ff8a80; --good: #7fd6a0; --good-soft: #17301f;
+    --bad-soft: #3a1f1d; --code-bg: #20242c; --paper: #f4f5f7; --paper-line: #9aa1ad; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111317; --surface: #191c22; --ink: #e8eaef; --muted: #a9b0be; --line: #2c313b;
+  --accent: #8fb1ff; --accent-soft: #1d2740; --stamp: #ff8a80; --good: #7fd6a0; --good-soft: #17301f;
+  --bad-soft: #3a1f1d; --code-bg: #20242c; --paper: #f4f5f7; --paper-line: #9aa1ad; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.62; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 32px 96px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; }
+@media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; } .toc { display: none; } }
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 13px; }
+.toc p { font-family: var(--font-display); font-weight: 600; margin: 0 0 8px; color: var(--muted); letter-spacing: .05em; font-size: 12px; text-transform: uppercase; }
+.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.toc a { display: block; padding: 4px 8px; border-radius: 6px; color: var(--muted); text-decoration: none; }
+.toc a:hover, .toc a:focus-visible { background: var(--accent-soft); color: var(--ink); }
+main { min-width: 0; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.2; }
+h1 { font-size: clamp(2rem, 4.5vw, 3rem); margin: 0 0 12px; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.6rem; margin: 72px 0 12px; font-weight: 700; padding-top: 8px; }
+h3 { font-size: 1.15rem; margin: 32px 0 8px; font-weight: 600; }
+p, li { max-width: 70ch; }
+ul, ol { padding-left: 1.3em; }
+li + li { margin-top: 4px; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; color: var(--stamp); text-transform: uppercase; margin: 0 0 8px; }
+.lede { font-size: 1.15rem; color: var(--muted); max-width: 64ch; }
+.deva { font-family: var(--font-deva); }
+code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+:not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+pre { font-family: var(--font-mono); font-size: 13px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; overflow-x: auto; line-height: 1.55; margin: 12px 0 16px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.tablebox { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); margin: 12px 0 20px; }
+.tablebox table { min-width: 760px; }
+.tablebox.narrow table { min-width: 560px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+th { font-family: var(--font-display); font-weight: 600; font-size: 13px; background: var(--code-bg); }
+tr:last-child td { border-bottom: 0; }
+td.num, .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
+.tag.yes { background: var(--good-soft); border-color: transparent; color: var(--good); }
+.tag.no { background: var(--bad-soft); border-color: transparent; color: var(--stamp); }
+.tag.maybe { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+.note { border-left: 3px solid var(--stamp); background: var(--surface); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; max-width: 78ch; }
+.note.blue { border-left-color: var(--accent); }
+.note > strong:first-child { color: var(--stamp); }
+.note.blue > strong:first-child { color: var(--accent); }
+.defs { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin: 16px 0; }
+.def { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+.def b { font-family: var(--font-display); display: block; margin-bottom: 2px; }
+/* diagram paper */
+.fig { background: var(--paper); color: var(--paper-ink); border: 1px solid var(--paper-line); border-radius: 12px; margin: 20px 0 8px; overflow-x: auto; }
+.fig svg { display: block; width: 100%; height: auto; }
+.fig.wide svg { min-width: 820px; }
+.fig.mid svg { min-width: 640px; }
+.figcap { font-size: 13px; color: var(--muted); margin: 0 0 20px; max-width: 78ch; }
+/* scoreboard */
+.score { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 20px 0; }
+.score > div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+.score .who { font-family: var(--font-display); font-weight: 600; font-size: 14px; }
+.score .big { font-family: var(--font-display); font-size: 1.7rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; margin: 6px 0 4px; }
+.score .big.good { color: var(--good); }
+.score .big.bad { color: var(--stamp); }
+.score .what { font-size: 13px; color: var(--muted); }
+/* digit strip */
+.digits { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+.pair { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; font-family: var(--font-deva); font-size: 1.6rem; line-height: 1.2; }
+.pair small { display: block; font-family: var(--font-body); font-size: 12px; color: var(--muted); }
+/* phases */
+.phases { display: grid; gap: 14px; margin: 16px 0; }
+.phase { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; min-width: 0; }
+.phase h3 { margin: 0 0 4px; }
+.phase .meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.phase ul { margin: 6px 0; }
+.phase .done { font-size: 14px; color: var(--muted); margin: 8px 0 0; }
+/* quiz */
+.quiz { display: grid; gap: 14px; margin: 16px 0; counter-reset: q; }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.q p.ask { margin: 0 0 10px; font-weight: 600; }
+.q p.ask::before { counter-increment: q; content: "Q" counter(q) ". "; font-family: var(--font-mono); color: var(--stamp); font-weight: 500; }
+.opts { display: grid; gap: 6px; }
+.opts button { text-align: left; font: inherit; font-size: 15px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.opts button:hover { border-color: var(--accent); }
+.opts button.right { background: var(--good-soft); border-color: var(--good); }
+.opts button.wrong { background: var(--bad-soft); border-color: var(--stamp); }
+.why { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+.qbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 14px; color: var(--muted); }
+.qbar button { font: inherit; font-size: 14px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.src { font-size: 14px; }
+.src li { max-width: 90ch; }
+.back { display: inline-flex; gap: 8px; align-items: center; font-size: 14px; background: var(--accent-soft); color: var(--ink); padding: 6px 12px; border-radius: 999px; text-decoration: none; margin: 4px 0 8px; }
+.back:hover { text-decoration: underline; }
+@media (prefers-reduced-motion: no-preference) { .opts button { transition: background-color .15s, border-color .15s; } }
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <p>Contents</p>
+  <ol>
+    <li><a href="#why">1. Why a specialist</a></li>
+    <li><a href="#how-others">2. How others built theirs</a></li>
+    <li><a href="#pipeline">3. The pipeline</a></li>
+    <li><a href="#job">3.1 Define the job</a></li>
+    <li><a href="#base">3.2 Pick a base model</a></li>
+    <li><a href="#data">3.3 Build the data</a></li>
+    <li><a href="#train">3.4 Train</a></li>
+    <li><a href="#eval">3.5 Evaluate</a></li>
+    <li><a href="#shrink">3.6 Make it small</a></li>
+    <li><a href="#deploy">3.7 Deploy</a></li>
+    <li><a href="#loop">3.8 Improve loop</a></li>
+    <li><a href="#plan">4. The plan for Boli</a></li>
+    <li><a href="#risks">5. What can go wrong</a></li>
+    <li><a href="#glossary">6. Glossary</a></li>
+    <li><a href="#next">7. Read next</a></li>
+    <li><a href="#quiz">8. Quiz</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+<p class="eyebrow">Boli document intelligence, chapter two</p>
+<h1>Building Boli's Document Model</h1>
+<p class="lede">How a small open vision-language model (1 to 4 billion parameters) is turned into a specialist that only reads Nepali and English documents, the way Sarvam built Sarvam Vision. This is the real-world flow, stage by stage, with numbers. No code.</p>
+<a class="back" href="https://claude.ai/artifact/BCNpzCs5MvyyabdXPGZSmG">Chapter one: Boli Document Intelligence (what it is, the open models, Preeti, the API)</a>
+<p>Chapter one explained what document intelligence is and how a vision-language model reads a page. This chapter assumes that and answers the next question: once a general model is not good enough, how do teams actually make it better at one narrow job?</p>
+
+<!-- 1 -->
+<h2 id="why">1. Why a specialist beats a general model</h2>
+<p>A general vision-language model (VLM: a model that takes an image plus text and writes text) is trained to do thousands of things: describe photos, answer chart questions, write code from screenshots, chat. Reading a Nepali bill is a tiny slice of what it saw in training. A <b>specialist</b> is the same kind of model trained further on only one job, so all of its capacity points at that job.</p>
+<p>Our own test on 24 November 2026 showed the gap clearly. One synthetic Nepali and English bill with 54 digits on it (files in <code>ml/docintel/</code>):</p>
+
+<div class="score">
+  <div><div class="who">Gemma 4 E4B, 4-bit, image only</div><div class="big bad num">51 / 54</div><div class="what">Layout, names and English right. Nepali digits confused. More image tokens did not fix it.</div></div>
+  <div><div class="who">Tesseract 5 (nep+eng)</div><div class="big good num">54 / 54</div><div class="what">Every digit right, but some Nepali words garbled. No layout.</div></div>
+  <div><div class="who">Hybrid: image + Tesseract text into Gemma</div><div class="big good">All fields</div><div class="what">Every field right. This is our Phase 0 today.</div></div>
+  <div><div class="who">PaddleOCR-VL 1.6, Mac CPU</div><div class="big bad num">~87 s/page</div><div class="what">Slipped into Bengali script inside a table.</div></div>
+  <div><div class="who">Sarvam Vision (3B specialist)</div><div class="big good num">54 / 54</div><div class="what">Plus layout-aware HTML: section titles, paragraphs, tables with thead and tfoot, numeric cells, footer.</div></div>
+</div>
+
+<p>The four digit pairs Gemma confused:</p>
+<div class="digits" aria-label="Confused Nepali digit pairs">
+  <div class="pair">४ / ५<small>4 and 5</small></div>
+  <div class="pair">१ / ९<small>1 and 9</small></div>
+  <div class="pair">० / २<small>0 and 2</small></div>
+  <div class="pair">५ / ६<small>5 and 6</small></div>
+</div>
+<p>What this tells us. Giving Gemma a sharper picture (more image tokens) did not help, so the problem is not eyesight. The model never learnt Nepali digit shapes well enough. That is a <b>knowledge gap</b>, and knowledge gaps are exactly what fine-tuning fixes. A model that has seen fifty thousand rendered Nepali numbers in twenty fonts stops mixing up <span class="deva">४</span> and <span class="deva">५</span>.</p>
+<p>Sarvam's 54/54 is the proof that a model of about 3 billion parameters can do this. Small is not the problem; focus is.</p>
+<div class="note blue"><strong>The core idea:</strong> narrowing the job. A specialist gives up chat, poems and photo captions. In return it reads every glyph, keeps reading order, and writes one fixed output format every time. For a document API, that trade is all upside.</div>
+
+<!-- 2 -->
+<h2 id="how-others">2. How others built theirs</h2>
+<p>Before planning our own, here is what the teams who built small document models have actually published. The pattern repeats, which is the useful part.</p>
+
+<div class="tablebox">
+<table>
+<thead><tr><th>Model</th><th>Size</th><th>Started from</th><th>Data</th><th>Training stages</th><th>What it teaches us</th></tr></thead>
+<tbody>
+<tr><td><b>Sarvam Vision</b></td><td class="num">3B</td><td>Sarvam's own 3B base (a state-space model)</td><td>Synthetic and real document image-text pairs, all 22 Indian languages plus English; volumes not published</td><td>Continued pretraining, then supervised fine-tuning, then reinforcement learning with verifiable rewards</td><td>The VLM is wrapped in a harness: a layout parser and a reading-order network. Nepali word accuracy 93.90 on their own 20,267-sample Indic OCR bench</td></tr>
+<tr><td><b>olmOCR</b> (Ai2)</td><td class="num">7B</td><td>Qwen2-VL-7B</td><td>258,641 pages from 102,825 PDFs, labelled by GPT-4o (the teacher)</td><td>One supervised stage, about 1.2 epochs, full fine-tune on 8 H100s, 16 hours per run</td><td>Teacher labelling works. They tried LoRA and got higher loss than full fine-tuning</td></tr>
+<tr><td><b>olmOCR 2</b></td><td class="num">7B</td><td>Qwen2.5-VL-7B</td><td>Real pages re-rendered as clean HTML, then unit tests generated from that HTML</td><td>SFT, then RL (GRPO) where the reward is the fraction of unit tests passed</td><td>You can reward a model for passing checks ("this number appears", "this header is absent") instead of matching text exactly</td></tr>
+<tr><td><b>PaddleOCR-VL</b> (Baidu)</td><td class="num">0.9B</td><td>NaViT-style encoder + ERNIE-4.5-0.3B</td><td>Over 30 million samples: public sets, synthetic, web, in-house. Auto-labelled by bigger models, then hallucination-filtered</td><td>Stage 1 alignment: 29M samples. Stage 2 instruction tuning: 2.7M samples. Plus a separate layout model</td><td>Hard-case mining: find what the model gets wrong, then synthesise more of exactly that. Devanagari edit distance 0.097</td></tr>
+<tr><td><b>LightOnOCR</b></td><td class="num">1B</td><td>Pixtral vision encoder + Qwen3-style LM</td><td>17.6M pages transcribed by Qwen2-VL-72B (distillation)</td><td>One stage was better than two in their tests</td><td>A bigger teacher gives a better student: 72B teacher scored 72.2 vs 60.4 for a 7B teacher</td></tr>
+<tr><td><b>Granite-Docling</b> (IBM)</td><td class="num">258M</td><td>SigLIP2 encoder + Granite LM</td><td>Public sets plus synthetic charts, tables, code, formulas</td><td>Trained to write one markup format (DocTags)</td><td>A fixed, typed output format makes a tiny model reliable</td></tr>
+<tr><td><b>Nanonets-OCR2</b></td><td class="num">3B</td><td>Qwen2.5-VL-3B</td><td>3M+ pages</td><td>Fine-tune</td><td>Licence trap: the 3B base carries a research-only licence (see section 3.2)</td></tr>
+</tbody>
+</table>
+</div>
+<p>Four lessons carry over to Boli:</p>
+<ol>
+<li><b>Nobody hand-writes the labels at scale.</b> A bigger model (the <b>teacher</b>) writes them; humans check a sample and build the test set.</li>
+<li><b>Synthetic data fills the gaps.</b> When real data is scarce (Nepali digits, Preeti, rare layouts), teams render it.</li>
+<li><b>Training goes in stages:</b> first learn to read, then learn the output format, then (optionally) get rewarded for passing checks.</li>
+<li><b>The model is not the whole product.</b> Sarvam and PaddleOCR both put a layout and reading-order step around the VLM.</li>
+</ol>
+
+<!-- 3 -->
+<h2 id="pipeline">3. The full pipeline</h2>
+<p>This is the real-world flow from idea to a model behind Boli's API. Stage 3 (data) is drawn bigger because it is where most of the time goes, in every published project.</p>
+
+<figure class="fig wide" role="img" aria-label="Eight-stage pipeline: define the job, pick a base model, build the data, train, evaluate, make it small, deploy, improve loop. Failures from evaluation and production feed back to the data stage.">
+<svg viewBox="0 0 1000 470" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#222"/></marker>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9b1c14"/></marker>
+  </defs>
+  <rect x="0" y="0" width="1000" height="470" fill="#ffffff"/>
+  <!-- row 1 -->
+  <g>
+    <rect x="20" y="40" width="210" height="120" rx="10" fill="#e8eefc" stroke="#333"/>
+    <text x="36" y="66" font-size="13" font-weight="700" fill="#000">1  Define the job</text>
+    <text x="36" y="90" font-size="12" fill="#000">Which documents, which</text>
+    <text x="36" y="106" font-size="12" fill="#000">languages, one output format</text>
+    <text x="36" y="122" font-size="12" fill="#000">(typed HTML blocks + JSON)</text>
+    <text x="36" y="146" font-size="11" fill="#000">1 to 2 days</text>
+  </g>
+  <g>
+    <rect x="270" y="40" width="210" height="120" rx="10" fill="#e8eefc" stroke="#333"/>
+    <text x="286" y="66" font-size="13" font-weight="700" fill="#000">2  Pick a base model</text>
+    <text x="286" y="90" font-size="12" fill="#000">1 to 4B, commercial licence,</text>
+    <text x="286" y="106" font-size="12" fill="#000">runs in llama.cpp, best score</text>
+    <text x="286" y="122" font-size="12" fill="#000">on our test set before tuning</text>
+    <text x="286" y="146" font-size="11" fill="#000">a few days (bake-off)</text>
+  </g>
+  <g>
+    <rect x="520" y="26" width="230" height="148" rx="10" fill="#fdf0d0" stroke="#000" stroke-width="2"/>
+    <text x="536" y="52" font-size="13" font-weight="700" fill="#000">3  Build the data</text>
+    <text x="536" y="74" font-size="12" fill="#000">Synthetic renders (many fonts,</text>
+    <text x="536" y="90" font-size="12" fill="#000">Preeti), public scans, phone-</text>
+    <text x="536" y="106" font-size="12" fill="#000">photo augmentation, teacher</text>
+    <text x="536" y="122" font-size="12" fill="#000">labels + human checks,</text>
+    <text x="536" y="138" font-size="12" fill="#000">frozen gold test set</text>
+    <text x="536" y="162" font-size="11" font-weight="700" fill="#000">most of the effort (60 to 70%)</text>
+  </g>
+  <g>
+    <rect x="770" y="40" width="210" height="120" rx="10" fill="#e5f4ea" stroke="#333"/>
+    <text x="786" y="66" font-size="13" font-weight="700" fill="#000">4  Train</text>
+    <text x="786" y="90" font-size="12" fill="#000">A: learn to read (text only)</text>
+    <text x="786" y="106" font-size="12" fill="#000">B: learn the output format</text>
+    <text x="786" y="122" font-size="12" fill="#000">C: optional reward tuning</text>
+    <text x="786" y="146" font-size="11" fill="#000">hours per run, on a rented GPU</text>
+  </g>
+  <line x1="230" y1="100" x2="266" y2="100" stroke="#222" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="480" y1="100" x2="516" y2="100" stroke="#222" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="750" y1="100" x2="766" y2="100" stroke="#222" stroke-width="1.6" marker-end="url(#ar)"/>
+  <!-- down -->
+  <line x1="875" y1="160" x2="875" y2="286" stroke="#222" stroke-width="1.6" marker-end="url(#ar)"/>
+  <!-- row 2 -->
+  <g>
+    <rect x="770" y="290" width="210" height="120" rx="10" fill="#f1e8fb" stroke="#333"/>
+    <text x="786" y="316" font-size="13" font-weight="700" fill="#000">5  Evaluate</text>
+    <text x="786" y="340" font-size="12" fill="#000">Gold set: CER, digit accuracy,</text>
+    <text x="786" y="356" font-size="12" fill="#000">field accuracy, table TEDS,</text>
+    <text x="786" y="372" font-size="12" fill="#000">script slips, hallucinations</text>
+    <text x="786" y="396" font-size="11" fill="#000">pass the gate, or go back</text>
+  </g>
+  <g>
+    <rect x="520" y="290" width="210" height="120" rx="10" fill="#e8eefc" stroke="#333"/>
+    <text x="536" y="316" font-size="13" font-weight="700" fill="#000">6  Make it small and fast</text>
+    <text x="536" y="340" font-size="12" fill="#000">Merge LoRA, convert to GGUF</text>
+    <text x="536" y="356" font-size="12" fill="#000">+ mmproj, quantise to 4 or 8</text>
+    <text x="536" y="372" font-size="12" fill="#000">bit, re-run the gold set</text>
+    <text x="536" y="396" font-size="11" fill="#000">1 to 2 days</text>
+  </g>
+  <g>
+    <rect x="270" y="290" width="210" height="120" rx="10" fill="#e8eefc" stroke="#333"/>
+    <text x="286" y="316" font-size="13" font-weight="700" fill="#000">7  Deploy</text>
+    <text x="286" y="340" font-size="12" fill="#000">llama-server on a GPU box,</text>
+    <text x="286" y="356" font-size="12" fill="#000">behind /v1/documents jobs,</text>
+    <text x="286" y="372" font-size="12" fill="#000">metered per page</text>
+    <text x="286" y="396" font-size="11" fill="#000">1 week</text>
+  </g>
+  <g>
+    <rect x="20" y="290" width="210" height="120" rx="10" fill="#e5f4ea" stroke="#333"/>
+    <text x="36" y="316" font-size="13" font-weight="700" fill="#000">8  Improve loop</text>
+    <text x="36" y="340" font-size="12" fill="#000">Collect failures (with consent),</text>
+    <text x="36" y="356" font-size="12" fill="#000">correct them, add to data,</text>
+    <text x="36" y="372" font-size="12" fill="#000">retrain, re-check the gate</text>
+    <text x="36" y="396" font-size="11" fill="#000">monthly, forever</text>
+  </g>
+  <line x1="770" y1="350" x2="734" y2="350" stroke="#222" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="520" y1="350" x2="484" y2="350" stroke="#222" stroke-width="1.6" marker-end="url(#ar)"/>
+  <line x1="270" y1="350" x2="234" y2="350" stroke="#222" stroke-width="1.6" marker-end="url(#ar)"/>
+  <!-- feedback loops to data -->
+  <path d="M800,290 L800,236 L700,236 L700,178" fill="none" stroke="#9b1c14" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#arr)"/>
+  <text x="708" y="230" font-size="11" fill="#000">fails the gate: fix the data</text>
+  <path d="M125,290 L125,214 L570,214 L570,178" fill="none" stroke="#9b1c14" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#arr)"/>
+  <text x="140" y="208" font-size="11" fill="#000">real-world failures become new training data</text>
+  <text x="20" y="450" font-size="11" fill="#000">Solid arrows: the first pass. Dashed red arrows: the loops that make the model better over time. Almost every loop returns to the data, not to the training settings.</text>
+</svg>
+</figure>
+<p class="figcap">The pipeline. Notice where the loops land: when a specialist is wrong, the fix is nearly always better or more targeted data.</p>
+
+<!-- 3.1 -->
+<h3 id="job">3.1 Define the job and the output format</h3>
+<p>Write down, before anything else, exactly what goes in and what comes out. This sounds trivial. It is the decision that shapes every training example you will make.</p>
+<ul>
+<li><b>Inputs:</b> printed Nepali (Unicode and Preeti-era), English, and mixed pages. Document types: bills and invoices, government notices and letters, certificates, bank statements, forms, textbooks. Phone photos and scans, not just clean PDFs. Leave out handwriting for version one; it is a separate, much harder job.</li>
+<li><b>Output, step one (Read):</b> the whole page as typed blocks in reading order. This is what Sarvam returns: each block has a type (section-title, paragraph, list, table, footer, page-number) and tables keep their structure (<code>thead</code>, <code>tbody</code>, <code>tfoot</code>, numeric cells).</li>
+<li><b>Output, step two (Extract):</b> fields to JSON with a schema, done by a second pass as chapter one described. Keep the document model focused on reading. Extraction stays a separate, cheaper call.</li>
+</ul>
+<p>A training target then looks like this (the model learns to write exactly this shape):</p>
+<pre>&lt;h2 data-type="section-title"&gt;बिल / Invoice&lt;/h2&gt;
+&lt;p data-type="paragraph"&gt;ग्राहकको नाम: राम बहादुर थापा&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;विवरण&lt;/th&gt;&lt;th&gt;परिमाण&lt;/th&gt;&lt;th&gt;रकम (रु.)&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;&lt;tr&gt;&lt;td&gt;चामल&lt;/td&gt;&lt;td data-num&gt;२५&lt;/td&gt;&lt;td data-num&gt;२,४५०&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;
+  &lt;tfoot&gt;&lt;tr&gt;&lt;td&gt;जम्मा&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td data-num&gt;२,४५०&lt;/td&gt;&lt;/tr&gt;&lt;/tfoot&gt;
+&lt;/table&gt;
+&lt;footer data-type="footer"&gt;धन्यवाद&lt;/footer&gt;</pre>
+<p>Why HTML-like typed blocks rather than plain Markdown? Markdown cannot say "this row is the total" or "this cell is a number", and it mangles merged cells. A small fixed set of tags is easy for a model to learn, easy to validate (does it parse?), and easy to turn into Markdown or JSON later. Two rules: <b>copy, never correct</b> (write the digits and spelling exactly as printed, even if the page has a typo), and <b>never translate</b> (Nepali stays Nepali).</p>
+
+<!-- 3.2 -->
+<h3 id="base">3.2 Pick a base model</h3>
+<p>You almost never train a vision-language model from nothing. You start from an open one that already sees and reads, and you specialise it. Sarvam could start from their own base; we start from someone else's. What to check, in order of importance:</p>
+<ol>
+<li><b>Licence.</b> Boli sells this. The weights must allow commercial use, and your fine-tune inherits the base licence.</li>
+<li><b>Runs in llama.cpp as GGUF with an mmproj file</b>, because that is how Boli serves models today.</li>
+<li><b>Score on our own test set before any tuning.</b> The best starting point is the one that already makes the fewest Nepali errors.</li>
+<li><b>Fine-tuning support</b> in common tools (Hugging Face TRL, Unsloth, LLaMA-Factory). If nobody has fine-tuned it before, you will spend days on plumbing.</li>
+<li><b>Vision encoder and resolution handling.</b> Devanagari has small marks above and below the line (matras, the halant). A model that sees pages at native resolution, rather than squashing them into one small square, keeps those marks.</li>
+</ol>
+
+<div class="tablebox">
+<table>
+<thead><tr><th>Base model</th><th>Size</th><th>Licence (weights)</th><th>Vision side</th><th>Devanagari today</th><th>Fine-tuning ease</th><th>llama.cpp / GGUF</th></tr></thead>
+<tbody>
+<tr><td><b>Qwen3-VL-4B / 2B</b></td><td class="num">4B / 2B</td><td><span class="tag yes">Apache 2.0</span></td><td>Native dynamic resolution; strong OCR family</td><td>Untested by us; run the bake-off</td><td><span class="tag yes">Easy</span> TRL, Unsloth, LLaMA-Factory</td><td><span class="tag yes">Yes</span> official GGUF + mmproj</td></tr>
+<tr><td><b>Gemma 4 E4B / E2B</b></td><td class="num">~4B / ~2B effective</td><td><span class="tag yes">Apache 2.0</span></td><td>~150M-parameter encoder</td><td>Tested: layout good, Nepali digits confused (51/54)</td><td><span class="tag yes">Easy</span> Unsloth guide for E2B/E4B</td><td><span class="tag yes">Yes</span> in llama.cpp docs</td></tr>
+<tr><td><b>Qwen3.5-4B / 2B</b></td><td class="num">4B / 2B</td><td><span class="tag yes">Apache 2.0</span></td><td>Natively multimodal (vision built in from the start)</td><td>Untested</td><td><span class="tag yes">Easy</span> Unsloth guide</td><td><span class="tag maybe">Check</span> confirm vision support in your build</td></tr>
+<tr><td><b>PaddleOCR-VL 1.6</b></td><td class="num">0.9B</td><td><span class="tag yes">Apache 2.0</span></td><td>NaViT encoder + separate layout model</td><td>Trained on Devanagari; tested: slipped into Bengali in a table, ~87 s/page on Mac CPU</td><td><span class="tag maybe">Medium</span> own toolkit</td><td><span class="tag maybe">In progress</span> listed as needing special prompts</td></tr>
+<tr><td><b>Granite-Docling</b></td><td class="num">258M</td><td><span class="tag yes">Apache 2.0</span></td><td>SigLIP2</td><td>Mostly Latin script; little Devanagari</td><td><span class="tag maybe">Medium</span></td><td><span class="tag yes">Yes</span> community GGUF</td></tr>
+<tr><td><b>dots.ocr</b></td><td class="num">1.7B LM</td><td><span class="tag maybe">Custom</span> MIT-based plus terms; "Built with dots.ocr" on fine-tunes</td><td>Own encoder, layout in one model</td><td>Claims 100-language coverage; untested</td><td><span class="tag maybe">Medium</span></td><td><span class="tag maybe">In progress</span></td></tr>
+<tr><td><b>Qwen2.5-VL-3B</b> and its fine-tunes (Nanonets-OCR)</td><td class="num">3B</td><td><span class="tag no">Research only</span></td><td>Dynamic resolution</td><td>Decent</td><td>Easy</td><td>Yes</td></tr>
+<tr><td><b>Surya</b> (Datalab)</td><td class="num">small</td><td><span class="tag no">Restricted</span> free only under $5M revenue/funding</td><td>Classic OCR models</td><td>Listed among 90+ languages</td><td>Hard</td><td>No</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note"><strong>Licence trap:</strong> Qwen2.5-VL-7B is Apache 2.0, but Qwen2.5-VL-3B is under the Qwen Research licence (non-commercial). Every fine-tune built on the 3B, including popular OCR models, inherits that. Always read the LICENSE file on the exact checkpoint, not the family's GitHub page.</div>
+<p><b>Recommendation:</b> run a one-day bake-off on our test set between <b>Qwen3-VL-4B</b> and <b>Gemma 4 E4B</b> (both Apache 2.0, both already served by llama.cpp), with Qwen3.5-4B as a third if its vision path works in our llama.cpp build. Fine-tune the winner. Keep the 2B sibling of the winner as a cheaper second model once the recipe works. Keep PaddleOCR-VL in the comparison as a benchmark, not as the base.</p>
+
+<!-- 3.3 -->
+<h3 id="data">3.3 Build the data (the biggest part)</h3>
+<p>A training example is a pair: a page image, and the exact text the model should write for it. Teams spend most of their time making these pairs. There are five sources, each covering a weakness of the others.</p>
+
+<figure class="fig mid" role="img" aria-label="Suggested training mix for Boli's first fine-tune: 55 percent synthetic renders, 30 percent real public pages labelled by a teacher and checked, 10 percent targeted hard cases, 5 percent English and layout keep-alive. The gold test set is separate and never trained on.">
+<svg viewBox="0 0 900 250" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <rect x="0" y="0" width="900" height="250" fill="#ffffff"/>
+  <text x="20" y="30" font-size="14" font-weight="700" fill="#000">First fine-tune: about 25,000 examples (suggested mix)</text>
+  <rect x="20" y="50" width="473" height="56" fill="#fdf0d0" stroke="#333"/>
+  <rect x="493" y="50" width="258" height="56" fill="#e8eefc" stroke="#333"/>
+  <rect x="751" y="50" width="86" height="56" fill="#f9dedb" stroke="#333"/>
+  <rect x="837" y="50" width="43" height="56" fill="#e5f4ea" stroke="#333"/>
+  <text x="32" y="74" font-size="13" font-weight="700" fill="#000">55% synthetic renders</text>
+  <text x="32" y="94" font-size="12" fill="#000">~14,000: many fonts, Preeti, fake bills and notices</text>
+  <text x="503" y="74" font-size="13" font-weight="700" fill="#000">30% real public pages</text>
+  <text x="503" y="94" font-size="12" fill="#000">~7,500: teacher-labelled, checked</text>
+  <text x="757" y="74" font-size="12" font-weight="700" fill="#000">10% hard</text>
+  <text x="757" y="94" font-size="12" fill="#000">digits, tables</text>
+  <text x="840" y="128" font-size="11" fill="#000">5% English</text>
+  <line x1="858" y1="106" x2="858" y2="116" stroke="#333"/>
+  <text x="20" y="150" font-size="12" fill="#000">The 5% English and general-layout slice stops the model forgetting what it already did well (called catastrophic forgetting).</text>
+  <rect x="20" y="172" width="180" height="50" fill="#f1e8fb" stroke="#000" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="32" y="194" font-size="13" font-weight="700" fill="#000">Gold test set</text>
+  <text x="32" y="212" font-size="12" fill="#000">300 pages, human-checked</text>
+  <text x="216" y="194" font-size="12" fill="#000">Kept in a separate locked folder. Never trained on, never shown to the teacher for labelling,</text>
+  <text x="216" y="212" font-size="12" fill="#000">frozen before any training data is collected. It is the only number you trust.</text>
+</svg>
+</figure>
+<p class="figcap">A starting mix, not a law. After the first evaluation you shift the shares toward whatever the model still gets wrong.</p>
+
+<h3>Source 1: synthetic rendering</h3>
+<p>You write a program that draws fake documents and therefore knows the exact answer for each one. Nothing needs labelling. This is how you fix the digit problem cheaply.</p>
+<ul>
+<li><b>Text:</b> real Nepali sentences from public text corpora (news, government text, Wikipedia), mixed with generated numbers, dates in Bikram Sambat (<span class="deva">२०८३/०८/०८</span>), money (<span class="deva">रु. १२,३४५.००</span>), names, addresses, PAN and phone numbers, and English words.</li>
+<li><b>Fonts:</b> as many as you can find (20 to 50+). Research on Hindi recognition found that more fonts helped more than more samples. Include Unicode fonts (Noto Sans Devanagari, Mukta, Kalimati, Mangal and others) and <b>Preeti</b>.</li>
+<li><b>Preeti:</b> old Nepali documents use the Preeti font, which stores Latin letters that only look Nepali. Render text in Preeti, but store the Unicode answer (converted with an open converter such as npttf2utf or the nepali-converter tool). The model then learns to read what the page shows and always write proper Unicode.</li>
+<li><b>Layouts:</b> templates for bills, receipts, notices, letters with letterheads, tables with totals, two-column pages, stamps and signatures overlaid. Fill the templates with random content so no two pages repeat.</li>
+<li><b>Augmentation (making clean renders look like phone photos):</b> blur, low resolution, JPEG artefacts, uneven lighting, shadows, slight rotation and perspective tilt, paper texture, creases, faded ink, photocopy noise. Apply it to some, not all: the model should see both clean and messy.</li>
+</ul>
+<p><b>Volume:</b> synthetic pages are nearly free, so make 50,000 to 200,000 and sample from them. PaddleOCR used synthesis specifically for hard cases (blurry, dense text). The risk is that synthetic pages look too tidy; that is why real pages matter.</p>
+
+<h3>Source 2: real public documents</h3>
+<p>Nepali government sites publish thousands of PDFs: gazette notices, circulars, budget documents, tender notices, results, forms. Textbooks and public reports add variety. These carry real fonts, real scanning noise and real layouts that a renderer will never invent.</p>
+<ul>
+<li>Collect 2,000 to 5,000 pages across document types. Record the source URL and date for each.</li>
+<li>Use only documents that are already public. Skip anything with personal data unless it is redacted.</li>
+<li>Split by <b>document</b>, never by page: all pages of one PDF go to training or to test, never both.</li>
+</ul>
+
+<h3>Source 3: teacher labels with human checking</h3>
+<p>Real pages have no answers yet. A <b>teacher</b> (a bigger, slower model) writes a first draft, and people correct it. This is what olmOCR (GPT-4o as teacher), LightOnOCR (Qwen2-VL-72B) and PaddleOCR (several large VLMs) did.</p>
+<ul>
+<li><b>For Boli the teacher must be open</b> and its licence must allow using its outputs for training. Candidates: a large open VLM (Qwen3-VL 32B or bigger) on a rented GPU, combined with Tesseract's text as a hint, exactly like our hybrid. Our hybrid already got every field right on the test bill, so it is a good teacher pipeline.</li>
+<li><b>Do not use Sarvam's API output as training labels</b> unless their terms explicitly allow it. Most commercial APIs forbid training a competing model on their outputs. Use Sarvam only as a comparison in evaluation.</li>
+<li><b>Automatic checks before a human looks:</b> do Tesseract's digits match the teacher's digits? Is any text in a non-Devanagari, non-Latin script (the Bengali slip)? Does the HTML parse? Is the output suspiciously short or repeating? Pages that fail go to a person first.</li>
+<li><b>Human check:</b> a Nepali reader corrects the draft side by side with the image. Budget 5 to 15 minutes a page. Check all flagged pages plus a random 10% of the rest, and track how often the teacher was wrong; if more than a few percent of digits are wrong, fix the teacher pipeline before labelling more.</li>
+</ul>
+
+<h3>Source 4: targeted hard cases</h3>
+<p>After each evaluation, look at what failed and make more of exactly that. If the model still confuses <span class="deva">१</span> and <span class="deva">९</span> in small table cells, render 5,000 small table cells full of ones and nines. PaddleOCR calls this hard-case mining. It is the cheapest accuracy you will ever buy.</p>
+
+<h3>Source 5: the human gold set</h3>
+<p>About 300 pages, fully checked by two people, covering every document type, both clean scans and phone photos, Preeti-era and Unicode, plus some English-only pages. It is frozen before training data is collected (our <code>date-key.json</code> idea), stored separately, and never used for training or prompt tuning. The public Nepali evaluation slice <code>himalaya-ai/nepali-deva-ocr-eval</code> (500 short printed snippets) can be a second, outside check.</p>
+
+<h3>How much data is enough?</h3>
+<div class="tablebox narrow">
+<table>
+<thead><tr><th>Who</th><th>Training examples</th><th>Why so many or so few</th></tr></thead>
+<tbody>
+<tr><td>PaddleOCR-VL</td><td class="num">30M+</td><td>Taught a new model 109 languages from near scratch</td></tr>
+<tr><td>LightOnOCR</td><td class="num">17.6M pages</td><td>Trained a new 1B model end to end</td></tr>
+<tr><td>Nanonets-OCR2</td><td class="num">3M+ pages</td><td>Broad document coverage on top of Qwen</td></tr>
+<tr><td>olmOCR</td><td class="num">~260K pages</td><td>Adapting a strong 7B to one format</td></tr>
+<tr><td><b>Boli, first LoRA</b></td><td class="num">20K to 30K</td><td>Adapting a model that already reads, to one script and one format</td></tr>
+<tr><td><b>Boli, later full fine-tune</b></td><td class="num">100K to 300K</td><td>Only if LoRA plateaus</td></tr>
+</tbody>
+</table>
+</div>
+<p>Quality beats quantity at our scale. One thousand perfectly checked hard pages do more than fifty thousand sloppy ones, because the model learns the mistakes in its labels too.</p>
+
+<h3>Privacy rules for real documents</h3>
+<ul>
+<li>Train only on public documents, synthetic pages, and customer documents where the customer ticked an explicit opt-in ("help improve Boli with this document"). Default is off.</li>
+<li>Redact names, citizenship numbers, PAN, phone numbers and account numbers before a human labeller sees a customer page, or replace them with synthetic values (which keeps the layout useful).</li>
+<li>Keep a register: every training page has a source, a licence or consent record, and a delete path. If a customer withdraws consent, the page leaves the next training run.</li>
+<li>Labellers work under a confidentiality agreement and see pages inside a tool, not as downloaded files.</li>
+</ul>
+
+<!-- 3.4 -->
+<h3 id="train">3.4 Train</h3>
+<p>First, the anatomy of the model being trained. Every VLM in our comparison has three parts:</p>
+<figure class="fig mid" role="img" aria-label="Model anatomy: page image goes into the vision encoder, then the projector, then the language model, which writes typed blocks.">
+<svg viewBox="0 0 900 170" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#222"/></marker></defs>
+  <rect x="0" y="0" width="900" height="170" fill="#ffffff"/>
+  <rect x="20" y="40" width="130" height="80" rx="6" fill="#f7f7f2" stroke="#333"/>
+  <text x="34" y="70" font-size="13" font-weight="700" fill="#000">Page image</text>
+  <text x="34" y="92" font-size="12" fill="#000">split into patches</text>
+  <rect x="200" y="40" width="180" height="80" rx="10" fill="#e8eefc" stroke="#333"/>
+  <text x="214" y="70" font-size="13" font-weight="700" fill="#000">Vision encoder</text>
+  <text x="214" y="92" font-size="12" fill="#000">the eyes: shapes, strokes</text>
+  <text x="214" y="108" font-size="11" fill="#000">~150M to 600M params</text>
+  <rect x="430" y="40" width="130" height="80" rx="10" fill="#fdf0d0" stroke="#333"/>
+  <text x="444" y="70" font-size="13" font-weight="700" fill="#000">Projector</text>
+  <text x="444" y="92" font-size="12" fill="#000">translates eyes</text>
+  <text x="444" y="108" font-size="12" fill="#000">into words-space</text>
+  <rect x="610" y="40" width="160" height="80" rx="10" fill="#e5f4ea" stroke="#333"/>
+  <text x="624" y="70" font-size="13" font-weight="700" fill="#000">Language model</text>
+  <text x="624" y="92" font-size="12" fill="#000">the writer: spelling,</text>
+  <text x="624" y="108" font-size="12" fill="#000">format, reading order</text>
+  <text x="800" y="76" font-size="13" font-weight="700" fill="#000">Typed</text>
+  <text x="800" y="94" font-size="13" font-weight="700" fill="#000">blocks</text>
+  <line x1="150" y1="80" x2="196" y2="80" stroke="#222" stroke-width="1.6" marker-end="url(#ar2)"/>
+  <line x1="380" y1="80" x2="426" y2="80" stroke="#222" stroke-width="1.6" marker-end="url(#ar2)"/>
+  <line x1="560" y1="80" x2="606" y2="80" stroke="#222" stroke-width="1.6" marker-end="url(#ar2)"/>
+  <line x1="770" y1="80" x2="794" y2="80" stroke="#222" stroke-width="1.6" marker-end="url(#ar2)"/>
+  <text x="20" y="150" font-size="12" fill="#000">Our digit errors could live in the eyes (cannot tell ४ from ५) or in the writer (sees it, but guesses the common digit). That decides what to train.</text>
+</svg>
+</figure>
+
+<h3>The three training stages</h3>
+<div class="tablebox">
+<table>
+<thead><tr><th>Stage</th><th>What the model sees</th><th>What it must write</th><th>Why</th><th>Data</th></tr></thead>
+<tbody>
+<tr><td><b>A. Learn to read</b> (continued pretraining)</td><td>Text lines, crops and whole pages</td><td>Plain text, exactly as printed</td><td>Teaches glyphs: digits, conjuncts, matras, Preeti. No format yet</td><td>Mostly synthetic, large (50K+)</td></tr>
+<tr><td><b>B. Learn the format</b> (supervised fine-tuning, SFT)</td><td>Whole pages</td><td>Typed blocks in reading order</td><td>Teaches structure: tables, titles, footers, the "copy, never correct" rule</td><td>The 20K to 30K mix above</td></tr>
+<tr><td><b>C. Get rewarded for passing checks</b> (optional)</td><td>Pages with known facts</td><td>Its own attempts, scored</td><td>Fixes stubborn errors: reward = digits match, HTML parses, no wrong script, no repeated lines</td><td>A few thousand pages with automatic checks</td></tr>
+</tbody>
+</table>
+</div>
+<p>Sarvam ran all three (continued pretraining, SFT, then reinforcement learning with verifiable rewards). olmOCR 2 showed what stage C looks like in practice: generate small unit tests per page and reward the fraction that pass. For Boli's first version, do A and B together in one run (mix line-level reading examples into the page-level set). PaddleOCR and LightOnOCR found one well-mixed stage can match two. Add stage C only once the evaluation shows errors that more data alone does not fix.</p>
+
+<h3>LoRA, QLoRA or full fine-tuning</h3>
+<div class="defs">
+  <div class="def"><b>Full fine-tuning</b>Every weight in the model changes. Best quality (olmOCR found LoRA gave higher loss), but needs about 16 bytes of GPU memory per parameter for training state: a 4B model wants 2 to 8 large GPUs. Produces a whole new model file.</div>
+  <div class="def"><b>LoRA</b>(Low-Rank Adaptation.) Freeze the original weights and train small add-on matrices, about 1% of the parameters. Fits a 4B model on one 24 to 48 GB GPU. Output is a small "adapter" file you merge back in.</div>
+  <div class="def"><b>QLoRA</b>LoRA on top of a 4-bit copy of the base model. Uses even less memory (a 4B model trains on a 16 to 24 GB card). Slightly lower quality and slower. Good for experiments.</div>
+</div>
+<p>The practical path: <b>start with LoRA</b> (rank 16 to 32, on all linear layers) because it is cheap enough to run ten times while you fix your data. Move to full fine-tuning only if LoRA stops improving on the gold set and you have 100K+ good examples.</p>
+
+<h3>Freeze the vision encoder, or not?</h3>
+<p>Common practice for format-only changes is to freeze the eyes and train the projector and language model. Our case is different: the digit confusion may be visual. Tools such as Unsloth let you choose separately whether LoRA touches the vision layers, the language layers, or both. Run it as an experiment: one run with vision frozen, one with LoRA on vision too, and compare digit accuracy on the gold set. If unfreezing helps digits without hurting English, keep it.</p>
+
+<h3>Image resolution and tiling</h3>
+<p>Each image becomes a grid of patches, and each patch becomes tokens. More pixels means sharper matras but more tokens, more memory and slower pages. Published settings: olmOCR rendered pages to 1024 px on the longest side; LightOnOCR used up to 1540 px at 200 DPI; PaddleOCR allowed much larger images in its final stage. For Nepali, aim for text height of at least 20 to 25 pixels per line after resizing. For dense pages (tables, small print), cut the page into overlapping tiles or let a layout step crop each region and read regions separately, which is what Sarvam's and PaddleOCR's harnesses do. Train at the same resolution you will serve at.</p>
+
+<h3>Curriculum</h3>
+<p>Order the data from easy to hard: clean single lines, then clean pages, then noisy phone photos and dense tables. In practice teams do this with mixing ratios rather than strict order: the early part of training sees more clean data, the late part more hard cases. Keep 5% English and general layout throughout so the model does not forget them.</p>
+
+<h3>What a run looks like</h3>
+<ul>
+<li>One epoch (one pass over the data) to three epochs. More epochs on a small set means memorising, not learning.</li>
+<li>Every few hundred steps, score a 50-page slice of a <b>validation set</b> (separate from the gold set) and save a checkpoint. Keep the best checkpoint, not the last.</li>
+<li>Watch for the two classic failures: output that repeats one line forever (a loop), and output that is fluent Nepali but not on the page (a hallucination).</li>
+</ul>
+
+<h3>What it costs</h3>
+<p>Rough numbers, rented GPUs, late 2026. Hourly prices vary by provider and week, so treat these as a range. One dollar is roughly Rs 140 (Nepali rupees).</p>
+<div class="tablebox">
+<table>
+<thead><tr><th>Job</th><th>Hardware</th><th>Time per run</th><th>Cost per run</th><th>Budget for the phase</th></tr></thead>
+<tbody>
+<tr><td>Experiments: QLoRA, 2B to 4B, 5K examples</td><td>1 x RTX 4090 24 GB (~$0.35 to $0.70/h)</td><td class="num">3 to 6 h</td><td class="num">$2 to $5</td><td class="num">$20 to $50</td></tr>
+<tr><td>First real LoRA: 4B, 25K pages, 2 epochs (~75M tokens)</td><td>1 x H100 80 GB (~$2 to $3/h) or A100 (~$1.2 to $2/h)</td><td class="num">5 to 10 h</td><td class="num">$15 to $30</td><td class="num">$150 to $400 (5 to 10 runs, some fail)</td></tr>
+<tr><td>Teacher labelling: 32B open VLM over 7,500 pages</td><td>1 x H100</td><td class="num">8 to 20 h</td><td class="num">$25 to $60</td><td class="num">$50 to $150</td></tr>
+<tr><td>Full fine-tune: 4B, 200K pages</td><td>8 x H100 (~$16 to $30/h for the node)</td><td class="num">10 to 20 h</td><td class="num">$200 to $600</td><td class="num">$600 to $2,000</td></tr>
+<tr><td>Human labelling: 300 gold pages + checks on ~1,500 pages</td><td>Nepali readers</td><td class="num">~250 to 400 person-hours</td><td colspan="2">The largest single cost. Rs 1 to 2 lakh at typical data-entry rates</td></tr>
+</tbody>
+</table>
+</div>
+<p>For comparison, olmOCR's final run used one 8-H100 node for 16 hours, and the whole project spent 365 node-hours on experiments. Notice the pattern: the experiments, not the final run, cost the most. A clean data pipeline is what keeps that number low.</p>
+
+<!-- 3.5 -->
+<h3 id="eval">3.5 Evaluate</h3>
+<p>Evaluation is how you know whether a run helped. Every number comes from the frozen gold set, and every model (Tesseract, the hybrid, the base model, each fine-tuned checkpoint, and Sarvam as an outside reference) runs over the same pages.</p>
+<div class="tablebox">
+<table>
+<thead><tr><th>Metric</th><th>What it measures</th><th>Example</th><th>Target for v1</th></tr></thead>
+<tbody>
+<tr><td><b>CER</b> (character error rate)</td><td>Characters added, dropped or changed, divided by total characters. Lower is better</td><td>3 errors in 300 characters = 1% CER</td><td>Below the hybrid's CER</td></tr>
+<tr><td><b>WER</b> (word error rate)</td><td>Same idea per word. Sarvam reports word accuracy = 100 x (1 - WER)</td><td>Sarvam Nepali: 93.90 word accuracy</td><td>Report it; do not optimise alone</td></tr>
+<tr><td><b>Digit accuracy</b></td><td>Every number on the page, compared as exact strings</td><td>Gemma image-only: 51/54 = 94.4%</td><td>99.5%+, never below Tesseract</td></tr>
+<tr><td><b>Field accuracy</b></td><td>After the Extract step: is each field (total, date, PAN, name) exactly right?</td><td>Hybrid: all fields right</td><td>98%+ on bills and notices</td></tr>
+<tr><td><b>TEDS</b> (tree edit distance similarity)</td><td>How close the table structure is: rows, columns, merged cells, contents. 1.0 = identical</td><td>PaddleOCR-VL table TEDS 0.87 in-house</td><td>0.85+</td></tr>
+<tr><td><b>Reading order</b></td><td>Are blocks in the order a person reads them (columns, sidebars)?</td><td>Edit distance between block orders</td><td>Track it</td></tr>
+<tr><td><b>Script slips</b></td><td>Share of characters outside Devanagari and Latin</td><td>PaddleOCR's Bengali slip</td><td>Zero</td></tr>
+<tr><td><b>Hallucination and loops</b></td><td>Text not on the page; repeated lines; output far longer than the page</td><td>Check against Tesseract's words and length</td><td>Zero loops; flag rate tracked</td></tr>
+<tr><td><b>Format validity</b></td><td>Does the HTML parse and use only allowed block types?</td><td></td><td>100%</td></tr>
+<tr><td><b>Speed and cost</b></td><td>Seconds per page and dollars per 1,000 pages on the serving box</td><td>PaddleOCR-VL on Mac CPU: ~87 s/page</td><td>Under ~5 s/page on GPU</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Avoiding data leakage</h3>
+<p>Leakage means the test pages, or close copies of them, sneak into training. The model then looks great on the test and fails in the real world. The rules:</p>
+<ul>
+<li>Freeze the gold set first, with a date, and keep it in a separate folder that the training scripts cannot read.</li>
+<li>Split by document and by source, never by page. Two pages of the same gazette are near-duplicates.</li>
+<li>Remove near-duplicates by image fingerprint (a perceptual hash) and by text overlap between training and test.</li>
+<li>Hold out whole templates and whole fonts. If the test bill uses a layout or font the renderer also uses, the score is inflated. Keep 3 to 5 fonts and some templates for test only.</li>
+<li>Do not tune prompts or pick checkpoints on the gold set. Use the separate validation set for that, and touch the gold set only to report.</li>
+</ul>
+
+<h3>The error-analysis loop</h3>
+<p>The single most valuable hour after each run: sort the gold pages by error, open the worst twenty, and write each failure into a category (digit confusion, conjunct split, table merged wrongly, Preeti misread, missed footer, hallucination). The biggest category decides the next batch of data. This is how PaddleOCR's hard-case mining works, done by hand at our scale.</p>
+<p>Our test set of public Nepali documents (digital PDFs, scanned PDFs, images and synthetic degraded pages) is running now. Its results will land in <code>ml/docintel/testset/REPORT.md</code> and become the first version of this baseline.</p>
+
+<!-- 3.6 -->
+<h3 id="shrink">3.6 Make it small and fast</h3>
+<ol>
+<li><b>Merge</b> the LoRA adapter into the base weights, giving one ordinary model.</li>
+<li><b>Convert to GGUF</b>, llama.cpp's file format. A vision model becomes two files: the language model (<code>model.gguf</code>) and the vision side, called the <b>mmproj</b> (multimodal projector) file, which holds the encoder and projector.</li>
+<li><b>Quantise</b> (store weights in fewer bits). The language model goes to Q4_K_M (4-bit, about a quarter of the size) or Q8_0 (8-bit, near-lossless). Keep the mmproj at F16 or Q8_0; the eyes are small and suffer most from squeezing.</li>
+<li><b>Re-run the whole gold set on the quantised files.</b> Quantisation can quietly bring digit errors back. If Q4 loses more than a fraction of a point of digit accuracy, ship Q8.</li>
+</ol>
+<p>Sizes for a 4B model: about 8 GB at 16-bit, about 4.3 GB at Q8, about 2.5 GB at Q4, plus a few hundred MB for the mmproj. Alternative serving: <b>vLLM</b> runs the unquantised model with batching and is faster per page on a big GPU when traffic is high. llama.cpp is simpler and runs on smaller machines. Start with llama-server; move to vLLM only if throughput becomes the bottleneck.</p>
+
+<!-- 3.7 -->
+<h3 id="deploy">3.7 Deploy behind Boli's API</h3>
+<p>Chapter one proposed <code>/v1/documents</code> as a job API. The document model slots into it:</p>
+<ul>
+<li>The API stores the job and the file, returns a job id, and a background workflow does the work. Pages take seconds each, and a 10-page PDF must survive a closed tab, so this is a long job, not an inline call.</li>
+<li>The workflow splits the PDF into page images, sends each to the GPU server running <code>llama-server</code> with the model and mmproj, collects typed blocks, then runs the Extract pass if fields were asked for.</li>
+<li>Usage is metered per page. Record model version on every result so a bad release can be traced.</li>
+<li>Release safely: run the new model on a share of traffic (or alongside the old one, results hidden) for a week, compare automatic checks, then switch. Keep the previous model files for a one-command rollback.</li>
+<li>Keep the hybrid as a fallback: if the model's output fails a check (digits disagree with Tesseract, script slip, unparseable HTML), rerun that page through the hybrid and flag it.</li>
+</ul>
+
+<!-- 3.8 -->
+<h3 id="loop">3.8 The improve loop</h3>
+<p>A shipped model is version one. The model gets better from real failures, gathered carefully:</p>
+<ul>
+<li>Failures come from three places: automatic flags (the fallback fired), customer corrections in the playground, and support reports.</li>
+<li>Only pages with opt-in consent enter the training pool. Redact first.</li>
+<li>Label the failures (teacher draft plus human fix), add them to the hard-case set, render synthetic look-alikes of each new failure type.</li>
+<li>Retrain on a schedule (monthly at first). A new version ships only if it beats the current one on the gold set <b>and</b> does not get worse on any category (the regression gate).</li>
+<li>Add a few new pages to the gold set each quarter so it keeps resembling real traffic. Version the gold set; compare models only on the same version.</li>
+</ul>
+
+<!-- 4 -->
+<h2 id="plan">4. A realistic plan for Boli</h2>
+<p>Phased so each step is useful even if the next one never happens. Effort assumes one engineer part-time plus paid Nepali readers for labelling.</p>
+
+<figure class="fig wide" role="img" aria-label="Timeline across about ten weeks: Phase 0 now, Phase 1 weeks 1 to 3, Phase 2 weeks 4 to 5, Phase 3 week 6, Phase 4 weeks 7 to 8, then the improve loop ongoing.">
+<svg viewBox="0 0 1000 250" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <rect x="0" y="0" width="1000" height="250" fill="#ffffff"/>
+  <g font-size="11" fill="#000">
+    <text x="200" y="24">wk 1</text><text x="275" y="24">wk 2</text><text x="350" y="24">wk 3</text><text x="425" y="24">wk 4</text><text x="500" y="24">wk 5</text><text x="575" y="24">wk 6</text><text x="650" y="24">wk 7</text><text x="725" y="24">wk 8</text><text x="800" y="24">wk 9</text><text x="875" y="24">wk 10+</text>
+  </g>
+  <g stroke="#d5d8de">
+    <line x1="195" y1="32" x2="195" y2="232"/><line x1="270" y1="32" x2="270" y2="232"/><line x1="345" y1="32" x2="345" y2="232"/><line x1="420" y1="32" x2="420" y2="232"/><line x1="495" y1="32" x2="495" y2="232"/><line x1="570" y1="32" x2="570" y2="232"/><line x1="645" y1="32" x2="645" y2="232"/><line x1="720" y1="32" x2="720" y2="232"/><line x1="795" y1="32" x2="795" y2="232"/><line x1="870" y1="32" x2="870" y2="232"/>
+  </g>
+  <g font-size="12" fill="#000">
+    <text x="16" y="56" font-weight="700">0  Hybrid (now)</text>
+    <text x="16" y="90" font-weight="700">1  Test set + data</text>
+    <text x="16" y="124" font-weight="700">2  First LoRA</text>
+    <text x="16" y="158" font-weight="700">3  Evaluate + decide</text>
+    <text x="16" y="192" font-weight="700">4  Ship GGUF</text>
+    <text x="16" y="226" font-weight="700">Improve loop</text>
+  </g>
+  <rect x="195" y="42" width="785" height="20" rx="4" fill="#e8eefc" stroke="#333"/>
+  <text x="203" y="56" font-size="11" fill="#000">in production as baseline and fallback the whole time</text>
+  <rect x="195" y="76" width="225" height="20" rx="4" fill="#fdf0d0" stroke="#333"/>
+  <text x="203" y="90" font-size="11" fill="#000">gold set, bake-off, data factory</text>
+  <rect x="420" y="110" width="150" height="20" rx="4" fill="#e5f4ea" stroke="#333"/>
+  <text x="428" y="124" font-size="11" fill="#000">5 to 10 runs</text>
+  <rect x="570" y="144" width="75" height="20" rx="4" fill="#f1e8fb" stroke="#333"/>
+  <text x="576" y="158" font-size="11" fill="#000">go / no-go</text>
+  <rect x="645" y="178" width="150" height="20" rx="4" fill="#e8eefc" stroke="#333"/>
+  <text x="653" y="192" font-size="11" fill="#000">llama-server, shadow</text>
+  <rect x="795" y="212" width="185" height="20" rx="4" fill="#e5f4ea" stroke="#333" stroke-dasharray="5 3"/>
+  <text x="803" y="226" font-size="11" fill="#000">monthly retrain</text>
+</svg>
+</figure>
+<p class="figcap">About eight to ten weeks of part-time work to a shipped first model, if the data pipeline behaves. Data work in Phase 1 is the part most likely to run long.</p>
+
+<div class="phases">
+  <div class="phase">
+    <h3>Phase 0. The hybrid pipeline (what we have now)</h3>
+    <div class="meta"><span class="tag yes">Done in testing</span><span class="tag">Cost: nothing new</span></div>
+    <p>Page image plus Tesseract's text into Gemma 4 E4B. Every field right on our test bill. Ship this as the first version of <code>/v1/documents</code>. It stays forever as the fallback and as the teacher pipeline for Phase 1.</p>
+  </div>
+  <div class="phase">
+    <h3>Phase 1. Test set and teacher-labelled data</h3>
+    <div class="meta"><span class="tag">2 to 3 weeks</span><span class="tag">Compute $50 to $200</span><span class="tag">Labelling Rs 1 to 2 lakh</span></div>
+    <ul>
+      <li>Finish the public test set run (<code>REPORT.md</code>) and grow it into a 300-page gold set, checked by two readers, frozen with a date.</li>
+      <li>Write the scoring script once: CER, WER, digit accuracy, field accuracy, TEDS, script slips, loops, speed.</li>
+      <li>Base model bake-off on the gold set: Qwen3-VL-4B, Gemma 4 E4B, Qwen3.5-4B if supported, plus Tesseract, hybrid, PaddleOCR-VL and Sarvam as references.</li>
+      <li>Build the data factory: renderer with 20+ Unicode fonts and Preeti, templates for bills, notices, letters and tables, phone-photo augmentation. Generate 50K+ pages.</li>
+      <li>Collect 3,000 to 7,500 public pages; label with an open teacher plus the hybrid; auto-check; human-fix flagged pages and a 10% sample.</li>
+    </ul>
+    <p class="done">Done when: the gold set is frozen, the scoreboard has a row for every reference model, and about 25K training pairs exist.</p>
+  </div>
+  <div class="phase">
+    <h3>Phase 2. First LoRA on a 2 to 4B base</h3>
+    <div class="meta"><span class="tag">1 to 2 weeks</span><span class="tag">Compute $150 to $400</span></div>
+    <ul>
+      <li>Rent one H100 or A100 by the hour. Train LoRA (rank 16 to 32) on the bake-off winner with the mixed set (reading examples plus page-to-blocks), 1 to 2 epochs.</li>
+      <li>Two variants: vision layers frozen, and LoRA on vision layers too. Compare digits.</li>
+      <li>After each run: score on the validation set (never the gold set), error analysis, then hard-case data for the biggest failure category. Expect 5 to 10 runs.</li>
+    </ul>
+    <p class="done">Done when: a checkpoint beats the base model clearly and stops improving between runs.</p>
+  </div>
+  <div class="phase">
+    <h3>Phase 3. Evaluate against Tesseract, the hybrid and Sarvam</h3>
+    <div class="meta"><span class="tag">1 week</span><span class="tag">Compute under $20</span></div>
+    <ul>
+      <li>Run the best checkpoint, quantised the way we will ship it, over the gold set once.</li>
+      <li>Go if: digit accuracy at least Tesseract's, field accuracy at least the hybrid's, zero script slips and loops, under about 5 s per page on the target GPU.</li>
+      <li>No-go is a fine outcome: keep the hybrid, and the data and gold set we built still pay off for the next attempt (full fine-tune, a different base, or stage C reward tuning).</li>
+    </ul>
+  </div>
+  <div class="phase">
+    <h3>Phase 4. Ship as GGUF on llama-server</h3>
+    <div class="meta"><span class="tag">1 to 2 weeks</span><span class="tag">Serving ~$250 to $600 a month for one always-on 24 GB GPU</span></div>
+    <ul>
+      <li>Merge, convert to GGUF plus mmproj, quantise, re-score. Serve with <code>llama-server</code> on one GPU box behind the <code>/v1/documents</code> workflow.</li>
+      <li>Shadow mode for a week (new model runs, the hybrid's answer is returned), then switch with the hybrid as automatic fallback.</li>
+      <li>Turn on the consent checkbox and the failure queue. Start the monthly retrain.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="note blue"><strong>The plan in one line:</strong> ship the hybrid now, spend most effort on a frozen gold set and a Nepali data factory, then a cheap LoRA on an Apache-licensed 4B model, and only replace the hybrid when the numbers say so.</div>
+
+<!-- 5 -->
+<h2 id="risks">5. What is hard, and what can go wrong</h2>
+<ul>
+<li><b>The teacher's mistakes become the student's.</b> If labels have wrong digits, the model learns wrong digits. Measure the teacher's error rate on the gold set before labelling thousands of pages.</li>
+<li><b>Synthetic pages are too clean.</b> A model trained mostly on renders can fail on a crumpled photo. Keep real pages at 30% or more and use heavy augmentation.</li>
+<li><b>Catastrophic forgetting.</b> Fine-tune only on Nepali and English reading suffers, or the model forgets tables. The keep-alive slice and per-category scores catch this.</li>
+<li><b>Fluent hallucination is worse than garbled text.</b> Tesseract's garbled word is obviously wrong; a VLM's invented but plausible Nepali sentence is not. This is why the digit cross-check against Tesseract stays in production.</li>
+<li><b>LoRA may not reach the eyes.</b> If the digit confusion is in the vision encoder and LoRA with frozen vision does not fix it, you need vision-layer LoRA or a full fine-tune, which costs more.</li>
+<li><b>Quantisation undoes gains.</b> Always score the exact files you ship.</li>
+<li><b>Licence and terms traps.</b> A research-only base, a dataset with no licence, or labels copied from a commercial API can each block a commercial product later. Keep the register.</li>
+<li><b>Privacy.</b> One leaked customer citizenship card in a training set is a serious incident. Opt-in only, redact first, keep a delete path.</li>
+<li><b>Long and dense pages.</b> A full bank statement page can exceed the context window or slow the model to a crawl. Plan for tiling or a layout step that reads regions separately.</li>
+<li><b>Benchmarks you did not build.</b> Published scores (including Sarvam's and PaddleOCR's) are mostly on the authors' own test sets. Only our gold set says how a model does on our documents.</li>
+</ul>
+
+<!-- 6 -->
+<h2 id="glossary">6. Glossary</h2>
+<div class="defs">
+  <div class="def"><b>VLM</b>Vision-language model: takes images and text in, writes text out.</div>
+  <div class="def"><b>Base model</b>The existing open model you start from and specialise.</div>
+  <div class="def"><b>Fine-tuning</b>Further training of an existing model on examples of one job.</div>
+  <div class="def"><b>Continued pretraining</b>More broad training on raw material (here: plain reading of text images) before teaching a format.</div>
+  <div class="def"><b>SFT</b>Supervised fine-tuning: training on input and correct-output pairs.</div>
+  <div class="def"><b>RLVR</b>Reinforcement learning with verifiable rewards: the model tries, an automatic check scores it, good attempts are reinforced.</div>
+  <div class="def"><b>GRPO</b>A popular RL method that compares several attempts at the same input and favours the better ones. Used by olmOCR 2.</div>
+  <div class="def"><b>LoRA / QLoRA</b>Train small add-on matrices instead of all weights; QLoRA does it over a 4-bit base.</div>
+  <div class="def"><b>Adapter</b>The small file LoRA produces, merged into the base for serving.</div>
+  <div class="def"><b>Epoch</b>One full pass over the training data.</div>
+  <div class="def"><b>Checkpoint</b>A saved copy of the model at a point in training.</div>
+  <div class="def"><b>Teacher / student</b>A bigger model labels data (teacher); the small model learns from it (student). Also called distillation.</div>
+  <div class="def"><b>Synthetic data</b>Documents generated by a program, so the right answer is known.</div>
+  <div class="def"><b>Augmentation</b>Deliberately degrading images (blur, tilt, shadow) so the model copes with real photos.</div>
+  <div class="def"><b>Hard-case mining</b>Finding what the model gets wrong and making more training data of that kind.</div>
+  <div class="def"><b>Gold set</b>Human-checked test pages, frozen and never trained on.</div>
+  <div class="def"><b>Validation set</b>A separate slice used during training to pick checkpoints, so the gold set stays untouched.</div>
+  <div class="def"><b>Data leakage</b>Test pages, or near-copies, reaching training. Inflates scores.</div>
+  <div class="def"><b>CER / WER</b>Character and word error rates: share of characters or words wrong.</div>
+  <div class="def"><b>TEDS</b>Tree edit distance similarity: how close a table's structure and contents are to the truth.</div>
+  <div class="def"><b>Catastrophic forgetting</b>Losing old skills while learning a new one.</div>
+  <div class="def"><b>Quantisation</b>Storing weights in fewer bits (8 or 4) to shrink and speed up a model.</div>
+  <div class="def"><b>GGUF / mmproj</b>llama.cpp's model file format; mmproj is the separate file with the vision encoder and projector.</div>
+  <div class="def"><b>Preeti</b>Legacy Nepali font that stores Latin letters drawn as Devanagari. Must be converted to Unicode.</div>
+  <div class="def"><b>Typed blocks</b>Output where each piece of the page is tagged with what it is (title, paragraph, table, footer).</div>
+  <div class="def"><b>Regression gate</b>A rule that a new model ships only if it is no worse on any tracked category.</div>
+</div>
+
+<!-- 7 -->
+<h2 id="next">7. What to read next</h2>
+<ol>
+<li><a href="https://www.sarvam.ai/blogs/sarvam-vision">Sarvam Vision blog</a>: their stages and the Indic OCR bench with Nepali scores.</li>
+<li><a href="https://arxiv.org/abs/2502.18443">olmOCR paper</a>: the clearest public write-up of teacher labelling, training settings and costs.</li>
+<li><a href="https://allenai.org/blog/olmocr-2">olmOCR 2 blog</a>: unit-test rewards, the practical version of stage C.</li>
+<li><a href="https://arxiv.org/abs/2510.14528">PaddleOCR-VL report</a>: data construction at scale, hard-case mining, layout plus VLM.</li>
+<li><a href="https://huggingface.co/blog/lightonai/lightonocr">LightOnOCR blog</a>: distillation from a 72B teacher into a 1B model, and why teacher size matters.</li>
+<li><a href="https://unsloth.ai/docs/basics/vision-fine-tuning">Unsloth vision fine-tuning guide</a>: what the LoRA choices (vision layers, language layers) look like in a real tool.</li>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/multimodal.md">llama.cpp multimodal docs</a>: how GGUF plus mmproj serving works.</li>
+<li><a href="https://huggingface.co/blog/ocr-open-models">Hugging Face: Supercharge your OCR pipelines with open models</a>: a survey of open OCR models and their licences.</li>
+</ol>
+
+<!-- 8 -->
+<h2 id="quiz">8. Quiz</h2>
+<p>Pick an answer to reveal whether it is right and why.</p>
+<div class="quiz" id="quiz-list"></div>
+<div class="qbar"><span id="qscore">Score: 0 of 10 answered</span><button type="button" id="qreset">Reset quiz</button></div>
+
+<!-- sources -->
+<h2 id="sources">Sources</h2>
+<ul class="src">
+<li><a href="https://www.sarvam.ai/blogs/sarvam-vision">Sarvam AI, "Sarvam Vision" (blog)</a></li>
+<li><a href="https://docs.sarvam.ai/api/api-guides-tutorials/models/sarvam-vision.md">Sarvam docs, Sarvam Vision model page (languages incl. Nepali, output formats)</a></li>
+<li><a href="https://analyticsindiamag.com/ai-news/sarvam-vision-beats-gemini-gpt-on-indic-ocr-across-22-indian-languages">Analytics India Magazine, Sarvam Vision launch coverage</a></li>
+<li><a href="https://arxiv.org/abs/2502.18443">Poznanski et al., "olmOCR: Unlocking Trillions of Tokens in PDFs with Vision Language Models"</a></li>
+<li><a href="https://allenai.org/blog/olmocr-2">Ai2, "olmOCR 2" blog</a> and <a href="https://arxiv.org/abs/2510.19817">"olmOCR 2: Unit Test Rewards for Document OCR"</a></li>
+<li><a href="https://huggingface.co/blog/tngtech/finetuning-olmocr-to-be-a-faithful-ocr-engine">TNG Tech, "Finetuning olmOCR to be a faithful OCR engine"</a></li>
+<li><a href="https://arxiv.org/abs/2510.14528">Cui et al., "PaddleOCR-VL" technical report</a> and <a href="https://huggingface.co/paddlepaddle/paddleocr-vl">model card</a></li>
+<li><a href="https://huggingface.co/blog/lightonai/lightonocr">LightOn, "LightOnOCR-1B" blog</a></li>
+<li><a href="https://arxiv.org/abs/2503.11576">SmolDocling paper</a> and <a href="https://ibm.com/new/announcements/granite-docling-end-to-end-document-conversion">IBM Granite-Docling announcement</a></li>
+<li><a href="https://arxiv.org/abs/2512.02498">dots.ocr paper</a> and <a href="https://github.com/rednote-hilab/dots.ocr">dots.ocr repository</a></li>
+<li><a href="https://nanonets.com/research/nanonets-ocr-2">Nanonets-OCR2 research page</a> and <a href="https://huggingface.co/nanonets/Nanonets-OCR2-3B">model card</a></li>
+<li><a href="https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct">Qwen3-VL-4B-Instruct model card (Apache 2.0)</a> and <a href="https://huggingface.co/Qwen/Qwen3-VL-2B-Thinking-GGUF">official Qwen3-VL GGUF with mmproj</a></li>
+<li><a href="https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct/blob/main/LICENSE">Qwen2.5-VL-3B-Instruct LICENSE (Qwen Research, non-commercial)</a></li>
+<li><a href="https://huggingface.co/Qwen/Qwen3.5-2B">Qwen3.5-2B model card (Apache 2.0)</a></li>
+<li><a href="https://ai.google.dev/gemma/docs/core/model_card_4">Gemma 4 model card (Apache 2.0, encoder sizes)</a> and <a href="https://blog.google/innovation-and-ai/technology/developers-tools/gemma-4/">Gemma 4 launch blog</a></li>
+<li><a href="https://huggingface.co/datalab-to/surya-ocr-2">Surya OCR 2 model card (weights licence)</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/multimodal.md">llama.cpp multimodal documentation</a></li>
+<li><a href="https://unsloth.ai/docs/basics/vision-fine-tuning">Unsloth vision fine-tuning docs</a> and <a href="https://unsloth.ai/docs/models/gemma-4/train">Gemma 4 E2B/E4B training guide</a></li>
+<li><a href="https://huggingface.co/blog/ocr-open-models">Hugging Face, "Supercharge your OCR pipelines with open models"</a></li>
+<li><a href="https://huggingface.co/datasets/himalaya-ai/nepali-deva-ocr-eval">himalaya-ai/nepali-deva-ocr-eval (500 printed Nepali snippets)</a></li>
+<li><a href="https://cvit.iiit.ac.in/research/projects/cvit-projects/iiit-indic-hw-words">IIIT-INDIC-HW-WORDS (CVIT, IIIT Hyderabad)</a> and <a href="https://arxiv.org/abs/2205.06740">Mozhi printed Indic OCR dataset paper</a></li>
+<li><a href="https://aclanthology.org/2024.icon-1.33.pdf">RoundTripOCR (ICON 2024): Nepali and Hindi post-OCR correction data</a></li>
+<li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9025185">Indic scene-text recognition with 500+ Hindi fonts</a> and <a href="https://www.arxiv.org/pdf/2201.03185">font diversity vs sample count for Devanagari</a></li>
+<li><a href="https://github.com/clovaai/synthtiger">SynthTIGER synthetic text image generator</a></li>
+<li><a href="https://github.com/casualsnek/npttf2utf">npttf2utf (Preeti and other legacy fonts to Unicode)</a> and <a href="https://nepalibhasha.github.io/nepali-fonts/">nepalibhasha Nepali fonts and converter</a></li>
+<li><a href="https://www.runpod.io/pricing">RunPod GPU pricing</a> (hourly rates used for cost ranges)</li>
+<li>Boli's own measurements, 24 November 2026: <code>ml/docintel/</code> (one synthetic Nepali/English bill); public test set results to follow in <code>ml/docintel/testset/REPORT.md</code></li>
+</ul>
+<p class="figcap">Cost figures for Boli's phases are estimates built from the published hardware times above and current rental prices, not quotes.</p>
+</main>
+</div>
+
+<script>
+(function () {
+  var Q = [
+    { q: "Gemma 4 E4B confused ४ and ५ even when given more image tokens. What does that suggest?",
+      o: ["The image was too small", "The model lacks knowledge of Nepali digit shapes, which fine-tuning can fix", "Gemma cannot read any Devanagari", "The bill was badly designed"], a: 1,
+      w: "Sharper input did not help, so the gap is in what the model learnt, not what it could see. Training on many rendered Nepali digits targets exactly that." },
+    { q: "Which part of building a document specialist takes the most effort in published projects?",
+      o: ["Choosing the learning rate", "Building and checking the training data", "Converting to GGUF", "Writing the API"], a: 1,
+      w: "olmOCR, PaddleOCR and LightOnOCR all describe data pipelines in far more detail than training settings. Almost every feedback loop returns to data." },
+    { q: "Why can't Boli build on Qwen2.5-VL-3B or Nanonets-OCR (which uses it)?",
+      o: ["They are too slow", "They do not support Devanagari", "The 3B weights are under a research-only, non-commercial licence that fine-tunes inherit", "They do not run on GPUs"], a: 2,
+      w: "The 7B is Apache 2.0 but the 3B checkpoint is Qwen Research licensed. Always read the licence of the exact checkpoint." },
+    { q: "How does a synthetic renderer handle Preeti so the model learns the right output?",
+      o: ["Render text in Preeti, store the Unicode conversion as the answer", "Render in Unicode and store Preeti as the answer", "Skip Preeti documents", "Ask the model to guess the font"], a: 0,
+      w: "The model sees what old pages look like but always writes proper Unicode, the only output customers can search and process." },
+    { q: "What is the main reason to start with LoRA rather than full fine-tuning?",
+      o: ["LoRA always gives better quality", "LoRA is cheap enough to run many times while you fix the data", "Full fine-tuning cannot be quantised", "LoRA does not need data"], a: 1,
+      w: "olmOCR found full fine-tuning slightly better, but early on you need many quick, cheap runs. Move to full fine-tuning only when LoRA plateaus." },
+    { q: "Two pages from the same government gazette PDF: one goes to training, one to the gold set. What is wrong?",
+      o: ["Nothing, they are different pages", "It is data leakage: same document, layout and fonts inflate the test score", "Gazette pages are not allowed", "The gold set should be synthetic"], a: 1,
+      w: "Split by document and by source, never by page, and hold out whole fonts and templates too." },
+    { q: "Which metric would have caught PaddleOCR-VL slipping into Bengali script?",
+      o: ["Speed per page", "TEDS", "A script-slip check: share of characters outside Devanagari and Latin", "Word count"], a: 2,
+      w: "CER would rise too, but a dedicated script check names the failure directly and should be zero." },
+    { q: "Using Sarvam's API output as training labels is risky mainly because:",
+      o: ["Sarvam is less accurate than Tesseract", "Commercial API terms usually forbid training competing models on their outputs", "Sarvam's HTML cannot be parsed", "It is too expensive"], a: 1,
+      w: "Use Sarvam as an outside reference in evaluation. Label with open teachers and human checks." },
+    { q: "After converting the fine-tuned model to Q4 GGUF, what must you do before shipping?",
+      o: ["Nothing, quantisation is lossless", "Re-run the full gold set on the exact quantised files", "Retrain from scratch", "Delete the mmproj file"], a: 1,
+      w: "Quantisation can bring digit errors back. Score the files you ship, and keep the mmproj at F16 or Q8." },
+    { q: "In olmOCR 2 and Sarvam's final stage, what does the model get rewarded for?",
+      o: ["Writing longer answers", "Passing automatic checks such as correct digits, valid structure, absent headers", "Agreeing with a human vote each time", "Using fewer tokens"], a: 1,
+      w: "Verifiable rewards: checks a program can run. olmOCR 2 rewards the fraction of per-page unit tests passed." }
+  ];
+  var list = document.getElementById("quiz-list");
+  var scoreEl = document.getElementById("qscore");
+  var state = Q.map(function () { return null; });
+  function render() {
+    list.innerHTML = "";
+    Q.forEach(function (item, i) {
+      var box = document.createElement("div"); box.className = "q";
+      var p = document.createElement("p"); p.className = "ask"; p.textContent = item.q; box.appendChild(p);
+      var opts = document.createElement("div"); opts.className = "opts";
+      item.o.forEach(function (txt, j) {
+        var b = document.createElement("button"); b.type = "button"; b.id = "q" + i + "o" + j; b.textContent = txt;
+        if (state[i] !== null) {
+          if (j === item.a) b.className = "right";
+          else if (j === state[i]) b.className = "wrong";
+        }
+        b.addEventListener("click", function () { state[i] = j; render(); });
+        opts.appendChild(b);
+      });
+      box.appendChild(opts);
+      if (state[i] !== null) {
+        var w = document.createElement("p"); w.className = "why";
+        w.textContent = (state[i] === item.a ? "Right. " : "Not quite. ") + item.w;
+        box.appendChild(w);
+      }
+      list.appendChild(box);
+    });
+    var answered = state.filter(function (s) { return s !== null; }).length;
+    var right = state.filter(function (s, i) { return s === Q[i].a; }).length;
+    scoreEl.textContent = "Score: " + right + " right, " + answered + " of " + Q.length + " answered";
+  }
+  document.getElementById("qreset").addEventListener("click", function () { state = Q.map(function () { return null; }); render(); });
+  render();
+})();
+</script>

@@ -1,0 +1,13 @@
+{
+  "category": "image",
+  "wall_s": 329.5,
+  "log": [
+    "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+    "page 1 pass1: 9.6s, 1191 in / 169 out, finish=stop",
+    "page 1 fields: 307.8s, 1280 in / 275 out, finish=stop",
+    "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+    "page 1 tesseract fields: 3.5s, 167 in / 107 out, finish=stop",
+    "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+    "page 1 hybrid fields: 8.1s, 1379 in / 279 out, finish=stop"
+  ]
+}

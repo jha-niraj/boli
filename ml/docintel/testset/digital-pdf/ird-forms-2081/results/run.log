@@ -1,0 +1,14 @@
+file: ird-forms-2081.pdf
+source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1
+text layer: 2201 chars, check: ok
+text-route fields: 23.9s, 872 in / 424 out, finish=stop
+
+file: ird-forms-2081.pdf
+source: image  pass: text  schema: bill  dpi: 150  pages: 1-1
+page 1 pass1: 23.0s, 1230 in / 546 out, finish=stop
+
+file: ird-forms-2081.pdf
+source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1
+
+score: {"ref_chars": 1353, "hyp_chars": 1204, "length_ratio": 0.89, "cer": 0.3407, "cer_nospace": 0.3765, "ref_digits": 65, "hyp_digits": 58, "digit_errors": 15, "digit_acc": 0.7692, "digit_acc_exact": 0.6, "nep_to_eng": 0, "eng_to_nep": 12}
+wall: 51.4s

@@ -1,0 +1,13 @@
+{
+  "category": "scanned-pdf",
+  "wall_s": 210.7,
+  "log": [
+    "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+    "page 1 pass1: 91.6s, 1140 in / 3000 out, finish=length",
+    "page 1 fields: 13.8s, 1229 in / 301 out, finish=stop",
+    "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+    "page 1 tesseract fields: 9.4s, 1084 in / 287 out, finish=stop",
+    "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+    "page 1 hybrid fields: 10.8s, 2245 in / 315 out, finish=stop"
+  ]
+}

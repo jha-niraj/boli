@@ -1,0 +1,41 @@
+{
+  "category": "synthetic-degraded",
+  "score": {
+    "ref_chars": 1141,
+    "hyp_chars": 1202,
+    "length_ratio": 1.05,
+    "cer": 0.3479,
+    "cer_nospace": 0.3935,
+    "ref_digits": 17,
+    "hyp_digits": 17,
+    "digit_errors": 2,
+    "digit_acc": 0.8824,
+    "digit_acc_exact": 0.8824,
+    "nep_to_eng": 0,
+    "eng_to_nep": 0
+  },
+  "key": "answer-key.txt",
+  "score_tesseract": {
+    "ref_chars": 1141,
+    "hyp_chars": 1321,
+    "length_ratio": 1.16,
+    "cer": 0.3278,
+    "cer_nospace": 0.3923,
+    "ref_digits": 17,
+    "hyp_digits": 22,
+    "digit_errors": 5,
+    "digit_acc": 0.7059,
+    "digit_acc_exact": 0.5294,
+    "nep_to_eng": 3,
+    "eng_to_nep": 0
+  },
+  "wall_s": 42.7,
+  "log": [
+    "source: image  pass: text  schema: bill  dpi: 150  pages: 1-end",
+    "page 1 pass1: 15.9s, 1220 in / 371 out, finish=stop",
+    "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+    "page 1 tesseract fields: 11.0s, 596 in / 348 out, finish=stop",
+    "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+    "page 1 hybrid fields: 13.1s, 1837 in / 272 out, finish=stop"
+  ]
+}

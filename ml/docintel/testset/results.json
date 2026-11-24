@@ -1,0 +1,1079 @@
+{
+  "dohs-bipad-report": {
+    "category": "digital-pdf",
+    "layer": "unicode-devanagari",
+    "score": {
+      "ref_chars": 1141,
+      "hyp_chars": 1240,
+      "length_ratio": 1.09,
+      "cer": 0.3155,
+      "cer_nospace": 0.3597,
+      "ref_digits": 17,
+      "hyp_digits": 17,
+      "digit_errors": 3,
+      "digit_acc": 0.8235,
+      "digit_acc_exact": 0.8235,
+      "nep_to_eng": 0,
+      "eng_to_nep": 0
+    },
+    "key": "text layer",
+    "score_tesseract": {
+      "ref_chars": 1141,
+      "hyp_chars": 1319,
+      "length_ratio": 1.16,
+      "cer": 0.2866,
+      "cer_nospace": 0.3469,
+      "ref_digits": 17,
+      "hyp_digits": 19,
+      "digit_errors": 6,
+      "digit_acc": 0.6471,
+      "digit_acc_exact": 0.6471,
+      "nep_to_eng": 0,
+      "eng_to_nep": 0
+    },
+    "wall_s": 46.2,
+    "log": [
+      "source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "text layer: 1737 chars, check: ok",
+      "text-route fields: 24.2s, 703 in / 383 out, finish=stop",
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "page 1 pass1: 16.5s, 1220 in / 381 out, finish=stop",
+      "source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1"
+    ]
+  },
+  "ird-britacof-press": {
+    "category": "digital-pdf",
+    "layer": "unicode-devanagari",
+    "score": {
+      "ref_chars": 1781,
+      "hyp_chars": 1596,
+      "length_ratio": 0.9,
+      "cer": 0.2527,
+      "cer_nospace": 0.2751,
+      "ref_digits": 28,
+      "hyp_digits": 19,
+      "digit_errors": 9,
+      "digit_acc": 0.6786,
+      "digit_acc_exact": 0.6429,
+      "nep_to_eng": 0,
+      "eng_to_nep": 1
+    },
+    "key": "text layer",
+    "score_tesseract": {
+      "ref_chars": 1781,
+      "hyp_chars": 1700,
+      "length_ratio": 0.95,
+      "cer": 0.2077,
+      "cer_nospace": 0.2265,
+      "ref_digits": 28,
+      "hyp_digits": 36,
+      "digit_errors": 10,
+      "digit_acc": 0.6429,
+      "digit_acc_exact": 0.6429,
+      "nep_to_eng": 4,
+      "eng_to_nep": 0
+    },
+    "wall_s": 42.9,
+    "log": [
+      "source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "text layer: 2281 chars, check: ok",
+      "text-route fields: 17.1s, 893 in / 320 out, finish=stop",
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "page 1 pass1: 19.1s, 1230 in / 439 out, finish=stop",
+      "source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1"
+    ]
+  },
+  "ird-forms-2081": {
+    "category": "digital-pdf",
+    "layer": "unicode-devanagari",
+    "score": {
+      "ref_chars": 1353,
+      "hyp_chars": 1204,
+      "length_ratio": 0.89,
+      "cer": 0.3407,
+      "cer_nospace": 0.3765,
+      "ref_digits": 65,
+      "hyp_digits": 58,
+      "digit_errors": 15,
+      "digit_acc": 0.7692,
+      "digit_acc_exact": 0.6,
+      "nep_to_eng": 0,
+      "eng_to_nep": 12
+    },
+    "key": "text layer",
+    "score_tesseract": {
+      "ref_chars": 1353,
+      "hyp_chars": 1320,
+      "length_ratio": 0.98,
+      "cer": 0.2269,
+      "cer_nospace": 0.2534,
+      "ref_digits": 65,
+      "hyp_digits": 82,
+      "digit_errors": 19,
+      "digit_acc": 0.7077,
+      "digit_acc_exact": 0.4923,
+      "nep_to_eng": 0,
+      "eng_to_nep": 15
+    },
+    "wall_s": 51.4,
+    "log": [
+      "source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "text layer: 2201 chars, check: ok",
+      "text-route fields: 23.9s, 872 in / 424 out, finish=stop",
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "page 1 pass1: 23.0s, 1230 in / 546 out, finish=stop",
+      "source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1"
+    ]
+  },
+  "ird-invoice-notice": {
+    "category": "digital-pdf",
+    "layer": "unicode-devanagari",
+    "score": {
+      "ref_chars": 660,
+      "hyp_chars": 590,
+      "length_ratio": 0.89,
+      "cer": 0.2682,
+      "cer_nospace": 0.3011,
+      "ref_digits": 6,
+      "hyp_digits": 6,
+      "digit_errors": 1,
+      "digit_acc": 0.8333,
+      "digit_acc_exact": 0.0,
+      "nep_to_eng": 0,
+      "eng_to_nep": 5
+    },
+    "key": "text layer",
+    "score_tesseract": {
+      "ref_chars": 660,
+      "hyp_chars": 613,
+      "length_ratio": 0.93,
+      "cer": 0.2212,
+      "cer_nospace": 0.2482,
+      "ref_digits": 6,
+      "hyp_digits": 6,
+      "digit_errors": 0,
+      "digit_acc": 1.0,
+      "digit_acc_exact": 0.0,
+      "nep_to_eng": 0,
+      "eng_to_nep": 6
+    },
+    "wall_s": 28.4,
+    "log": [
+      "source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "text layer: 661 chars, check: ok",
+      "text-route fields: 15.1s, 447 in / 321 out, finish=stop",
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "page 1 pass1: 9.8s, 1230 in / 172 out, finish=stop",
+      "source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1"
+    ]
+  },
+  "ird-public-notice": {
+    "category": "digital-pdf",
+    "layer": "unicode-devanagari",
+    "score": {
+      "ref_chars": 2333,
+      "hyp_chars": 1947,
+      "length_ratio": 0.83,
+      "cer": 0.3108,
+      "cer_nospace": 0.3356,
+      "ref_digits": 99,
+      "hyp_digits": 87,
+      "digit_errors": 17,
+      "digit_acc": 0.8283,
+      "digit_acc_exact": 0.0202,
+      "nep_to_eng": 0,
+      "eng_to_nep": 80
+    },
+    "key": "text layer",
+    "score_tesseract": {
+      "ref_chars": 2333,
+      "hyp_chars": 2254,
+      "length_ratio": 0.97,
+      "cer": 0.1822,
+      "cer_nospace": 0.2054,
+      "ref_digits": 99,
+      "hyp_digits": 99,
+      "digit_errors": 0,
+      "digit_acc": 1.0,
+      "digit_acc_exact": 0.0202,
+      "nep_to_eng": 0,
+      "eng_to_nep": 97
+    },
+    "wall_s": 45.3,
+    "log": [
+      "source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "text layer: 2528 chars, check: ok",
+      "text-route fields: 20.0s, 1195 in / 526 out, finish=stop",
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "page 1 pass1: 20.7s, 1230 in / 620 out, finish=stop",
+      "source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1"
+    ]
+  },
+  "ird-taxday-press": {
+    "category": "digital-pdf",
+    "layer": "unicode-devanagari",
+    "score": {
+      "ref_chars": 2126,
+      "hyp_chars": 1938,
+      "length_ratio": 0.91,
+      "cer": 0.1402,
+      "cer_nospace": 0.1399,
+      "ref_digits": 25,
+      "hyp_digits": 23,
+      "digit_errors": 5,
+      "digit_acc": 0.8,
+      "digit_acc_exact": 0.68,
+      "nep_to_eng": 0,
+      "eng_to_nep": 3
+    },
+    "key": "text layer",
+    "score_tesseract": {
+      "ref_chars": 2126,
+      "hyp_chars": 2104,
+      "length_ratio": 0.99,
+      "cer": 0.0517,
+      "cer_nospace": 0.0475,
+      "ref_digits": 25,
+      "hyp_digits": 24,
+      "digit_errors": 1,
+      "digit_acc": 0.96,
+      "digit_acc_exact": 0.84,
+      "nep_to_eng": 0,
+      "eng_to_nep": 3
+    },
+    "wall_s": 29.8,
+    "log": [
+      "source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "text layer: 2500 chars, check: ok",
+      "text-route fields: 9.8s, 859 in / 257 out, finish=stop",
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "page 1 pass1: 16.6s, 1220 in / 550 out, finish=stop",
+      "source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1"
+    ]
+  },
+  "mof-press-kartik30": {
+    "category": "digital-pdf",
+    "layer": "unicode-devanagari",
+    "score": {
+      "ref_chars": 896,
+      "hyp_chars": 886,
+      "length_ratio": 0.99,
+      "cer": 0.2667,
+      "cer_nospace": 0.2872,
+      "ref_digits": 23,
+      "hyp_digits": 23,
+      "digit_errors": 1,
+      "digit_acc": 0.9565,
+      "digit_acc_exact": 0.9565,
+      "nep_to_eng": 0,
+      "eng_to_nep": 0
+    },
+    "key": "text layer",
+    "score_tesseract": {
+      "ref_chars": 896,
+      "hyp_chars": 895,
+      "length_ratio": 1.0,
+      "cer": 0.2087,
+      "cer_nospace": 0.2314,
+      "ref_digits": 23,
+      "hyp_digits": 32,
+      "digit_errors": 9,
+      "digit_acc": 0.6087,
+      "digit_acc_exact": 0.6087,
+      "nep_to_eng": 0,
+      "eng_to_nep": 0
+    },
+    "wall_s": 19.4,
+    "log": [
+      "source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "text layer: 1073 chars, check: ok",
+      "text-route fields: 9.6s, 544 in / 295 out, finish=stop",
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "page 1 pass1: 8.3s, 1230 in / 286 out, finish=stop",
+      "source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1"
+    ]
+  },
+  "neb-notice-1": {
+    "category": "digital-pdf",
+    "layer": "legacy-preeti",
+    "score": {
+      "ref_chars": 1023,
+      "hyp_chars": 974,
+      "length_ratio": 0.95,
+      "cer": 0.0987,
+      "cer_nospace": 0.1091,
+      "ref_digits": 44,
+      "hyp_digits": 44,
+      "digit_errors": 1,
+      "digit_acc": 0.9773,
+      "digit_acc_exact": 0.9773,
+      "nep_to_eng": 0,
+      "eng_to_nep": 0
+    },
+    "key": "text layer (Preeti converted)",
+    "score_tesseract": {
+      "ref_chars": 1023,
+      "hyp_chars": 1005,
+      "length_ratio": 0.98,
+      "cer": 0.0596,
+      "cer_nospace": 0.0677,
+      "ref_digits": 44,
+      "hyp_digits": 44,
+      "digit_errors": 5,
+      "digit_acc": 0.8864,
+      "digit_acc_exact": 0.7955,
+      "nep_to_eng": 4,
+      "eng_to_nep": 0
+    },
+    "wall_s": 29.8,
+    "log": [
+      "source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "text layer: 1264 chars, check: legacy-font",
+      "text-route fields: 18.6s, 767 in / 630 out, finish=stop",
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "page 1 pass1: 9.5s, 1230 in / 301 out, finish=stop",
+      "source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1"
+    ]
+  },
+  "neb-notice-2": {
+    "category": "digital-pdf",
+    "layer": "legacy-preeti",
+    "score": {
+      "ref_chars": 1014,
+      "hyp_chars": 967,
+      "length_ratio": 0.95,
+      "cer": 0.1055,
+      "cer_nospace": 0.1125,
+      "ref_digits": 32,
+      "hyp_digits": 34,
+      "digit_errors": 4,
+      "digit_acc": 0.875,
+      "digit_acc_exact": 0.875,
+      "nep_to_eng": 1,
+      "eng_to_nep": 0
+    },
+    "key": "text layer (Preeti converted)",
+    "score_tesseract": {
+      "ref_chars": 1014,
+      "hyp_chars": 967,
+      "length_ratio": 0.95,
+      "cer": 0.0966,
+      "cer_nospace": 0.1023,
+      "ref_digits": 32,
+      "hyp_digits": 36,
+      "digit_errors": 9,
+      "digit_acc": 0.7188,
+      "digit_acc_exact": 0.5625,
+      "nep_to_eng": 5,
+      "eng_to_nep": 0
+    },
+    "wall_s": 29.6,
+    "log": [
+      "source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "text layer: 1281 chars, check: legacy-font",
+      "text-route fields: 18.6s, 777 in / 590 out, finish=stop",
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "page 1 pass1: 9.4s, 1230 in / 299 out, finish=stop",
+      "source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1"
+    ]
+  },
+  "neb-notice-3": {
+    "category": "digital-pdf",
+    "layer": "unicode-devanagari",
+    "score": {
+      "ref_chars": 3843,
+      "hyp_chars": 2596,
+      "length_ratio": 0.68,
+      "cer": 0.4616,
+      "cer_nospace": 0.4863,
+      "ref_digits": 91,
+      "hyp_digits": 59,
+      "digit_errors": 34,
+      "digit_acc": 0.6264,
+      "digit_acc_exact": 0.6264,
+      "nep_to_eng": 0,
+      "eng_to_nep": 0
+    },
+    "key": "text layer",
+    "score_tesseract": {
+      "ref_chars": 3843,
+      "hyp_chars": 3373,
+      "length_ratio": 0.88,
+      "cer": 0.2769,
+      "cer_nospace": 0.3099,
+      "ref_digits": 91,
+      "hyp_digits": 90,
+      "digit_errors": 11,
+      "digit_acc": 0.8791,
+      "digit_acc_exact": 0.8791,
+      "nep_to_eng": 0,
+      "eng_to_nep": 0
+    },
+    "wall_s": 57.1,
+    "log": [
+      "source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "text layer: 4596 chars, check: ok",
+      "text-route fields: 24.1s, 1776 in / 737 out, finish=stop",
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "page 1 pass1: 27.0s, 1220 in / 723 out, finish=stop",
+      "source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1"
+    ]
+  },
+  "nta-charter": {
+    "category": "digital-pdf",
+    "layer": "legacy-preeti",
+    "score": {
+      "ref_chars": 2737,
+      "hyp_chars": 1967,
+      "length_ratio": 0.72,
+      "cer": 0.5027,
+      "cer_nospace": 0.5209,
+      "ref_digits": 135,
+      "hyp_digits": 76,
+      "digit_errors": 70,
+      "digit_acc": 0.4815,
+      "digit_acc_exact": 0.0593,
+      "nep_to_eng": 0,
+      "eng_to_nep": 57
+    },
+    "key": "text layer (Preeti converted)",
+    "score_tesseract": {
+      "ref_chars": 2737,
+      "hyp_chars": 2746,
+      "length_ratio": 1.0,
+      "cer": 0.3394,
+      "cer_nospace": 0.3442,
+      "ref_digits": 135,
+      "hyp_digits": 129,
+      "digit_errors": 41,
+      "digit_acc": 0.6963,
+      "digit_acc_exact": 0.4963,
+      "nep_to_eng": 2,
+      "eng_to_nep": 27
+    },
+    "wall_s": 61.3,
+    "log": [
+      "source: text  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "text layer: 12083 chars, check: legacy-font",
+      "text-route fields: 29.7s, 2198 in / 919 out, finish=stop",
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "page 1 pass1: 27.2s, 1220 in / 729 out, finish=stop",
+      "source: tesseract  pass: text  schema: bill  dpi: 150  pages: 1-1"
+    ]
+  },
+  "customs-auction-1": {
+    "category": "scanned-pdf",
+    "layer": "junk-ocr",
+    "wall_s": 95.1,
+    "log": [
+      "source: auto  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "text layer: 3738 chars, check: no-devanagari",
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 28.2s, 1230 in / 935 out, finish=stop",
+      "page 1 fields: 19.7s, 1319 in / 661 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 20.5s, 1395 in / 654 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 21.6s, 2646 in / 656 out, finish=stop"
+    ]
+  },
+  "dofe-contract-notice": {
+    "category": "scanned-pdf",
+    "layer": "junk-ocr",
+    "wall_s": 68.5,
+    "log": [
+      "source: auto  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "text layer: 2250 chars, check: no-devanagari",
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 23.6s, 1220 in / 628 out, finish=stop",
+      "page 1 fields: 14.6s, 1309 in / 477 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 14.5s, 855 in / 431 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 12.1s, 2096 in / 350 out, finish=stop"
+    ]
+  },
+  "dohs-rate-notice": {
+    "category": "scanned-pdf",
+    "layer": "junk-ocr",
+    "wall_s": 56.0,
+    "log": [
+      "source: auto  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "text layer: 1522 chars, check: no-devanagari",
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 20.7s, 1220 in / 427 out, finish=stop",
+      "page 1 fields: 9.7s, 1309 in / 237 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 10.7s, 499 in / 265 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 10.6s, 1740 in / 245 out, finish=stop"
+    ]
+  },
+  "dop-notice": {
+    "category": "scanned-pdf",
+    "wall_s": 63.8,
+    "log": [
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 13.7s, 1220 in / 301 out, finish=stop",
+      "page 1 fields: 14.5s, 1309 in / 367 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 15.6s, 472 in / 386 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 16.2s, 1713 in / 402 out, finish=stop"
+    ]
+  },
+  "dop-press": {
+    "category": "scanned-pdf",
+    "layer": "junk-ocr",
+    "wall_s": 60.6,
+    "log": [
+      "source: auto  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "text layer: 2493 chars, check: no-devanagari",
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 24.3s, 1220 in / 542 out, finish=stop",
+      "page 1 fields: 7.0s, 1309 in / 197 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 9.1s, 703 in / 258 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 10.7s, 1944 in / 336 out, finish=stop"
+    ]
+  },
+  "dotm-newdoc43": {
+    "category": "scanned-pdf",
+    "wall_s": 61.6,
+    "log": [
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 19.3s, 1220 in / 485 out, finish=stop",
+      "page 1 fields: 8.4s, 1309 in / 277 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 15.6s, 834 in / 524 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 14.5s, 2075 in / 477 out, finish=stop"
+    ]
+  },
+  "ird-bill-notice": {
+    "category": "scanned-pdf",
+    "wall_s": 36.5,
+    "log": [
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 8.9s, 1220 in / 152 out, finish=stop",
+      "page 1 fields: 8.1s, 1309 in / 268 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 8.7s, 342 in / 275 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 8.8s, 1583 in / 276 out, finish=stop"
+    ]
+  },
+  "ird-gift-procedure": {
+    "category": "scanned-pdf",
+    "layer": "junk-ocr",
+    "wall_s": 47.3,
+    "log": [
+      "source: auto  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "text layer: 2033 chars, check: no-devanagari",
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 15.1s, 1220 in / 372 out, finish=stop",
+      "page 1 fields: 9.8s, 1309 in / 334 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 9.8s, 557 in / 323 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 9.9s, 1798 in / 312 out, finish=stop"
+    ]
+  },
+  "moald-waaw": {
+    "category": "scanned-pdf",
+    "wall_s": 210.7,
+    "log": [
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 91.6s, 1140 in / 3000 out, finish=length",
+      "page 1 fields: 13.8s, 1229 in / 301 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 9.4s, 1084 in / 287 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 10.8s, 2245 in / 315 out, finish=stop"
+    ]
+  },
+  "police-archive-tender": {
+    "category": "scanned-pdf",
+    "layer": "junk-ocr",
+    "wall_s": 75.3,
+    "log": [
+      "source: auto  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "text layer: 5371 chars, check: no-devanagari",
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 21.2s, 1230 in / 589 out, finish=stop",
+      "page 1 fields: 13.2s, 1319 in / 454 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 14.1s, 899 in / 465 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 15.9s, 2150 in / 504 out, finish=stop"
+    ]
+  },
+  "police-cmat": {
+    "category": "scanned-pdf",
+    "wall_s": 54.0,
+    "log": [
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 14.5s, 1220 in / 347 out, finish=stop",
+      "page 1 fields: 11.5s, 1309 in / 368 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 10.3s, 610 in / 320 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 10.6s, 1851 in / 320 out, finish=stop"
+    ]
+  },
+  "police-ration-tender": {
+    "category": "scanned-pdf",
+    "wall_s": 82.3,
+    "log": [
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 26.9s, 1220 in / 764 out, finish=stop",
+      "page 1 fields: 25.1s, 1309 in / 872 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 13.0s, 1208 in / 415 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 12.3s, 2449 in / 371 out, finish=stop"
+    ]
+  },
+  "police-tender-amend": {
+    "category": "scanned-pdf",
+    "wall_s": 88.5,
+    "log": [
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 13.9s, 1152 in / 337 out, finish=stop",
+      "page 1 fields: 15.4s, 1241 in / 495 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 12.0s, 512 in / 388 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 16.2s, 1685 in / 545 out, finish=stop"
+    ]
+  },
+  "ppmo-3117": {
+    "category": "scanned-pdf",
+    "layer": "latin",
+    "vs_ocr_layer": {
+      "ref_chars": 3704,
+      "hyp_chars": 3638,
+      "length_ratio": 0.98,
+      "cer": 0.5605,
+      "cer_nospace": 0.5793,
+      "ref_digits": 227,
+      "hyp_digits": 226,
+      "digit_errors": 71,
+      "digit_acc": 0.6872,
+      "digit_acc_exact": 0.6872,
+      "nep_to_eng": 0,
+      "eng_to_nep": 0
+    },
+    "wall_s": 91.4,
+    "log": [
+      "source: auto  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "text layer: 4902 chars, check: no-devanagari",
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 37.7s, 1220 in / 1124 out, finish=stop",
+      "page 1 fields: 12.1s, 1309 in / 380 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 17.7s, 1326 in / 529 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 14.3s, 2567 in / 370 out, finish=stop"
+    ]
+  },
+  "ppmo-3139": {
+    "category": "scanned-pdf",
+    "layer": "unicode-devanagari",
+    "vs_ocr_layer": {
+      "ref_chars": 2853,
+      "hyp_chars": 1790,
+      "length_ratio": 0.63,
+      "cer": 0.5195,
+      "cer_nospace": 0.5307,
+      "ref_digits": 156,
+      "hyp_digits": 118,
+      "digit_errors": 78,
+      "digit_acc": 0.5,
+      "digit_acc_exact": 0.4744,
+      "nep_to_eng": 0,
+      "eng_to_nep": 4
+    },
+    "wall_s": 127.7,
+    "log": [
+      "source: auto  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "text layer: 6751 chars, check: ok",
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 25.5s, 1152 in / 721 out, finish=stop",
+      "page 1 fields: 9.9s, 1241 in / 295 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 12.3s, 1054 in / 367 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 12.8s, 2227 in / 388 out, finish=stop"
+    ]
+  },
+  "tourism-press": {
+    "category": "scanned-pdf",
+    "layer": "junk-ocr",
+    "wall_s": 56.3,
+    "log": [
+      "source: auto  pass: text  schema: bill  dpi: 150  pages: 1-1",
+      "text layer: 2016 chars, check: no-devanagari",
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 16.3s, 1230 in / 414 out, finish=stop",
+      "page 1 fields: 13.7s, 1319 in / 471 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 tesseract fields: 12.2s, 585 in / 416 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 hybrid fields: 11.1s, 1836 in / 362 out, finish=stop"
+    ]
+  },
+  "dotm-whatsapp": {
+    "category": "image",
+    "wall_s": 352.5,
+    "log": [
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 318.3s, 1220 in / 520 out, finish=stop",
+      "page 1 fields: 11.3s, 1309 in / 391 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 tesseract fields: 9.4s, 697 in / 303 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 hybrid fields: 11.1s, 1938 in / 375 out, finish=stop"
+    ]
+  },
+  "moald-photo": {
+    "category": "image",
+    "wall_s": 329.5,
+    "log": [
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 9.6s, 1191 in / 169 out, finish=stop",
+      "page 1 fields: 307.8s, 1280 in / 275 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 tesseract fields: 3.5s, 167 in / 107 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 hybrid fields: 8.1s, 1379 in / 279 out, finish=stop"
+    ]
+  },
+  "mocit-1000036898": {
+    "category": "image",
+    "wall_s": 27.1,
+    "log": [
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 7.8s, 1207 in / 122 out, finish=stop",
+      "page 1 fields: 6.4s, 1296 in / 218 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 tesseract fields: 5.9s, 268 in / 201 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 hybrid fields: 6.2s, 1496 in / 210 out, finish=stop"
+    ]
+  },
+  "moewri-activities": {
+    "category": "image",
+    "wall_s": 653.6,
+    "log": [
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 316.6s, 1220 in / 477 out, finish=stop",
+      "page 1 fields: 11.6s, 1309 in / 403 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 tesseract fields: 9.2s, 753 in / 293 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 hybrid fields: 314.0s, 1994 in / 318 out, finish=stop"
+    ]
+  },
+  "moics-press29": {
+    "category": "image",
+    "wall_s": 66.6,
+    "log": [
+      "source: image  pass: both  schema: generic  dpi: 150  pages: 1-1",
+      "page 1 pass1: 29.5s, 1230 in / 630 out, finish=stop",
+      "page 1 fields: 11.9s, 1319 in / 391 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 tesseract fields: 11.3s, 884 in / 357 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 hybrid fields: 11.6s, 2135 in / 365 out, finish=stop"
+    ]
+  },
+  "dohs-bipad-report-photocopy": {
+    "category": "synthetic-degraded",
+    "score": {
+      "ref_chars": 1141,
+      "hyp_chars": 1202,
+      "length_ratio": 1.05,
+      "cer": 0.3479,
+      "cer_nospace": 0.3935,
+      "ref_digits": 17,
+      "hyp_digits": 17,
+      "digit_errors": 2,
+      "digit_acc": 0.8824,
+      "digit_acc_exact": 0.8824,
+      "nep_to_eng": 0,
+      "eng_to_nep": 0
+    },
+    "key": "answer-key.txt",
+    "score_tesseract": {
+      "ref_chars": 1141,
+      "hyp_chars": 1321,
+      "length_ratio": 1.16,
+      "cer": 0.3278,
+      "cer_nospace": 0.3923,
+      "ref_digits": 17,
+      "hyp_digits": 22,
+      "digit_errors": 5,
+      "digit_acc": 0.7059,
+      "digit_acc_exact": 0.5294,
+      "nep_to_eng": 3,
+      "eng_to_nep": 0
+    },
+    "wall_s": 42.7,
+    "log": [
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-end",
+      "page 1 pass1: 15.9s, 1220 in / 371 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 tesseract fields: 11.0s, 596 in / 348 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 hybrid fields: 13.1s, 1837 in / 272 out, finish=stop"
+    ]
+  },
+  "ird-britacof-press-dpi72-jpeg50": {
+    "category": "synthetic-degraded",
+    "score": {
+      "ref_chars": 1781,
+      "hyp_chars": 1550,
+      "length_ratio": 0.87,
+      "cer": 0.2847,
+      "cer_nospace": 0.3081,
+      "ref_digits": 28,
+      "hyp_digits": 19,
+      "digit_errors": 12,
+      "digit_acc": 0.5714,
+      "digit_acc_exact": 0.5357,
+      "nep_to_eng": 0,
+      "eng_to_nep": 1
+    },
+    "key": "answer-key.txt",
+    "score_tesseract": {
+      "ref_chars": 1781,
+      "hyp_chars": 1600,
+      "length_ratio": 0.9,
+      "cer": 0.2605,
+      "cer_nospace": 0.2816,
+      "ref_digits": 28,
+      "hyp_digits": 34,
+      "digit_errors": 14,
+      "digit_acc": 0.5,
+      "digit_acc_exact": 0.3571,
+      "nep_to_eng": 4,
+      "eng_to_nep": 0
+    },
+    "wall_s": 46.7,
+    "log": [
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-end",
+      "page 1 pass1: 17.1s, 1230 in / 426 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 tesseract fields: 9.9s, 659 in / 306 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 hybrid fields: 16.9s, 1910 in / 395 out, finish=stop"
+    ]
+  },
+  "ird-invoice-notice-dpi100-jpeg40": {
+    "category": "synthetic-degraded",
+    "score": {
+      "ref_chars": 660,
+      "hyp_chars": 589,
+      "length_ratio": 0.89,
+      "cer": 0.2727,
+      "cer_nospace": 0.3046,
+      "ref_digits": 6,
+      "hyp_digits": 6,
+      "digit_errors": 1,
+      "digit_acc": 0.8333,
+      "digit_acc_exact": 0.0,
+      "nep_to_eng": 0,
+      "eng_to_nep": 5
+    },
+    "key": "answer-key.txt",
+    "score_tesseract": {
+      "ref_chars": 660,
+      "hyp_chars": 617,
+      "length_ratio": 0.93,
+      "cer": 0.2242,
+      "cer_nospace": 0.2465,
+      "ref_digits": 6,
+      "hyp_digits": 6,
+      "digit_errors": 0,
+      "digit_acc": 1.0,
+      "digit_acc_exact": 0.0,
+      "nep_to_eng": 0,
+      "eng_to_nep": 6
+    },
+    "wall_s": 33.4,
+    "log": [
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-end",
+      "page 1 pass1: 9.8s, 1230 in / 170 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 tesseract fields: 9.5s, 346 in / 283 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 hybrid fields: 12.8s, 1597 in / 243 out, finish=stop"
+    ]
+  },
+  "ird-public-notice-dpi72": {
+    "category": "synthetic-degraded",
+    "score": {
+      "ref_chars": 2333,
+      "hyp_chars": 1910,
+      "length_ratio": 0.82,
+      "cer": 0.3262,
+      "cer_nospace": 0.35,
+      "ref_digits": 99,
+      "hyp_digits": 87,
+      "digit_errors": 17,
+      "digit_acc": 0.8283,
+      "digit_acc_exact": 0.0202,
+      "nep_to_eng": 0,
+      "eng_to_nep": 80
+    },
+    "key": "answer-key.txt",
+    "score_tesseract": {
+      "ref_chars": 2333,
+      "hyp_chars": 2223,
+      "length_ratio": 0.95,
+      "cer": 0.2113,
+      "cer_nospace": 0.2367,
+      "ref_digits": 99,
+      "hyp_digits": 101,
+      "digit_errors": 7,
+      "digit_acc": 0.9293,
+      "digit_acc_exact": 0.0,
+      "nep_to_eng": 0,
+      "eng_to_nep": 95
+    },
+    "wall_s": 67.3,
+    "log": [
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-end",
+      "page 1 pass1: 21.6s, 1230 in / 607 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 tesseract fields: 24.6s, 938 in / 850 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 hybrid fields: 17.1s, 2189 in / 414 out, finish=stop"
+    ]
+  },
+  "ird-taxday-press-dpi100": {
+    "category": "synthetic-degraded",
+    "score": {
+      "ref_chars": 2126,
+      "hyp_chars": 2012,
+      "length_ratio": 0.95,
+      "cer": 0.151,
+      "cer_nospace": 0.1515,
+      "ref_digits": 25,
+      "hyp_digits": 23,
+      "digit_errors": 5,
+      "digit_acc": 0.8,
+      "digit_acc_exact": 0.68,
+      "nep_to_eng": 0,
+      "eng_to_nep": 3
+    },
+    "key": "answer-key.txt",
+    "score_tesseract": {
+      "ref_chars": 2126,
+      "hyp_chars": 2111,
+      "length_ratio": 0.99,
+      "cer": 0.0437,
+      "cer_nospace": 0.0392,
+      "ref_digits": 25,
+      "hyp_digits": 25,
+      "digit_errors": 3,
+      "digit_acc": 0.88,
+      "digit_acc_exact": 0.76,
+      "nep_to_eng": 0,
+      "eng_to_nep": 3
+    },
+    "wall_s": 49.8,
+    "log": [
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-end",
+      "page 1 pass1: 20.8s, 1220 in / 577 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 tesseract fields: 9.2s, 822 in / 295 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 hybrid fields: 16.2s, 2063 in / 365 out, finish=stop"
+    ]
+  },
+  "mof-press-kartik30-jpeg25": {
+    "category": "synthetic-degraded",
+    "score": {
+      "ref_chars": 896,
+      "hyp_chars": 877,
+      "length_ratio": 0.98,
+      "cer": 0.2768,
+      "cer_nospace": 0.2979,
+      "ref_digits": 23,
+      "hyp_digits": 22,
+      "digit_errors": 2,
+      "digit_acc": 0.913,
+      "digit_acc_exact": 0.913,
+      "nep_to_eng": 0,
+      "eng_to_nep": 0
+    },
+    "key": "answer-key.txt",
+    "score_tesseract": {
+      "ref_chars": 896,
+      "hyp_chars": 902,
+      "length_ratio": 1.01,
+      "cer": 0.202,
+      "cer_nospace": 0.2194,
+      "ref_digits": 23,
+      "hyp_digits": 30,
+      "digit_errors": 7,
+      "digit_acc": 0.6957,
+      "digit_acc_exact": 0.6957,
+      "nep_to_eng": 0,
+      "eng_to_nep": 0
+    },
+    "wall_s": 40.5,
+    "log": [
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-end",
+      "page 1 pass1: 12.4s, 1230 in / 280 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 tesseract fields: 9.5s, 475 in / 321 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 hybrid fields: 16.7s, 1726 in / 413 out, finish=stop"
+    ]
+  },
+  "neb-notice-3-rot-blur": {
+    "category": "synthetic-degraded",
+    "score": {
+      "ref_chars": 3843,
+      "hyp_chars": 2598,
+      "length_ratio": 0.68,
+      "cer": 0.5142,
+      "cer_nospace": 0.5392,
+      "ref_digits": 91,
+      "hyp_digits": 74,
+      "digit_errors": 25,
+      "digit_acc": 0.7253,
+      "digit_acc_exact": 0.7253,
+      "nep_to_eng": 0,
+      "eng_to_nep": 0
+    },
+    "key": "answer-key.txt",
+    "score_tesseract": {
+      "ref_chars": 3843,
+      "hyp_chars": 3518,
+      "length_ratio": 0.92,
+      "cer": 0.3515,
+      "cer_nospace": 0.3811,
+      "ref_digits": 91,
+      "hyp_digits": 93,
+      "digit_errors": 10,
+      "digit_acc": 0.8901,
+      "digit_acc_exact": 0.8901,
+      "nep_to_eng": 0,
+      "eng_to_nep": 0
+    },
+    "wall_s": 62.5,
+    "log": [
+      "source: image  pass: text  schema: bill  dpi: 150  pages: 1-end",
+      "page 1 pass1: 25.7s, 1220 in / 757 out, finish=stop",
+      "source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 tesseract fields: 12.5s, 1194 in / 400 out, finish=stop",
+      "source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-end",
+      "page 1 hybrid fields: 17.0s, 2435 in / 388 out, finish=stop"
+    ]
+  }
+}

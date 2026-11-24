@@ -1,0 +1,20 @@
+file: dohs-rate-notice.pdf
+source: auto  pass: text  schema: bill  dpi: 150  pages: 1-1
+text layer: 1522 chars, check: no-devanagari
+
+file: dohs-rate-notice.pdf
+source: image  pass: both  schema: generic  dpi: 150  pages: 1-1
+page 1 pass1: 20.7s, 1220 in / 427 out, finish=stop
+page 1 fields: 9.7s, 1309 in / 237 out, finish=stop
+
+file: dohs-rate-notice.pdf
+source: tesseract  pass: fields  schema: generic  dpi: 150  pages: 1-1
+page 1 tesseract fields: 10.7s, 499 in / 265 out, finish=stop
+
+file: dohs-rate-notice.pdf
+source: hybrid  pass: fields  schema: generic  dpi: 150  pages: 1-1
+page 1 hybrid fields: 10.6s, 1740 in / 245 out, finish=stop
+
+score: {"ref_chars": 989, "hyp_chars": 1165, "length_ratio": 1.18, "cer": 0.7422, "cer_nospace": 0.8484, "ref_digits": 30, "hyp_digits": 34, "digit_errors": 27, "digit_acc": 0.1, "digit_acc_exact": -0.0333, "nep_to_eng": 0, "eng_to_nep": 5}
+wall: 56.0s
+rescored after layer re-detection (junk-ocr): null
