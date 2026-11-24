@@ -9,8 +9,8 @@ New to this repo? Read `docs/README.md` first - it is the map; this file is the 
 Plain hyphens (-) everywhere - code, comments, docs, UI copy. Never em or en dashes.
 
 **Boli exceptions:** `apps/main` is the Boli product and has owner decisions that override parts of this file (pill
-controls, Instrument Serif + Inter fonts, a crimson accent, only our own open models). Read `apps/main/CLAUDE.md` before
-touching that app.
+controls, Fraunces + Instrument Sans fonts, the sky accent, only our own open models). Read `apps/main/CLAUDE.md` before
+touching that app. `apps/web` (the public site) follows the same Boli rules, light only - read `apps/web/CLAUDE.md`.
 
 ---
 
@@ -69,8 +69,9 @@ pnpm + Turborepo. Every app is a Cloudflare Worker (OpenNext). One Neon Postgres
 
 | App | What it is | Port |
 |---|---|---|
-| `apps/main` | The product - signed-in users land on the AI page `/ai` | 3100 |
+| `apps/main` | The product at app.bolihq.com - auth, onboarding, dashboard, Kura (signed-in users land on `/kura`), the `/v1` API | 3100 |
 | `apps/admin` | Internal admin console (team, access, users, audit, system) | 3101 |
+| `apps/web` | The public site at bolihq.com - landing, about, contact, docs, legal, blog, models, guides, changelog. No auth; links into main through `lib/app-links.ts` (`apps/web/CLAUDE.md`) | 3102 |
 
 **Every app gets a distinct port** - `pnpm dev` silently loses a clash. Not 3000/3001: every other Next project on the
 machine defaults there. A new clone picks its own block (3100s here) and changes it in package.json and `.env.local`. Shared code lives in `packages/` as
@@ -96,6 +97,8 @@ machine defaults there. A new clone picks its own block (3100s here) and changes
 | `erasure` | Delete-my-account / tenant erasure |
 | `webdata` | Exa search, Firecrawl scrape (for AI tools) |
 | `calendar` | Date display helpers (`formatAppDate`; Bikram Sambat available for Nepal products) |
+| `brand` | Boli's look, shared by main and web: logo, mark, type, sky tokens (`styles/boli.css`), Dhaka, pixel art, pill and quiet controls, code tabs, loaders, status screens |
+| `boli` | Boli's contract, shared by main and web: prices, credit packs, limits, model info, brand copy, API code samples, the Shiki highlighter |
 
 ```bash
 pnpm install
@@ -103,7 +106,7 @@ pnpm --filter main dev            # one app at a time; `pnpm dev` runs all
 ALLOW_DB_PUSH=1 pnpm db:push      # FRESH database only (see section 6)
 pnpm db:seed                      # super admin (password from SEED_ADMIN_PASSWORD or printed once)
 pnpm env:check                    # after any env change
-pnpm deploy:staging <app|all>     # the owner runs deploys
+pnpm deploy:staging <main|admin|web|all>   # the owner runs deploys
 ```
 
 ---

@@ -10,17 +10,18 @@ listed by name only - see [`payments.md`](payments.md).
 
 | URL | What the person does | Files | Data | States |
 |---|---|---|---|---|
-| `/` | Landing (neutral placeholder a clone replaces); links to sign in / sign up / terms / privacy | `app/page.tsx` | none (static) | - |
+| `/` | No page since the web split (2026-11-24): `middleware.ts` redirects to `/kura` (signed in) or `/signin`; `app/page.tsx` is a fallback redirect. The public site is `apps/web` (see below) | `middleware.ts`, `app/page.tsx` | none | - |
 | `/signin` | Sign in by password or a 6-digit email code (`?method=code`), or Google; notices for `?error=`, `?stale=1`, `?reset=1`, `?deleted=1` | `app/(auth)/signin/page.tsx`, `_components/signin-form.tsx` | better-auth (`session`, `account`, `verification`) | `(auth)/loading.tsx` = `AuthFormSkeleton`; `SigningInScreen` after success; errors as sentences via `clientErrorMessage` |
 | `/signup` | Name, email, password (strength meter) or Google; then `/verifyemail` | `app/(auth)/signup/...`, `signup-form.tsx` | `user`, `account` | error notice |
 | `/verifyemail` | "Check your inbox" + resend (30s cooldown); `?done=1` lands from the link (signed in -> Continue); `?error=` bad link | `app/(auth)/verifyemail/...`, `verify-email.tsx` | `verification` | sent / done / failed |
 | `/forgotpassword` | Ask for a reset link (never says whether the address exists) | `app/(auth)/forgotpassword/...`, `forgot-form.tsx` | `verification` | sent state |
 | `/resetpassword?token=` | Choose a new password | `app/(auth)/resetpassword/...`, `reset-form.tsx` | `account` | bad / expired link state |
-| `/terms`, `/privacy` | Read the legal text (template notice while `template: true`) | `app/(legal)/*/page.tsx`, `_components/legal-document.tsx` (`LEGAL_CONTEXT` to fill in) | `@repo/legal/documents` (no DB) | no loading.tsx (static) |
 | `/welcome` | First run: name, photo (if R2 is configured), "use it for" choices, accept terms; then `/ai` | `app/(onboarding)/layout.tsx` (own session check, no shell), `welcome/page.tsx`, `welcome-flow.tsx`, `actions/onboarding.action.ts` (`saveWelcomeName`, `saveUseFor`, `acceptLegal`, `finishOnboarding`) | reads `user`, `user_setting` (`onboarding.useFor`), `legal_acceptance`; writes `user.onboarded_at`, `user.name`, `user.image`, `user_setting`, `legal_acceptance` | already onboarded -> `/ai` |
 
 The `(auth)` group shares one `AuthFrame` (`app/(auth)/layout.tsx`, from `@repo/auth/ui`). Shared param helper:
-`app/(auth)/_lib/params.ts`. Metadata files: `app/manifest.ts`, `app/robots.ts`, `app/sitemap.ts`.
+`app/(auth)/_lib/params.ts`. Metadata files: `app/manifest.ts`, `app/robots.ts` (only `/signin`, `/signup` indexable;
+the sitemap is web's). Terms and Privacy links go to the site through `lib/auth-routes.ts` (`AUTH_ROUTES.terms` /
+`privacy` = `WEB.terms` / `WEB.privacy`).
 
 ### Signed-in pages (`app/(main)/`, inside `MainShell`)
 
@@ -38,7 +39,7 @@ The `(auth)` group shares one `AuthFrame` (`app/(auth)/layout.tsx`, from `@repo/
 | `/settings/billing` | Payments work - see [`payments.md`](payments.md) | `settings/billing/` | - | - |
 | `/checkout/[paymentId]` | Payments work - see [`payments.md`](payments.md) | `checkout/[paymentId]/` | - | - |
 | `/notifications?tab=unread&page=` | Inbox: All / Unread, mark read, mark all read, delete | `notifications/page.tsx`, `notifications-view.tsx`, `notifications-skeleton.tsx`, `params.ts` (`notificationsKey`); `actions/notification.action.ts` | `notification` | `EmptyState`; `InlineNote` on failure |
-| `/help` | Removed 2026-11-24 (Boli): `next.config.js` redirects `/help` to `/docs`. | - | - | - |
+| `/help` | Removed 2026-11-24 (Boli): `next.config.js` redirects `/help` to the site's `/docs` (`NEXT_PUBLIC_WEB_URL`). | - | - | - |
 | `/accessdenied` | 403 screen | `accessdenied/page.tsx` (`StatusView kind="forbidden"`) | - | - |
 
 The bell (in every page's shell) reads `getUnreadCount` (every 60s) and `getNotifications(10)` from
@@ -65,6 +66,22 @@ The bell (in every page's shell) reads `getUnreadCount` (every 60s) and `getNoti
 | `GET /api/documents/users.pdf` | Account list PDF (admins: all, newest 5,000; others: their own row); `?download=1` | `app/api/documents/[...path]/route.ts` |
 | `GET /api/documents/files/<key>` | Private R2 object: owner check, 302 to a 5-minute signed URL | same |
 | `/api/payments/[provider]/[...action]` | Payments work - see [`payments.md`](payments.md) | `app/api/payments/...` |
+
+## apps/web (bolihq.com, port 3102)
+
+The public site, no auth and no middleware (rules: [`apps/web/CLAUDE.md`](../apps/web/CLAUDE.md)). Every link into the
+app is absolute, from `lib/app-links.ts`; in-site links from `lib/routes.ts`.
+
+| URL | What the person does | Files | Data |
+|---|---|---|---|
+| `/` | Landing | `app/page.tsx`, `app/_landing/` | none (static) |
+| `/about`, `/contact` | Story; contact form (honeypot, 5 per hour per hashed IP) | `app/(public)/about`, `app/(public)/contact`, `actions/contact.action.ts`, `schemas/contact.ts` | writes `contact_message` |
+| `/docs`, `/docs/<slug>` | API docs (`DOCS_PAGES`: quickstart, authentication, chatcompletions, models) | `app/(public)/docs/` | none |
+| `/terms`, `/privacy` | Legal text | `app/(legal)/` | `@repo/legal/documents` (no DB) |
+| `/blog`, `/models`, `/guides`, `/changelog` | Content sections (MDX and typed data, see `apps/web/content/README.md`) | `app/`, `content/` | none |
+| `/design` | Design review (dev only, 404 in production) | `app/design/` | none |
+
+Metadata: `app/sitemap.ts`, `app/robots.ts`.
 
 ## apps/admin
 

@@ -25,6 +25,8 @@ const APPS: Record<string, { next: boolean; memory?: number; before?: string[] }
     // Add every deployable here, in deploy order: what others call goes first.
     admin: { next: true, memory: 4096 },
     main: { next: true },
+    // The public site (bolihq.com). Last: it only links to main, nothing calls it.
+    web: { next: true },
 };
 
 const [target, which] = process.argv.slice(2) as [Target, string];

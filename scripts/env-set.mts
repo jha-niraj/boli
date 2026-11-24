@@ -1,5 +1,5 @@
 import { createInterface } from 'readline/promises';
-import { readFileSync, renameSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, renameSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { APPS_WITH_ENV, appDir, hostLabel, readEnv } from './env-files.mts';
 
@@ -26,7 +26,7 @@ if (!value || /["\n]/.test(value)) {
 const shown = /^postgres/.test(value) ? `host ${hostLabel(value)}` : 'value hidden';
 for (const app of APPS_WITH_ENV) {
     const path = join(appDir(app), file);
-    if (!readEnv(path).has(key)) continue;
+    if (!existsSync(path) || !readEnv(path).has(key)) continue;
     const next = readFileSync(path, 'utf8').replace(new RegExp(`^${key}=.*$`, 'm'), () => `${key}="${value}"`);
     writeFileSync(`${path}.tmp`, next, { mode: 0o600 });
     renameSync(`${path}.tmp`, path);

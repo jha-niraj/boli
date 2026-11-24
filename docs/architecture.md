@@ -24,10 +24,11 @@ How the pieces fit. Rules live in [`AGENTS.md`](../AGENTS.md); this file says wh
 
 | App | Owns | Key files | Depends on |
 |---|---|---|---|
-| `apps/main` (port 3100, cookie prefix `boli`) | The product: landing `/`, auth pages, legal pages, `/welcome`, `/ai`, `/home`, `/notes`, `/profile`, `/settings/*`, `/notifications`, `/help`, `/checkout/*`; API routes for auth, AI chat, cron, documents, payments | `worker.ts`, `middleware.ts`, `next.config.js`, `wrangler.jsonc`, `app/(main)/layout.tsx`, `lib/navigation.ts`, `lib/session.ts`, `lib/ai/*`, `actions/*.action.ts` | ai, auth, billing, core, cron, db, email, erasure, errors, legal, payments, pdf, sarvamai, storage, ui, webdata |
+| `apps/main` (port 3100, cookie prefix `boli`, app.bolihq.com) | The product: `/` redirects (signed in -> `/kura`, else `/signin`), auth pages, `/welcome`, `/kura`, `/home`, `/keys`, `/usage`, `/billing`, `/models`, `/profile`, `/settings/*`, `/checkout/*`, the `/v1` API; API routes for auth, Kura, cron, documents, payments. Public pages are NOT here (apps/web); links to them go through `lib/web-links.ts` | `worker.ts`, `middleware.ts`, `next.config.js`, `wrangler.jsonc`, `app/(main)/layout.tsx`, `lib/navigation.ts`, `lib/session.ts`, `lib/ai/*`, `actions/*.action.ts` | ai, auth, billing, core, cron, db, email, erasure, errors, legal, payments, pdf, sarvamai, storage, ui, webdata |
+| `apps/web` (port 3102, bolihq.com, no auth) | The public site: landing, about, contact (+ its one write), docs, terms, privacy, blog, models, guides, changelog, sitemap, robots, `/design` (dev only). Links into main through `lib/app-links.ts` (`NEXT_PUBLIC_APP_URL`) | `app/layout.tsx`, `lib/routes.ts`, `lib/app-links.ts`, `components/site-link.tsx`, `actions/contact.action.ts`, `wrangler.jsonc` (OpenNext worker, no worker.ts), `CLAUDE.md` | boli, brand, core, crypto, db, errors, legal, ui |
 | `apps/admin` (port 3101, cookie prefix `boliadmin`) | Internal console: sign-in at `/`, invitations at `/join`, pages under `app/(main)/` | `worker.ts`, `middleware.ts`, `lib/permissions.ts`, `lib/admin-session.ts`, `lib/navigation.ts`, `actions/*.action.ts`, `actions/guard.ts` | auth, billing, core, db, email, errors, ui; tiptap (announcement editor), recharts, TanStack |
 
-Both apps: Next 16.4.6 built with webpack (`next dev --webpack`, `next build --webpack`), `patches/next@16.4.6.patch`
+All three apps: Next 16.4.6 built with webpack (`next dev --webpack`, `next build --webpack`), `patches/next@16.4.6.patch`
 applied through root `pnpm.patchedDependencies`, React 19.3.1 pinned by `pnpm.overrides`, one zod 4.6.7.
 
 ## Packages
@@ -52,6 +53,8 @@ applied through root `pnpm.patchedDependencies`, React 19.3.1 pinned by `pnpm.ov
 | `@repo/sarvamai` | Sarvam over fetch: STT, TTS, translate, language detect, document OCR | `src/*.ts` | errors, fflate |
 | `@repo/webdata` | `exaSearch`, `firecrawlScrape`, `firecrawlMap` | `src/exa.ts`, `src/firecrawl.ts` | errors |
 | `@repo/calendar` | AD / Bikram Sambat formatting (`formatSchoolDate`, `formatAcademicYear`, `toNepalDateStr` ...) | `src/*.ts` | nepali-date-converter |
+| `@repo/brand` | Boli's look for main and web: logo, mark, type, sky, Dhaka, pixel art (`art/*`, `art.css`), pill and quiet controls, editorial FAQ, code tabs, loaders, status screens, THE tokens `styles/boli.css` | `src/*.tsx`, `src/art/`, `src/styles/boli.css`, `scripts/` (pixel generator) | boli, errors, ui; Radix, framer-motion, shiki |
+| `@repo/boli` | Boli's contract for main and web: prices, credit packs, limits, model info, brand copy, API code samples, Shiki highlighter | `src/boli.ts`, `code-samples.ts`, `highlight.ts`, `highlight-theme.ts` | shiki |
 | `@repo/eslint-config`, `@repo/typescript-config` | Shared lint and tsconfig presets | `base.js`, `next.js`, `nextjs.json` | - |
 
 ## Request flow on Cloudflare
@@ -67,8 +70,9 @@ applied through root `pnpm.patchedDependencies`, React 19.3.1 pinned by `pnpm.ov
 2. **`middleware.ts`** (not `proxy.ts`; OpenNext rejects Node middleware). Cookie only, via `@repo/auth/middleware`
    (`isSignedIn`, `matchesRoute`, `signInRedirectUrl`, `signedInRedirectUrl`). Matcher skips `/api/`, `_next/*` and files
    with an extension.
-   - main: `AUTH_ONLY = /signin /signup /forgotpassword /resetpassword` (signed in -> `/ai` or a safe `returnTo`);
-     `PUBLIC = / /verifyemail /terms /privacy /opengraph-image`; everything else needs the cookie (else
+   - main: `/` redirects (cookie -> `/kura`, none -> `/signin`); `AUTH_ONLY = /signin /signup /forgotpassword
+     /resetpassword` (signed in -> `/kura` or a safe `returnTo`); `PUBLIC = /verifyemail` (the public site is apps/web,
+     which has no middleware); the matcher also skips `/v1/`; everything else needs the cookie (else
      `/signin?returnTo=...`). `?stale=1` on an auth page expires the cookie instead of bouncing back.
    - admin: `/signin` redirects to `/`; `AUTH_ONLY = / /join` (signed in -> `/home`); everything else needs the cookie.
 3. **Server layout** `app/(main)/layout.tsx`: main reads `getSession()` + `cookies()` in parallel, no session ->

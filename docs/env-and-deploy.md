@@ -17,7 +17,11 @@ uploaded as a secret).
 
 ## Keys that exist today
 
-Main has every key below; admin has the first group only (DATABASE_URL ... R2_PUBLIC_URL).
+Main has every key below; admin has the first group only (DATABASE_URL ... R2_PUBLIC_URL). Web (the public site) has
+exactly three: `DATABASE_URL` (the contact form), `NEXT_PUBLIC_SITE_URL` (its own origin, bolihq.com) and
+`NEXT_PUBLIC_APP_URL` (main's origin, app.bolihq.com: every Log in / Sign up link and the API base URL in docs).
+Main also has `NEXT_PUBLIC_WEB_URL` (the site's origin: Docs, Terms, Privacy, About, Contact links via
+`apps/main/lib/web-links.ts`).
 
 | Key | Apps | Required? | What it does / what turns on when set |
 |---|---|---|---|
@@ -49,14 +53,14 @@ dev server), `ALLOW_DB_PUSH`, `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `DEPLOY
 
 | Command | What it does |
 |---|---|
-| `pnpm env:check` | For every app in `APPS_WITH_ENV` (`scripts/env-files.mts`): all three files exist and carry the same keys, values that must agree across apps agree (`MUST_MATCH`: `DATABASE_URL`), staging and local share a database, production does not, no localhost outside `.env.local`; lists placeholders still pending. Exit 1 on a problem |
+| `pnpm env:check` | For every app in `APPS_WITH_ENV` (`scripts/env-files.mts`): all three files exist and carry the same keys, values that must agree across apps agree (`MUST_MATCH`: `DATABASE_URL`; `CROSS_MATCH`: web `NEXT_PUBLIC_APP_URL` = main `NEXT_PUBLIC_SITE_URL`, main `NEXT_PUBLIC_WEB_URL` = web `NEXT_PUBLIC_SITE_URL`), staging and local share a database, production does not, no localhost outside `.env.local`; lists placeholders still pending. Exit 1 on a problem |
 | `pnpm env:set <prod\|staging\|local> <KEY>` | Prompts for the value once and writes it into every app whose file already has that key |
 | `pnpm env:restore` | Puts back env files a killed deploy left as `*.deploy-bak` |
 
 ## Deploy (`scripts/deploy.mts`) - the owner runs it
 
-`pnpm deploy:staging <main|admin|all>` / `pnpm deploy:prod <main|admin|all>`. Order: `admin`, then `main`
-(`APPS` map; admin builds with 4096 MB, others 6144 MB `--max-old-space-size`). Guards, in order:
+`pnpm deploy:staging <main|admin|web|all>` / `pnpm deploy:prod <main|admin|web|all>`. Order: `admin`, `main`, then
+`web` (`APPS` map; admin builds with 4096 MB, others 6144 MB `--max-old-space-size`). Guards, in order:
 1. Refuses an app whose `wrangler.jsonc` has no real 32-hex `account_id`.
 2. Refuses a missing env file, a `__PLACEHOLDER__` value, a localhost value, or (prod) a `.env.production` on the
    staging `DATABASE_URL`.
@@ -75,7 +79,8 @@ Never add a `deploy` script to an app. `pnpm --filter <app> preview` builds and 
 |---|---|---|
 | `account_id` | `"__CLOUDFLARE_ACCOUNT_ID__"` placeholder | deploy refuses until it is real |
 | `name` | `basecode-main-staging` / `basecode-admin-staging`; `env.prod.name` `basecode-main` / `basecode-admin` | top level = staging, so a bare `wrangler deploy` never reaches production |
-| `main` | `worker.ts` | sign-out fast path + `scheduled()` |
+| `name` (web) | `boli-web-staging`; `env.prod.name` `boli-web` | the public site |
+| `main` | `worker.ts` (web: `.open-next/worker.js`, no custom worker) | sign-out fast path + `scheduled()` |
 | `minify` / `keep_names` | `true` / `false` | 64 MiB limit; `keep_names` breaks next-themes' inline script |
 | `compatibility_flags` | `["nodejs_compat"]` | better-auth, Neon, AI SDK |
 | `placement` | `{ "region": "aws:ap-southeast-1" }` | next to the database - set your Neon region |
@@ -83,7 +88,8 @@ Never add a `deploy` script to an app. `pnpm --filter <app> preview` builds and 
 | `services` | `WORKER_SELF_REFERENCE` -> the same Worker's name (per env) | cron calls its own routes |
 | `r2_buckets` | `FILES` -> `basecode-files` (prod `basecode-files-prod`), `NEXT_INC_CACHE_R2_BUCKET` -> `basecode-next-cache` (prod `-prod`) | file storage binding; OpenNext incremental cache (`open-next.config.ts`) |
 | `triggers.crons` | staging `[]`; main prod `["0 * * * *", "30 0 * * *"]`; admin prod `[]` | staging runs no jobs |
-| `routes` | commented examples (`app.example.com`, `admin.example.com`) | add your custom domains |
+| `routes` | commented examples (`app.example.com`, `admin.example.com`; web: `bolihq.com` + `www.bolihq.com` in prod) | add your custom domains |
+| `vars` (web) | `NEXT_INC_CACHE_R2_PREFIX = boli-web-cache` (both envs) | web shares main's cache bucket under its own prefix |
 | `observability` | enabled, sampling 1 | logs |
 
 Bindings do not inherit into `env.prod`: a new binding goes in both. Both apps' wrangler files name the same R2
@@ -103,8 +109,9 @@ in admin). Details: [AGENTS.md section 3](../AGENTS.md#3-platform---cloudflare-w
 2. Rename the Workers if the product is not "basecode" (`name`, `env.prod.name`, both `services` entries).
 3. Create the R2 buckets: `basecode-files`, `basecode-files-prod`, `basecode-next-cache`, `basecode-next-cache-prod`
    (or your names), and R2 API tokens for `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`.
-4. Custom domains: uncomment `routes` in both envs; set `BETTER_AUTH_URL`, `NEXT_PUBLIC_SITE_URL`, `MAIN_APP_URL`,
-   `ADMIN_APP_URL` in `.env` and `.env.production` to them; add the Google OAuth redirect URIs
+4. Custom domains: uncomment `routes` in both envs (main app.bolihq.com, web bolihq.com + www); set `BETTER_AUTH_URL`,
+   `NEXT_PUBLIC_SITE_URL`, `MAIN_APP_URL`, `ADMIN_APP_URL`, `NEXT_PUBLIC_WEB_URL` (main) and `NEXT_PUBLIC_SITE_URL`,
+   `NEXT_PUBLIC_APP_URL` (web) in `.env` and `.env.production` to them; add the Google OAuth redirect URIs
    (`<origin>/api/auth/callback/google`) if Google is on.
 5. Production database: its own Neon project; `ALLOW_DB_PUSH=1 pnpm db:push` against it once while empty (point a copy
    of the command at it), seed the super admin, then only additive scripts.

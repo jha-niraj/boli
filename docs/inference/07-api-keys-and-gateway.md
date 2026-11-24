@@ -2,7 +2,7 @@
 
 > **Status: written from the design on 2026-11-24, before the code was finished - verify every command against the
 > code before relying on it.** Source of truth for the design: `plan/main/platform/platform-v0.md` (Decisions Q33-Q40,
-> Q51, Contract, Interfaces). Numbers and names come from `apps/main/lib/boli.ts` and
+> Q51, Contract, Interfaces). Numbers and names come from `packages/boli/src/boli.ts` (`@repo/boli`) and
 > `packages/db/src/schema/platform.ts`. Anything marked **(design)** is what the plan says the code will do; anything
 > marked **(open)** is a question the plan does not settle yet.
 
@@ -52,7 +52,7 @@ app/api/v1/[...path]/route.ts   (ONE dispatcher route)
 | Rate limit (Q40) | 30 requests/min per **account** (all keys and Kura share it) |
 | Logging (Q51) | API calls: metadata only, no prompt or answer text |
 
-Constants live in `apps/main/lib/boli.ts`: `API_KEY_PREFIX`, `API_KEY_RANDOM_LENGTH`, `API_KEY_DISPLAY_LENGTH`,
+Constants live in `packages/boli/src/boli.ts` (`@repo/boli`): `API_KEY_PREFIX`, `API_KEY_RANDOM_LENGTH`, `API_KEY_DISPLAY_LENGTH`,
 `MAX_API_KEYS`, `RATE_LIMIT_PER_MIN`, `API_PATHS`, `API_ERRORS`. Import them; never repeat the numbers.
 
 ## Steps
@@ -326,7 +326,7 @@ one by one, and the balance goes down afterwards.
 
 - `requestId = crypto.randomUUID()` made **before** the upstream call; it is the `inference_request.id` and the ledger
   key `spend:<requestId>`.
-- `costMicro = costMicro(BOLI_CHAT, inputTokens, outputTokens)` from `lib/boli.ts` (08 has the arithmetic).
+- `costMicro = costMicro(BOLI_CHAT, inputTokens, outputTokens)` from `@repo/boli` (08 has the arithmetic).
 - One `db.batch([...])` (one round trip; `db.transaction()` **throws** on the neon-http driver, see
   `packages/db/src/client.ts`):
   1. `INSERT INTO inference_request (...) VALUES (...) ON CONFLICT (id) DO NOTHING`
@@ -357,7 +357,7 @@ Expected: `cost_micro = input_tokens*2 + output_tokens*6`, `amount_micro = -cost
 ### 12. Errors in the OpenAI shape
 
 Every non-2xx from `/v1/*` is JSON `{"error":{"message":"...","type":"...","code":"..."}}`, so OpenAI SDKs raise their
-usual exception classes. From `API_ERRORS` in `lib/boli.ts`:
+usual exception classes. From `API_ERRORS` in `@repo/boli`:
 
 | HTTP | `code` | `type` | When | Retry? |
 |---|---|---|---|---|
@@ -385,7 +385,7 @@ request id and key id; the prefix is safe, the key is not.
 ### 14. `GET /v1/models`
 
 Requires a valid key (same auth as chat). Returns `{"object":"list","data":[{"id":"boli-chat","object":"model",...}]}`
-built from `MODELS` in `lib/boli.ts`, never the upstream id.
+built from `MODELS` in `@repo/boli`, never the upstream id.
 
 ## Verify the whole thing
 

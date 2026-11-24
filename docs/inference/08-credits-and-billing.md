@@ -2,7 +2,7 @@
 
 > **Status: written from the design on 2026-11-24, before the code was finished - verify every command against the
 > code before relying on it.** Source of truth: `plan/main/platform/platform-v0.md` (Decisions Q5-Q10, Q47-Q49,
-> Contract "Units" and "Spending"). Prices and units come from `apps/main/lib/boli.ts`; tables from
+> Contract "Units" and "Spending"). Prices and units come from `packages/boli/src/boli.ts` (`@repo/boli`); tables from
 > `packages/db/src/schema/billing.ts` and `platform.ts`. **(design)** = what the plan says the code will do;
 > **(open)** = not settled yet.
 
@@ -29,7 +29,7 @@ payment gateway (eSewa / Khalti test mode for Boli).
 | Q47 | Add credits: amount with - / +, chips +100 / +500 / +1,000; pay through eSewa / Khalti sandbox. |
 | Q49 | Billing page: balance, Add credits, ledger of purchases and grants, spends summed per day. |
 
-In `lib/boli.ts`: `MICRO_PER_CREDIT = 1_000_000`, `WELCOME_CREDITS = 100`, `ADD_CREDIT_CHIPS = [100, 500, 1000]`,
+In `@repo/boli`: `MICRO_PER_CREDIT = 1_000_000`, `WELCOME_CREDITS = 100`, `ADD_CREDIT_CHIPS = [100, 500, 1000]`,
 `ADD_CREDITS_MIN = 100`, `ADD_CREDITS_MAX = 100_000`, `BOLI_CHAT.pricePerMillion = { input: 2, output: 6 }`,
 `costMicro()`, `formatCredits()`, `formatRupees()`.
 
@@ -59,7 +59,7 @@ tokens is also the price in µcr per token.** 2 credits per 1M input tokens = 2 
 
 ### 2. The cost of one call
 
-From `lib/boli.ts`:
+From `@repo/boli`:
 
 ```ts
 export function costMicro(model: BoliModel, inputTokens: number, outputTokens: number): number {

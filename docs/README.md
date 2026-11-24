@@ -1,14 +1,17 @@
 # docs/ - start here
 
-Basecode is a pnpm + Turborepo monorepo that a new product is cloned from. It ships two Next 16 apps that each run as a
-Cloudflare Worker through OpenNext - `apps/main` (the product: auth pages, an AI page at `/ai` that signed-in people land
-on, Home, a reference Notes module, Profile, a Settings hub, Notifications, Help, onboarding at `/welcome`) and
+Boli is a pnpm + Turborepo monorepo (cloned from basecode). It ships three Next 16 apps that each run as a Cloudflare
+Worker through OpenNext - `apps/main` (the product at app.bolihq.com: auth pages, onboarding at `/welcome`, Kura at
+`/kura` where signed-in people land, Home, keys, usage, billing, Profile, Settings and the `/v1` API), `apps/web` (the
+public site at bolihq.com: landing, about, contact, docs, legal, blog, models, guides, changelog; no auth) and
 `apps/admin` (an internal console: team and access, users, analytics, reports, communications, system settings) - over
-one Neon Postgres per environment, reached over HTTP.
+one Neon Postgres per environment, reached over HTTP. Main and web link to each other only through absolute URLs
+(`apps/main/lib/web-links.ts`, `apps/web/lib/app-links.ts`).
 
 Everything shared lives in `packages/` as `@repo/<name>`: the UI kit and app shell (`ui`), better-auth (`auth`, its only
 owner), the database client and schema (`db`), the AI layer with prompt caching and a usage meter (`ai`, `billing`),
-email, R2 storage, PDF, cron, legal, erasure, Sarvam, web data and errors. The rules every change follows are in
+email, R2 storage, PDF, cron, legal, erasure, Sarvam, web data and errors, plus Boli's own `brand` (logo, art, tokens,
+controls) and `boli` (prices, packs, models, copy, code samples) shared by main and web. The rules every change follows are in
 [`AGENTS.md`](../AGENTS.md); these docs are the map of what exists and where. Every path and export named here was read
 from the code.
 
@@ -24,7 +27,8 @@ from the code.
    [`recipes.md`](recipes.md), [`payments.md`](payments.md), [`workspaces.md`](workspaces.md) (adding teams later).
 6. [`plan/INDEX.md`](../plan/INDEX.md) - what is open right now; write your own plan doc before code (AGENTS.md section 1).
 
-Per-app rules: [`apps/main/CLAUDE.md`](../apps/main/CLAUDE.md), [`apps/admin/CLAUDE.md`](../apps/admin/CLAUDE.md).
+Per-app rules: [`apps/main/CLAUDE.md`](../apps/main/CLAUDE.md), [`apps/web/CLAUDE.md`](../apps/web/CLAUDE.md),
+[`apps/admin/CLAUDE.md`](../apps/admin/CLAUDE.md).
 
 ## Where is X
 
@@ -45,7 +49,14 @@ Per-app rules: [`apps/main/CLAUDE.md`](../apps/main/CLAUDE.md), [`apps/admin/CLA
 | Main's shell wrapper (bell, account) | `apps/main/app/(main)/_components/main-shell.tsx`; admin: `apps/admin/app/(main)/_components/admin-shell.tsx` |
 | The `Page` component / its skeleton | `packages/ui/src/components/ui/page.tsx` (`Page`, `PageSkeleton`) |
 | Page height variables | `packages/ui/src/styles/globals.css` (`[data-app-main]`, `--app-page-h`) |
-| Brand name, tagline, site URL | `packages/core/src/site.ts` (`SITE`) |
+| Brand name, tagline, site URL | `packages/core/src/site.ts` (`SITE`; `url` = the running app's own origin) |
+| Boli prices, packs, models, copy, code samples | `packages/boli/src/boli.ts`, `code-samples.ts`, `highlight.ts` (`@repo/boli`) |
+| Logo, pixel art, sky tokens, pill controls, loaders, status screens | `packages/brand/src/` (`@repo/brand`; tokens `styles/boli.css`) |
+| Links from main to the public site | `apps/main/lib/web-links.ts` (`WEB`, `webUrl`; `NEXT_PUBLIC_WEB_URL`) |
+| Links from the site into the app | `apps/web/lib/app-links.ts` (`appUrl`, `SIGNIN_URL`, `BILLING_URL`, `API_ORIGIN`; `NEXT_PUBLIC_APP_URL`) |
+| Routes on the public site, docs pages | `apps/web/lib/routes.ts` (`ROUTES`, `DOCS_PAGES`) |
+| Blog, guides, changelog, model pages | `apps/web/content/` ([`README`](../apps/web/content/README.md)) |
+| Sitemap and robots | `apps/web/app/sitemap.ts`, `robots.ts`; main's `app/robots.ts` indexes only sign-in / sign-up |
 | AI system prompt | `apps/main/lib/ai/system-prompt.ts` (`AI_SYSTEM_PROMPT`) |
 | AI tools | `apps/main/lib/ai/tools.ts` (`buildTools`, `toolOrder`, `CARD_TOOLS`, `TOOL_LABELS`) |
 | AI chat route | `apps/main/app/api/ai/chat/route.ts` |
@@ -66,12 +77,12 @@ Per-app rules: [`apps/main/CLAUDE.md`](../apps/main/CLAUDE.md), [`apps/admin/CLA
 | Run a SQL file | `pnpm --filter @repo/db sql scripts/<file>.sql [--apply]` (`packages/db/scripts/run-sql.mjs`) |
 | Seed | `packages/db/src/seed.ts` (`pnpm db:seed`) |
 | Env scripts | `scripts/env-check.mts`, `env-set.mts`, `env-restore.mts`, shared `env-files.mts` (`APPS_WITH_ENV`) |
-| Deploy script | `scripts/deploy.mts` (`pnpm deploy:staging|prod <app|all>`) |
-| Worker entry | `apps/*/worker.ts` (wrangler `main`), OpenNext config `apps/*/open-next.config.ts` |
+| Deploy script | `scripts/deploy.mts` (`pnpm deploy:staging|prod <main|admin|web|all>`) |
+| Worker entry | `apps/main|admin/worker.ts` (wrangler `main`; web uses OpenNext's `.open-next/worker.js`), OpenNext config `apps/*/open-next.config.ts` |
 | Wrangler config | `apps/*/wrangler.jsonc` (staging top level, `env.prod`) |
 | Next config (webpack, rewrites, headers) | `apps/*/next.config.js`; the Next patch `patches/next@16.4.6.patch` |
 | Query client defaults | `apps/*/app/providers.tsx` |
-| Legal text | `packages/legal/src/documents.ts`; page `apps/main/app/(legal)/` |
+| Legal text | `packages/legal/src/documents.ts`; pages `apps/web/app/(legal)/` |
 | The reference list module | `apps/main/app/(main)/notes/` + `actions/notes.action.ts` + `lib/notes.ts` + `schemas/notes.ts` + `types/notes.ts` |
 | Plans | `plan/INDEX.md`, `plan/TEMPLATE.md`, `plan/README.md` |
 | Self-hosting an open model (playbook an agent can follow) | `docs/inference/README.md` |
@@ -86,7 +97,8 @@ ALLOW_DB_PUSH=1 pnpm db:push         # FRESH database only; afterwards additive 
 pnpm db:seed                         # super admin; prints a generated password once unless SEED_ADMIN_PASSWORD is set
 pnpm --filter main dev               # http://localhost:3100
 pnpm --filter admin dev              # http://localhost:3101
+pnpm --filter web dev                # http://localhost:3102 (the public site)
 ```
 
-`pnpm dev` runs both. Every db script reads `apps/main/.env.local` (`packages/db/package.json`). Deploys are run by the
+`pnpm dev` runs all three. Every db script reads `apps/main/.env.local` (`packages/db/package.json`). Deploys are run by the
 owner only (`pnpm deploy:staging <app|all>`) - see [`env-and-deploy.md`](env-and-deploy.md).

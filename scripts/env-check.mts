@@ -13,6 +13,15 @@ const MUST_MATCH: Record<string, readonly (typeof APPS_WITH_ENV)[number][]> = {
     DATABASE_URL: APPS_WITH_ENV,
 };
 
+/**
+ * One app's key that must hold another app's value: the site links to the app and the app links back to the site, so a
+ * mismatch sends people to the wrong origin (or the wrong environment). [app, key, app, key].
+ */
+const CROSS_MATCH: readonly (readonly [(typeof APPS_WITH_ENV)[number], string, (typeof APPS_WITH_ENV)[number], string])[] = [
+    ['web', 'NEXT_PUBLIC_APP_URL', 'main', 'NEXT_PUBLIC_SITE_URL'],
+    ['main', 'NEXT_PUBLIC_WEB_URL', 'web', 'NEXT_PUBLIC_SITE_URL'],
+];
+
 const problems: string[] = [];
 const pending: string[] = [];
 for (const app of APPS_WITH_ENV) {
@@ -51,8 +60,21 @@ for (const file of FILES) {
     }
 }
 
-for (const [f, app] of [['.env.local', 'main'], ['.env', 'main'], ['.env.production', 'main']] as const) {
-    console.log(`${f.padEnd(16)} database: ${hostLabel(readEnv(join(appDir(app), f)).get('DATABASE_URL'))}`);
+for (const file of FILES) {
+    for (const [a, ka, b, kb] of CROSS_MATCH) {
+        const [pa, pb] = [join(appDir(a), file), join(appDir(b), file)];
+        if (!existsSync(pa) || !existsSync(pb)) continue;
+        const [va, vb] = [readEnv(pa).get(ka), readEnv(pb).get(kb)];
+        if (va !== undefined && vb !== undefined && va.replace(/\/+$/, '') !== vb.replace(/\/+$/, '')) {
+            problems.push(`${file}: ${a} ${ka} differs from ${b} ${kb} (they must name the same origin)`);
+        }
+    }
+}
+
+// Host labels only, per file and app: enough to see which database each one points at.
+for (const f of FILES) {
+    const labels = APPS_WITH_ENV.filter((a) => existsSync(join(appDir(a), f))).map((a) => `${a}=${hostLabel(readEnv(join(appDir(a), f)).get('DATABASE_URL'))}`);
+    console.log(`${f.padEnd(16)} database: ${labels.length ? labels.join(', ') : '(no files)'}`);
 }
 if (pending.length) console.log(`\nStill to fill in:\n  ${pending.join('\n  ')}`);
 if (problems.length) {
