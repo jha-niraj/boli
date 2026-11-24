@@ -1,5 +1,5 @@
 import { SITE } from "@repo/core/site"
-import { CodeTabs } from "@/components/brand/code-tabs"
+import { HighlightedCodeTabs as CodeTabs } from "@/components/brand/code-tabs-server"
 import { exampleTurn, millionsFor } from "@/components/public/pricing"
 import {
     ADD_CREDITS_MAX,
@@ -14,12 +14,14 @@ import {
     WELCOME_CREDITS,
     costMicro,
 } from "@/lib/boli"
+import { buildModelsSamples } from "@/lib/code-samples"
 import { C, Callout, DocPage, DocTable, H2, H3, List, P, type DocHeading } from "../_components/prose"
 
 const HEADINGS: DocHeading[] = [
     { id: "models", title: "Models" },
     { id: "pricing", title: "Pricing" },
     { id: "example", title: "A worked example" },
+    { id: "free-credits", title: "What the free credits buy", depth: 3 },
     { id: "credits", title: "Credits" },
     { id: "limits", title: "Limits" },
 ]
@@ -30,7 +32,6 @@ export function Models() {
     // A longer job, to show the per-token sum: summarising a page of text.
     const job = { input: 3_000, output: 400 }
     const jobMicro = costMicro(BOLI_CHAT, job.input, job.output)
-    const base = `${SITE.url}/v1`
     return (
         <DocPage
             slug="models"
@@ -50,7 +51,7 @@ export function Models() {
                             <p className="font-mono text-lg text-boli-ink">{m.id}</p>
                             <p className="mt-0.5 text-sm text-boli-muted">{m.label}</p>
                         </div>
-                        <span className="w-fit rounded-full bg-boli-blue-soft px-2.5 py-1 text-xs font-medium text-boli-blue">{m.licence}</span>
+                        <span className="w-fit rounded-full bg-boli-sand px-2.5 py-1 text-xs font-medium text-boli-text">{m.licence}</span>
                     </div>
                     <p className="px-5 pt-4 text-sm leading-6 text-boli-text">{m.blurb}</p>
                     <dl className="grid gap-x-6 gap-y-3 p-5 text-sm sm:grid-cols-2">
@@ -81,11 +82,7 @@ export function Models() {
             </P>
             <CodeTabs
                 className="mt-5"
-                samples={{
-                    curl: `curl ${SITE.url}${API_PATHS.models} \\\n  -H "Authorization: Bearer $BOLI_API_KEY"`,
-                    python: `import os\nfrom openai import OpenAI\n\nclient = OpenAI(base_url="${base}", api_key=os.environ["BOLI_API_KEY"])\nprint([m.id for m in client.models.list()])`,
-                    javascript: `import OpenAI from "openai";\n\nconst client = new OpenAI({ baseURL: "${base}", apiKey: process.env.BOLI_API_KEY });\nconst models = await client.models.list();\nconsole.log(models.data.map((m) => m.id));`,
-                }}
+                samples={buildModelsSamples(SITE.url)}
             />
 
             <H2 id="pricing">Pricing</H2>
@@ -117,7 +114,7 @@ export function Models() {
                     ],
                 ]}
             />
-            <H3>What the free Rs {WELCOME_CREDITS} buys</H3>
+            <H3 id="free-credits">What the free Rs {WELCOME_CREDITS} buys</H3>
             <List>
                 <li>{millionsFor(WELCOME_CREDITS, p.input)} million input tokens, or</li>
                 <li>about {millionsFor(WELCOME_CREDITS, p.output)} million output tokens, or</li>

@@ -1,28 +1,48 @@
 "use client"
 
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react"
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type SVGProps } from "react"
 import { Check, Copy } from "lucide-react"
+import type { HighlighterCore } from "shiki/core"
 import { Button } from "@repo/ui/components/ui/button"
+import { ScrollArea } from "@repo/ui/components/ui/scroll-area"
 import { cn } from "@repo/ui/lib/utils"
 import { SAMPLE_LANGUAGES, type SampleLanguage } from "@/lib/code-samples"
+import type * as HighlightModule from "@/lib/highlight"
+import type { CodeLang, HlLine } from "@/lib/highlight"
 
 /**
- * Code samples in cURL / Python / JavaScript tabs with a Copy button. Light code block in Geist Mono on a white card;
- * long lines scroll inside the block, never the page. Plain buttons with tab semantics (no animation library: this
- * sits on public pages that must stay light). Strings and keys get a quiet colour; nothing else is highlighted.
+ * Code samples in cURL / Python / TypeScript / JavaScript / Go tabs, each with a small language mark, and a Copy button.
+ * Highlighted by Shiki (lib/highlight.ts) in Boli's quiet theme: names in ink, syntax in grey, values in the one blue.
+ *
+ * Two ways to get colours:
+ * - Pre-highlighted: a server component (`HighlightedCodeTabs`, code-tabs-server.tsx) passes `highlighted`, so the
+ *   public pages ship no highlighter at all.
+ * - Lazily: without `highlighted` (Kura's Code tab, Home), the highlighter module is imported on first render and
+ *   cached for the session; until it arrives the code shows plain, the same size, so nothing jumps.
+ *
+ * The tab strip lives in a container query: in a narrow block (a phone, Kura's column) only the active tab keeps its
+ * label, the rest show their mark (with the name for screen readers and in a title). Long lines scroll sideways
+ * inside the block's own ScrollArea, never the page.
  */
 export function CodeTabs({
     samples,
+    highlighted,
     className,
     defaultLanguage = "curl",
 }: {
     samples: Record<SampleLanguage, string>
+    /** Lines per language from `highlight()`; leave out to highlight in the browser. */
+    highlighted?: Partial<Record<SampleLanguage, HlLine[] | null>>
     className?: string
     defaultLanguage?: SampleLanguage
 }) {
     const [lang, setLang] = useState<SampleLanguage>(defaultLanguage)
     const id = useId()
     const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({})
+    const grammar = SAMPLE_LANGUAGES.find((l) => l.id === lang)?.grammar ?? "shellscript"
+    const pre = highlighted?.[lang]
+    const hl = useLazyHighlighter(!pre)
+    const lines = useLiveTokens(hl, pre ? null : samples[lang], grammar)
 
     function onKey(e: KeyboardEvent<HTMLDivElement>) {
         if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return
@@ -35,9 +55,9 @@ export function CodeTabs({
     }
 
     return (
-        <div className={cn("min-w-0 overflow-hidden rounded-2xl border border-boli-line bg-white dark:border-neutral-800 dark:bg-neutral-900", className)}>
-            <div className="flex items-center justify-between gap-2 border-b border-boli-line bg-boli-ground/60 px-2 py-1.5 dark:border-neutral-800 dark:bg-neutral-950/40">
-                <div role="tablist" aria-label="Language" onKeyDown={onKey} className="flex min-w-0 gap-1">
+        <div className={cn("@container min-w-0 overflow-hidden rounded-2xl border border-boli-line bg-white dark:border-neutral-800 dark:bg-neutral-900", className)}>
+            <div className="flex min-w-0 items-center justify-between gap-2 border-b border-boli-line px-1.5 py-1.5 dark:border-neutral-800">
+                <div role="tablist" aria-label="Language" onKeyDown={onKey} className="flex min-w-0 items-center gap-0.5">
                     {SAMPLE_LANGUAGES.map((l) => {
                         const active = l.id === lang
                         return (
@@ -52,39 +72,139 @@ export function CodeTabs({
                                 aria-selected={active}
                                 aria-controls={`${id}-panel`}
                                 tabIndex={active ? 0 : -1}
+                                title={l.label}
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setLang(l.id)}
                                 className={cn(
-                                    "h-8 px-3 text-xs",
-                                    active ? "bg-white text-boli-ink shadow-[0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-boli-line hover:bg-white dark:bg-neutral-800 dark:text-white dark:ring-neutral-700 dark:hover:bg-neutral-800" : "text-boli-muted hover:bg-boli-sand hover:text-boli-ink dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white",
+                                    "h-8 shrink-0 cursor-pointer gap-1.5 px-2.5 text-xs",
+                                    active
+                                        ? "bg-boli-ground text-boli-ink ring-1 ring-boli-line hover:bg-boli-ground dark:bg-neutral-800 dark:text-white dark:ring-neutral-700 dark:hover:bg-neutral-800"
+                                        : "text-boli-muted hover:bg-boli-ground hover:text-boli-ink dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white",
                                 )}
                             >
-                                {l.label}
+                                <LanguageMark lang={l.id} className="h-3.5 w-3.5 shrink-0" />
+                                <span className={cn(!active && "sr-only @min-[34rem]:not-sr-only")}>{l.label}</span>
                             </Button>
                         )
                     })}
                 </div>
                 <CopyButton text={samples[lang]} />
             </div>
-            <div role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-tab-${lang}`} tabIndex={0} className="overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-boli-blue/30">
-                <pre className="min-w-max p-4 font-mono text-[13px] leading-6 text-boli-ink dark:text-neutral-100">
-                    <code>
-                        <Highlighted code={samples[lang]} />
-                    </code>
-                </pre>
+            <div role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-tab-${lang}`} tabIndex={0} className="outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-boli-blue/30">
+                <CodeBody code={samples[lang]} lines={pre ?? lines} />
             </div>
         </div>
     )
+}
+
+/**
+ * The code itself: warm off-white in light, near-black in dark, Geist Mono, scrolling sideways in its own ScrollArea.
+ * Renders Shiki lines when given, else the plain text. Shared by CodeTabs and the docs' single CodeBlock.
+ */
+export function CodeBody({ code, lines, wrap, className }: { code: string; lines?: HlLine[] | null; wrap?: boolean; className?: string }) {
+    const pre = (
+        <pre
+            className={cn(
+                "p-4 font-mono text-[13px] leading-6 text-boli-ink [tab-size:4] dark:text-neutral-200",
+                wrap ? "whitespace-pre-wrap break-words" : "min-w-max",
+            )}
+        >
+            <code>{lines ? <Lines lines={lines} /> : code}</code>
+        </pre>
+    )
+    if (wrap) return <div className={cn("min-w-0 bg-boli-ground/60 dark:bg-neutral-950", className)}>{pre}</div>
+    return (
+        <ScrollArea orientation="horizontal" className={cn("min-w-0 bg-boli-ground/60 dark:bg-neutral-950", className)}>
+            {pre}
+        </ScrollArea>
+    )
+}
+
+function Lines({ lines }: { lines: HlLine[] }) {
+    return (
+        <>
+            {lines.map((line, i) => (
+                <span key={i}>
+                    {line.map((tok, j) =>
+                        tok.l || tok.d ? (
+                            <span key={j} style={tokenStyle(tok.l, tok.d)} className={cn(tok.l && "text-(--hl-l)", tok.d && "dark:text-(--hl-d)")}>
+                                {tok.t}
+                            </span>
+                        ) : (
+                            tok.t
+                        ),
+                    )}
+                    {i < lines.length - 1 ? "\n" : null}
+                </span>
+            ))}
+        </>
+    )
+}
+
+function tokenStyle(l: string | undefined, d: string | undefined): CSSProperties {
+    const vars: Record<string, string> = {}
+    if (l) vars["--hl-l"] = l
+    if (d) vars["--hl-d"] = d
+    return vars as CSSProperties
+}
+
+type Highlight = typeof HighlightModule
+
+/** The highlight module and its highlighter, loaded once per browser session on first use, then shared. */
+let browserHighlighter: Promise<{ mod: Highlight; hl: HighlighterCore }> | null = null
+
+function loadBrowserHighlighter() {
+    browserHighlighter ??= import("@/lib/highlight")
+        .then(async (mod) => ({ mod, hl: await mod.loadHighlighter() }))
+        .catch((e: unknown) => {
+            browserHighlighter = null
+            throw e
+        })
+    return browserHighlighter
+}
+
+function useLazyHighlighter(enabled: boolean) {
+    const [state, setState] = useState<{ mod: Highlight; hl: HighlighterCore } | null>(null)
+    useEffect(() => {
+        if (!enabled || state) return
+        let live = true
+        loadBrowserHighlighter()
+            .then((s) => {
+                if (live) setState(s)
+            })
+            .catch(() => {
+                // Plain text stays; highlighting is a nicety, never a failure the reader sees.
+            })
+        return () => {
+            live = false
+        }
+    }, [enabled, state])
+    return state
+}
+
+/** Tokenises synchronously once loaded, so live edits (Kura settings, the draft) re-colour in the same frame. */
+function useLiveTokens(state: { mod: Highlight; hl: HighlighterCore } | null, code: string | null, lang: CodeLang): HlLine[] | null {
+    return useMemo(() => {
+        if (!state || code === null) return null
+        try {
+            return state.mod.tokenize(state.hl, code, lang)
+        } catch {
+            return null
+        }
+    }, [state, code, lang])
 }
 
 /** Copy to clipboard with a two-second "Copied" state. Exported for single code blocks (the coding-agent prompt). */
 export function CopyButton({ text, label = "Copy", className }: { text: string; label?: string; className?: string }) {
     const [copied, setCopied] = useState(false)
     const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-    useEffect(() => () => {
-        if (timer.current) clearTimeout(timer.current)
-    }, [])
+    useEffect(
+        () => () => {
+            if (timer.current) clearTimeout(timer.current)
+        },
+        [],
+    )
 
     async function copy() {
         try {
@@ -98,27 +218,58 @@ export function CopyButton({ text, label = "Copy", className }: { text: string; 
     }
 
     return (
-        <Button type="button" variant="ghost" size="sm" onClick={copy} className={cn("h-8 shrink-0 gap-1.5 px-3 text-xs text-boli-text hover:bg-boli-sand dark:text-neutral-300 dark:hover:bg-neutral-800", className)}>
-            {copied ? <Check className="h-3.5 w-3.5 text-boli-blue" /> : <Copy className="h-3.5 w-3.5" />}
+        <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={copy}
+            className={cn("h-8 shrink-0 cursor-pointer gap-1.5 px-3 text-xs text-boli-text hover:bg-boli-ground dark:text-neutral-300 dark:hover:bg-neutral-800", className)}
+        >
+            {copied ? <Check className="h-3.5 w-3.5 text-boli-blue dark:text-sky-300" /> : <Copy className="h-3.5 w-3.5" />}
             <span aria-live="polite">{copied ? "Copied" : label}</span>
         </Button>
     )
 }
 
-/** Colours double-quoted strings (and the key before a colon) in the deep blue. Enough to read a sample at a glance. */
-function Highlighted({ code }: { code: string }) {
-    const parts = code.split(/("(?:[^"\\]|\\.)*")/g)
-    return (
-        <>
-            {parts.map((p, i) =>
-                p.startsWith('"') && p.endsWith('"') && p.length > 1 ? (
-                    <span key={i} className="text-boli-blue dark:text-sky-300">
-                        {p}
-                    </span>
-                ) : (
-                    <span key={i}>{p}</span>
-                ),
-            )}
-        </>
-    )
+/** Small one-colour language marks (inline SVG, currentColor): a terminal for cURL, the two snakes for Python, letter tiles for the rest. */
+export function LanguageMark({ lang, ...props }: { lang: SampleLanguage } & SVGProps<SVGSVGElement>) {
+    const common = { viewBox: "0 0 16 16", fill: "none", "aria-hidden": true, focusable: false, ...props } as const
+    switch (lang) {
+        case "curl":
+            return (
+                <svg {...common}>
+                    <rect x="1.5" y="2.5" width="13" height="11" rx="2.5" stroke="currentColor" strokeWidth="1.3" />
+                    <path d="M4.5 6.5 6.5 8l-2 1.5M8 10h3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            )
+        case "python":
+            return (
+                <svg {...common}>
+                    <path
+                        d="M7.9 1.5c-2.5 0-2.9 1.1-2.9 2.1v1.6h3v.6H3.7c-1.3 0-2.2.9-2.2 2.4 0 1.6.9 2.5 2.1 2.5H5V9.1c0-1.1.9-2 2-2h2.9c.9 0 1.6-.7 1.6-1.6V3.6c0-1-.9-2.1-3.6-2.1Z"
+                        fill="currentColor"
+                        opacity="0.9"
+                    />
+                    <path
+                        d="M8.1 14.5c2.5 0 2.9-1.1 2.9-2.1v-1.6H8v-.6h4.3c1.3 0 2.2-.9 2.2-2.4 0-1.6-.9-2.5-2.1-2.5H11v1.6c0 1.1-.9 2-2 2H6.1c-.9 0-1.6.7-1.6 1.6v1.9c0 1 .9 2.1 3.6 2.1Z"
+                        fill="currentColor"
+                        opacity="0.55"
+                    />
+                    <circle cx="6.4" cy="3.3" r="0.6" className="fill-white dark:fill-neutral-800" />
+                    <circle cx="9.6" cy="12.7" r="0.6" className="fill-white dark:fill-neutral-800" />
+                </svg>
+            )
+        case "typescript":
+        case "javascript":
+        case "go":
+            return (
+                <svg {...common}>
+                    <rect x="1.5" y="1.5" width="13" height="13" rx="3" fill="currentColor" opacity="0.14" />
+                    <rect x="1.5" y="1.5" width="13" height="13" rx="3" stroke="currentColor" strokeWidth="1.1" />
+                    <text x="8" y="11.1" textAnchor="middle" fontSize="6.6" fontWeight="600" fontFamily="inherit" fill="currentColor" letterSpacing="-0.2">
+                        {lang === "typescript" ? "TS" : lang === "javascript" ? "JS" : "Go"}
+                    </text>
+                </svg>
+            )
+    }
 }

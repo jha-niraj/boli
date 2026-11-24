@@ -1,16 +1,23 @@
 import type { ReactNode } from "react"
-import { ArrowLeft, ArrowRight, KeyRound } from "lucide-react"
+import { ArrowLeft, ArrowRight, Info, KeyRound, TriangleAlert } from "lucide-react"
 import { AppLink } from "@repo/ui/components/app-link"
 import { Button } from "@repo/ui/components/ui/button"
+import { ScrollArea } from "@repo/ui/components/ui/scroll-area"
 import { cn } from "@repo/ui/lib/utils"
-import { CopyButton } from "@/components/brand/code-tabs"
+import { CodeBody, CopyButton } from "@/components/brand/code-tabs"
+import { DISPLAY } from "@/components/brand/type"
 import { WELCOME_CREDITS } from "@/lib/boli"
+import { highlight, type CodeLang } from "@/lib/highlight"
 import { DOCS_PAGES, ROUTES } from "@/lib/navigation"
 import { DocsMobileNav } from "./docs-mobile-nav"
+import { DocsToc, type DocHeading } from "./docs-toc"
 
 /** The building blocks every docs page uses, so the four pages read as one manual. Server Components. */
 
-export type DocHeading = { id: string; title: string }
+export type { DocHeading }
+
+/** The three columns (page list, page, "On this page") start on one line: each opens with this label style. */
+export const DOCS_LABEL = "text-xs font-medium leading-5 text-boli-muted"
 
 export function DocPage({ slug, lead, headings, children }: { slug: string; lead: ReactNode; headings: DocHeading[]; children: ReactNode }) {
     const index = DOCS_PAGES.findIndex((p) => p.slug === slug)
@@ -18,15 +25,17 @@ export function DocPage({ slug, lead, headings, children }: { slug: string; lead
     const prev = index > 0 ? DOCS_PAGES[index - 1] : undefined
     const next = index >= 0 && index < DOCS_PAGES.length - 1 ? DOCS_PAGES[index + 1] : undefined
     return (
-        <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_200px]">
+        <div className="grid gap-12 font-sans xl:grid-cols-[minmax(0,1fr)_208px]">
             <div className="min-w-0">
                 <DocsMobileNav current={page?.title ?? "Docs"} />
-                <header className="mt-6 lg:mt-0">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-boli-crimson-ink">Docs</p>
-                    <h1 className="mt-3 font-serif text-4xl leading-tight tracking-tight text-boli-ink sm:text-5xl">{page?.title}</h1>
-                    <div className="mt-4 max-w-2xl text-base leading-7 text-boli-text">{lead}</div>
+                <header className="mt-6 max-w-3xl border-b border-boli-line pb-8 lg:mt-0">
+                    <p className={DOCS_LABEL}>Docs</p>
+                    <h1 className="mt-2 font-serif text-4xl leading-[1.05] text-boli-ink sm:text-5xl" style={DISPLAY.h2}>
+                        {page?.title}
+                    </h1>
+                    <div className="mt-3 max-w-2xl text-base leading-7 text-boli-text">{lead}</div>
                 </header>
-                <div className="mt-4 max-w-3xl">{children}</div>
+                <div className="max-w-3xl">{children}</div>
                 <div className="mt-14 max-w-3xl">
                     <GetKeyCard />
                 </div>
@@ -35,18 +44,11 @@ export function DocPage({ slug, lead, headings, children }: { slug: string; lead
                     {next ? <PagerLink href={ROUTES.doc(next.slug)} label="Next" title={next.title} dir="next" /> : null}
                 </nav>
             </div>
+            {/* Below xl the column is too narrow for a third column: the TOC is left out (the page list and the
+                headings' own anchors remain). */}
             <nav aria-label="On this page" className="hidden xl:block">
-                <div className="sticky top-24">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-boli-muted">On this page</p>
-                    <ul className="mt-4 space-y-2 border-l border-boli-line">
-                        {headings.map((h) => (
-                            <li key={h.id}>
-                                <a href={`#${h.id}`} className="-ml-px block cursor-pointer border-l border-transparent pl-4 text-sm leading-5 text-boli-text hover:border-boli-ink hover:text-boli-ink">
-                                    {h.title}
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
+                <div className="sticky top-[6.5rem]">
+                    <DocsToc headings={headings} />
                 </div>
             </nav>
         </div>
@@ -71,7 +73,7 @@ function PagerLink({ href, label, title, dir }: { href: string; label: string; t
 
 export function H2({ id, children }: { id: string; children: ReactNode }) {
     return (
-        <h2 id={id} className="mt-14 scroll-mt-24 font-serif text-3xl leading-tight tracking-tight text-boli-ink">
+        <h2 id={id} className="mt-12 scroll-mt-24 font-serif text-3xl leading-tight text-boli-ink first:mt-10" style={DISPLAY.h3}>
             <a href={`#${id}`} className="cursor-pointer hover:underline hover:decoration-boli-line hover:underline-offset-8">
                 {children}
             </a>
@@ -79,8 +81,12 @@ export function H2({ id, children }: { id: string; children: ReactNode }) {
     )
 }
 
-export function H3({ children }: { children: ReactNode }) {
-    return <h3 className="mt-8 text-base font-semibold text-boli-ink">{children}</h3>
+export function H3({ id, children }: { id?: string; children: ReactNode }) {
+    return (
+        <h3 id={id} className="mt-8 scroll-mt-24 text-base font-semibold text-boli-ink">
+            {children}
+        </h3>
+    )
 }
 
 export function P({ children }: { children: ReactNode }) {
@@ -96,36 +102,42 @@ export function C({ children }: { children: ReactNode }) {
     return <code className="rounded-md bg-boli-sand px-1.5 py-0.5 font-mono text-[0.85em] text-boli-ink">{children}</code>
 }
 
-/** A single code block (a shell line, a JSON shape, a prompt) with Copy. Multi-language examples use CodeTabs. */
-export function CodeBlock({ code, label, className }: { code: string; label?: string; className?: string }) {
+/**
+ * A single code block (a shell line, a JSON shape, a prompt) with Copy, highlighted on the server when `lang` is set.
+ * `wrap` for prose-like text (the coding-agent prompt) that reads better wrapped than scrolled. Multi-language
+ * examples use CodeTabs.
+ */
+export async function CodeBlock({ code, label, lang, wrap, className }: { code: string; label?: string; lang?: CodeLang; wrap?: boolean; className?: string }) {
+    const lines = lang ? await highlight(code, lang) : null
     return (
         <div className={cn("mt-5 min-w-0 overflow-hidden rounded-2xl border border-boli-line bg-white", className)}>
-            <div className="flex items-center justify-between gap-2 border-b border-boli-line bg-boli-ground/60 px-4 py-1.5">
-                <span className="truncate text-xs text-boli-muted">{label ?? ""}</span>
+            <div className="flex min-w-0 items-center justify-between gap-2 border-b border-boli-line py-1.5 pl-4 pr-1.5">
+                <span className="min-w-0 truncate text-xs text-boli-muted">{label ?? ""}</span>
                 <CopyButton text={code} />
             </div>
-            <div className="overflow-x-auto">
-                <pre className="min-w-max p-4 font-mono text-[13px] leading-6 text-boli-ink">
-                    <code>{code}</code>
-                </pre>
+            <CodeBody code={code} lines={lines} wrap={wrap} />
+        </div>
+    )
+}
+
+/** A note beside the text: neutral card, a small icon, ink title. `warn` only changes the icon - colour stays out of it. */
+export function Callout({ title, children, tone = "info" }: { title: string; children: ReactNode; tone?: "info" | "warn" }) {
+    const Icon = tone === "warn" ? TriangleAlert : Info
+    return (
+        <div className="mt-6 flex gap-3 rounded-2xl border border-boli-line bg-white px-4 py-3.5">
+            <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", tone === "warn" ? "text-boli-ink" : "text-boli-muted")} aria-hidden />
+            <div className="min-w-0">
+                <p className="text-sm font-semibold text-boli-ink">{title}</p>
+                <div className="mt-0.5 text-sm leading-6 text-boli-text">{children}</div>
             </div>
         </div>
     )
 }
 
-export function Callout({ title, children, tone = "info" }: { title: string; children: ReactNode; tone?: "info" | "warn" }) {
-    return (
-        <div className={cn("mt-6 rounded-2xl border px-5 py-4", tone === "warn" ? "border-boli-crimson/25 bg-boli-crimson-soft" : "border-boli-blue/20 bg-boli-blue-soft")}>
-            <p className="text-sm font-semibold text-boli-ink">{title}</p>
-            <div className="mt-1 text-sm leading-6 text-boli-text">{children}</div>
-        </div>
-    )
-}
-
-/** A reference table that scrolls sideways inside its card on a phone. */
+/** A reference table that scrolls sideways inside its card on a phone (its own ScrollArea, never the page). */
 export function DocTable({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
     return (
-        <div className="mt-5 overflow-x-auto rounded-2xl border border-boli-line bg-white">
+        <ScrollArea orientation="horizontal" className="mt-5 min-w-0 rounded-2xl border border-boli-line bg-white">
             <table className="w-full min-w-[560px] border-collapse text-left text-sm">
                 <thead>
                     <tr className="border-b border-boli-line bg-boli-ground/60">
@@ -148,7 +160,7 @@ export function DocTable({ head, rows }: { head: string[]; rows: ReactNode[][] }
                     ))}
                 </tbody>
             </table>
-        </div>
+        </ScrollArea>
     )
 }
 
@@ -171,11 +183,13 @@ export function GetKeyCard({ compact }: { compact?: boolean }) {
                     <KeyRound className="h-5 w-5" aria-hidden />
                 </span>
                 <div>
-                    <p className="font-serif text-2xl leading-tight text-boli-ink">Ready to build?</p>
+                    <p className="font-serif text-2xl leading-tight text-boli-ink" style={DISPLAY.card}>
+                        Ready to build?
+                    </p>
                     <p className="mt-1 text-sm text-boli-text">Create a key and start with {WELCOME_CREDITS} free credits.</p>
                 </div>
             </div>
-            <Button asChild className="h-11 shrink-0 gap-2 bg-boli-crimson px-6 text-white hover:bg-boli-crimson-ink">
+            <Button asChild className="h-11 shrink-0 gap-2 bg-boli-ink px-6 text-white hover:bg-boli-ink/90">
                 <AppLink href={ROUTES.keys}>
                     Get API key <ArrowRight className="h-4 w-4" aria-hidden />
                 </AppLink>

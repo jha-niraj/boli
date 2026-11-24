@@ -1,5 +1,5 @@
 import { SITE } from "@repo/core/site"
-import { CodeTabs } from "@/components/brand/code-tabs"
+import { HighlightedCodeTabs as CodeTabs } from "@/components/brand/code-tabs-server"
 import { formatRupeesPreciseFromTokens } from "@/components/public/pricing"
 import { API_PATHS, BOLI_CHAT, DEFAULT_MODEL_ID, DEFAULT_SYSTEM_PROMPT, KURA, KURA_DEFAULTS, KURA_LIMITS, KURA_SUGGESTIONS, MODELS } from "@/lib/boli"
 import { buildSamples } from "@/lib/code-samples"
@@ -9,6 +9,7 @@ const HEADINGS: DocHeading[] = [
     { id: "endpoint", title: "Endpoint" },
     { id: "request", title: "Request body" },
     { id: "response", title: "Response" },
+    { id: "usage", title: "usage", depth: 3 },
     { id: "streaming", title: "Streaming" },
     { id: "thinking", title: "Thinking" },
     { id: "language", title: "Language and script" },
@@ -59,7 +60,7 @@ export function ChatCompletions() {
         ["temperature", `number, ${KURA_LIMITS.temperature.min} to ${KURA_LIMITS.temperature.max}`, "Randomness. Lower is steadier, higher is more varied.", `model default (${KURA.name}: ${KURA_DEFAULTS.temperature})`],
         ["max_tokens", `integer, 1 to ${KURA_LIMITS.maxTokens.max}`, "Most tokens the answer may use, thinking included. max_completion_tokens is accepted as a synonym.", String(KURA_DEFAULTS.maxTokens)],
         ["top_p", `number, ${KURA_LIMITS.topP.min} to ${KURA_LIMITS.topP.max}`, "Nucleus sampling: only the most likely tokens that add up to this share are considered.", `model default (${KURA.name}: ${KURA_DEFAULTS.topP})`],
-        ["top_k", `integer, ${KURA_LIMITS.topK.min} to ${KURA_LIMITS.topK.max}`, "Only the k most likely next tokens are considered. Not in the OpenAI spec: in the Python SDK pass it in extra_body.", `model default (${KURA.name}: ${KURA_DEFAULTS.topK})`],
+        ["top_k", `integer, ${KURA_LIMITS.topK.min} to ${KURA_LIMITS.topK.max}`, "Only the k most likely next tokens are considered. Not in the OpenAI spec: pass it in extra_body (Python) or SetExtraFields (Go).", `model default (${KURA.name}: ${KURA_DEFAULTS.topK})`],
         ["stream", "boolean", "Send the answer as server-sent events while it is written.", "false"],
         ["think", "boolean", "Boli extension: let the model think before it answers. Thinking tokens are billed as output.", "false"],
         ["stop, seed, presence_penalty, frequency_penalty, user", "as OpenAI", "Accepted and passed to the model. Other fields are ignored.", "-"],
@@ -76,7 +77,7 @@ export function ChatCompletions() {
             }
         >
             <H2 id="endpoint">Endpoint</H2>
-            <CodeBlock label="POST" code={url} />
+            <CodeBlock label="POST" code={url} lang="shellscript" />
             <P>
                 Authenticate with <C>Authorization: Bearer $BOLI_API_KEY</C>. Send <C>Content-Type: application/json</C>. The example below asks the
                 model to write a message in the mix of English and Romanized Nepali people use at work, with the system prompt {KURA.name} uses.
@@ -104,8 +105,8 @@ export function ChatCompletions() {
 
             <H2 id="response">Response</H2>
             <P>A normal answer is a single JSON object. The reply text is in <C>choices[0].message.content</C>.</P>
-            <CodeBlock label="200 OK (example)" code={response} />
-            <H3>usage</H3>
+            <CodeBlock label="200 OK (example)" code={response} lang="json" />
+            <H3 id="usage">usage</H3>
             <P>
                 <C>prompt_tokens</C> is what the model read and <C>completion_tokens</C> what it wrote, thinking included. You are charged for exactly these.
                 The example above would cost {formatRupeesPreciseFromTokens(EXAMPLE_USAGE.prompt_tokens, EXAMPLE_USAGE.completion_tokens)}.
@@ -131,7 +132,7 @@ export function ChatCompletions() {
                 Set <C>think: true</C> and the model reasons before it answers. It helps with arithmetic and multi-step questions, and makes the answer
                 slower and longer. Thinking tokens count as output and are billed at the output price. The thinking text arrives separately from the answer,
                 in <C>reasoning_content</C> (<C>delta.reasoning_content</C> when streaming). <C>think</C> is not an OpenAI field: the Python SDK sends it
-                through <C>extra_body</C>.
+                through <C>extra_body</C>, the Go SDK through <C>SetExtraFields</C>, and in TypeScript you widen the params type.
             </P>
             <CodeTabs className="mt-5" samples={thinkSamples} defaultLanguage="python" />
 
@@ -140,7 +141,7 @@ export function ChatCompletions() {
                 {BOLI_CHAT.id} reads {BOLI_CHAT.languages.join(", ")}. Left alone, a small model can drift: a Romanized question can get an English or
                 Devanagari answer. A system prompt that names the rule fixes most of it. This is the one {KURA.name} uses, and the one we tested:
             </P>
-            <CodeBlock label="System prompt" code={DEFAULT_SYSTEM_PROMPT} />
+            <CodeBlock label="System prompt" code={DEFAULT_SYSTEM_PROMPT} wrap />
             <P>Keep the explicit mapping line. In our tests a shorter prompt without it made the model answer English questions in Devanagari.</P>
         </DocPage>
     )

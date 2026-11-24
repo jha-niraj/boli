@@ -24,7 +24,7 @@ export function DocsNav({ onNavigate }: { onNavigate?: () => void }) {
                                 active ? "bg-white font-medium text-boli-ink ring-1 ring-boli-line" : "text-boli-text hover:bg-boli-sand hover:text-boli-ink",
                             )}
                         >
-                            {active ? <span aria-hidden className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-boli-crimson" /> : null}
+                            {active ? <span aria-hidden className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-boli-ink" /> : null}
                             {p.title}
                         </AppLink>
                     </li>

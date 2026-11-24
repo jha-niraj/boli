@@ -34,8 +34,10 @@ function sampleMessages(messages: ChatViewMessage[], systemPrompt: string, draft
 }
 
 /**
- * Code tab: this very chat as an API call (cURL / Python / JavaScript), live - it follows the settings, the Think pill,
- * the chat's last turns and what is being typed. The key is always the placeholder `$BOLI_API_KEY`.
+ * Code tab: this very chat as an API call (cURL / Python / TypeScript / JavaScript / Go), live - it follows the settings,
+ * the Think pill, the chat's last turns and what is being typed. The key is always the placeholder `$BOLI_API_KEY`.
+ * Highlighting: CodeTabs imports the Shiki module the first time this tab opens (nothing on Kura's first load), caches
+ * it for the session, then re-colours synchronously on every change.
  */
 export function CodePanel({ draft }: { draft: string }) {
     const messages = useKuraChat((s) => s.messages)

@@ -10,7 +10,7 @@ import { Quickstart } from "../_content/quickstart"
 type Slug = (typeof DOCS_PAGES)[number]["slug"]
 
 const PAGES: Record<Slug, { Body: ComponentType; description: string }> = {
-    quickstart: { Body: Quickstart, description: "Create an API key and make your first Boli call with the OpenAI SDK in Python, JavaScript or cURL." },
+    quickstart: { Body: Quickstart, description: "Create an API key and make your first Boli call with the OpenAI SDK in Python, TypeScript, JavaScript or Go, or with cURL." },
     authentication: { Body: Authentication, description: "Send your Boli API key, and what every error code means and how to fix it." },
     chatcompletions: { Body: ChatCompletions, description: "The Boli chat completions endpoint: request fields, response, streaming and thinking." },
     models: { Body: Models, description: "Boli's models, prices per 1M tokens in NPR, a worked cost example, credits and rate limits." },

@@ -1,5 +1,5 @@
 import { SITE } from "@repo/core/site"
-import { CodeTabs } from "@/components/brand/code-tabs"
+import { HighlightedCodeTabs as CodeTabs } from "@/components/brand/code-tabs-server"
 import {
     API_ERRORS,
     API_KEY_DISPLAY_LENGTH,
@@ -13,6 +13,7 @@ import {
     maskKey,
     type ApiErrorCode,
 } from "@/lib/boli"
+import { buildModelsSamples, buildRetrySamples } from "@/lib/code-samples"
 import { C, Callout, CodeBlock, DocPage, DocTable, H2, H3, List, P, type DocHeading } from "../_components/prose"
 
 const HEADINGS: DocHeading[] = [
@@ -22,6 +23,7 @@ const HEADINGS: DocHeading[] = [
     { id: "codes", title: "Error codes" },
     { id: "credits", title: "Out of credits (402)" },
     { id: "rate-limit", title: "Rate limit (429)" },
+    { id: "retrying", title: "Retrying", depth: 3 },
 ]
 
 /** Meaning and fix for every code in API_ERRORS - a Record, so adding a code there without a row here fails typecheck. */
@@ -53,7 +55,6 @@ const ERROR_HELP: Record<ApiErrorCode, { meaning: string; fix: string }> = {
 }
 
 export function Authentication() {
-    const base = `${SITE.url}/v1`
     const exampleKey = `${API_KEY_PREFIX}${"x".repeat(API_KEY_RANDOM_LENGTH)}`
     const display = maskKey(exampleKey.slice(0, API_KEY_DISPLAY_LENGTH))
     const codes = Object.keys(API_ERRORS) as ApiErrorCode[]
@@ -70,11 +71,7 @@ export function Authentication() {
             </P>
             <CodeTabs
                 className="mt-5"
-                samples={{
-                    curl: `curl ${SITE.url}${API_PATHS.models} \\\n  -H "Authorization: Bearer $BOLI_API_KEY"`,
-                    python: `import os\nfrom openai import OpenAI\n\nclient = OpenAI(base_url="${base}", api_key=os.environ["BOLI_API_KEY"])\n\nfor model in client.models.list():\n    print(model.id)`,
-                    javascript: `import OpenAI from "openai";\n\nconst client = new OpenAI({ baseURL: "${base}", apiKey: process.env.BOLI_API_KEY });\n\nconst models = await client.models.list();\nfor (const model of models.data) console.log(model.id);`,
-                }}
+                samples={buildModelsSamples(SITE.url)}
             />
             <P>
                 Tools that cannot set a Bearer token can send the key in an <C>x-api-key</C> header instead. If both are sent, <C>Authorization</C>{" "}
@@ -82,6 +79,7 @@ export function Authentication() {
             </P>
             <CodeBlock
                 label="The same key in x-api-key"
+                lang="shellscript"
                 code={`curl ${SITE.url}${API_PATHS.chatCompletions} \\\n  -H "x-api-key: $BOLI_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{"model": "${DEFAULT_MODEL_ID}", "messages": [{"role": "user", "content": "namaste"}]}'`}
             />
 
@@ -109,6 +107,7 @@ export function Authentication() {
             <P>Errors use the OpenAI shape, so SDKs raise their usual exceptions. The message is written for a person: it says what went wrong and what to do.</P>
             <CodeBlock
                 label="401 Unauthorized"
+                lang="json"
                 code={JSON.stringify(
                     {
                         error: {
@@ -151,7 +150,7 @@ export function Authentication() {
                 <C>{API_ERRORS.rate_limit_exceeded.status}</C> with code <C>rate_limit_exceeded</C> and a <C>Retry-After</C> header: the number of seconds
                 to wait.
             </P>
-            <H3>Retrying</H3>
+            <H3 id="retrying">Retrying</H3>
             <P>
                 The OpenAI SDKs already retry 429 and 5xx answers a couple of times and respect <C>Retry-After</C>. You can raise the number of retries
                 when you create the client:
@@ -159,11 +158,7 @@ export function Authentication() {
             <CodeTabs
                 className="mt-5"
                 defaultLanguage="python"
-                samples={{
-                    curl: `# Show the status and headers, including Retry-After\ncurl -i ${SITE.url}${API_PATHS.chatCompletions} \\\n  -H "Authorization: Bearer $BOLI_API_KEY" \\\n  -H "Content-Type: application/json" \\\n  -d '{"model": "${DEFAULT_MODEL_ID}", "messages": [{"role": "user", "content": "namaste"}]}'`,
-                    python: `import os\nfrom openai import OpenAI\n\nclient = OpenAI(\n    base_url="${base}",\n    api_key=os.environ["BOLI_API_KEY"],\n    max_retries=5,\n)`,
-                    javascript: `import OpenAI from "openai";\n\nconst client = new OpenAI({\n  baseURL: "${base}",\n  apiKey: process.env.BOLI_API_KEY,\n  maxRetries: 5,\n});`,
-                }}
+                samples={buildRetrySamples(SITE.url)}
             />
         </DocPage>
     )
