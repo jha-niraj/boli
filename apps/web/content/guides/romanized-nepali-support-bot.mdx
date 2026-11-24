@@ -8,7 +8,7 @@ draft: true
 tags: [API, Guide, Romanized Nepali]
 topics: [api, romanized-nepali]
 takeaways:
-  - "Keep Boli's script-mapping line in the system prompt word for word - without it, small models drift into Devanagari."
+  - "Keep Boli's script-mapping line in the system prompt word for word - without it, boli-chat (Gemma 4 E4B) drifted into Devanagari in our tests."
   - "Put the facts the bot may use in the prompt itself; a small model will invent a delivery date if you do not give it one."
   - "Each call is independent: send the system prompt plus the last few turns, not the whole history."
   - "About 600 tokens in and 80 out per customer message costs a fraction of a rupee; max_tokens caps each reply."

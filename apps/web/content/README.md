@@ -78,3 +78,12 @@ new scene there plus its name in `COVER_NAMES` (`lib/content-shared.ts`). Compan
   the changelog feed (`/changelog/rss.xml`), its topic hubs, `/llms.txt`, `/llms-full.txt`, and a markdown copy at
   `/md/<kind>/<slug>.md` that `Accept: text/markdown` on its URL redirects to.
 - A draft gets none of these in production (and is `noindex` in development).
+
+
+## Claims must say what was tested (owner, 2026-11-24)
+
+AI moves fast and a result for one model says nothing about another. Any post that reports a measurement must state,
+in the post: the exact model and size (parameters), the precision (for example 4-bit), the runtime, the hardware, the
+date, the sample size, and **what was not tested**. Questions in `faqs` and lines in `takeaways` are scoped the same
+way ("the small model we tested", not "open models"). Never generalise from one model to "AI can't" or "open models
+can't".

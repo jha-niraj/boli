@@ -1,3 +1,5 @@
+import { DhakaStrip } from "@repo/brand/dhaka-strip"
+import { ArrowUpRight } from "lucide-react"
 import type { Metadata } from "next"
 import { AppLink } from "@repo/ui/components/app-link"
 import { DISPLAY } from "@repo/brand/type"
@@ -73,8 +75,12 @@ export default function GuidesIndex() {
                 <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     {DOCS_PAGES.map((d) => (
                         <li key={d.slug}>
-                            <AppLink href={ROUTES.doc(d.slug)} className="block cursor-pointer rounded-2xl border border-boli-line bg-white p-4 text-sm font-semibold text-boli-ink transition-colors hover:border-boli-ink/20">
-                                {d.title}
+                            <AppLink href={ROUTES.doc(d.slug)} className="flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-boli-line bg-white transition-[border-color,box-shadow] duration-200 hover:border-boli-ink/20 hover:shadow-[0_12px_32px_-20px_rgba(20,20,20,0.3)]">
+                                <DhakaStrip tone="sky" scale={2} />
+                                <span className="flex items-center justify-between gap-3 p-4 text-sm font-semibold text-boli-ink">
+                                    {d.title}
+                                    <ArrowUpRight aria-hidden className="h-4 w-4 shrink-0 text-boli-muted" strokeWidth={1.75} />
+                                </span>
                             </AppLink>
                         </li>
                     ))}

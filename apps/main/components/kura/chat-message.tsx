@@ -4,13 +4,14 @@ import { memo } from 'react'
 import ReactMarkdown, { type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { AlertCircle } from 'lucide-react'
-import { ReasoningSteps } from '@repo/ui/components/ui/reasoning-steps'
 import { ScrollArea } from '@repo/ui/components/ui/scroll-area'
 import { BoliAvatar } from '@repo/brand/boli-mark'
 import { SpinnerDots } from '@repo/brand/loaders/spinners'
 import { MICRO_PER_CREDIT, formatCredits } from '@repo/boli'
 import type { KuraPart, KuraUsage } from '@/lib/ai/protocol'
 import type { ChatViewMessage } from '@/lib/ai/types'
+import { MessageActions } from './message-actions'
+import { KuraThinking } from './kura-thinking'
 
 /**
  * One message. Markdown with nothing that scrolls sideways (tables and code scroll inside their own box). The model's
@@ -86,6 +87,7 @@ export const ChatMessage = memo(function ChatMessage({ message }: { message: Cha
     const thoughtPart = message.parts.find((p): p is Extract<KuraPart, { type: 'thought' }> => p.type === 'thought')
     const usagePart = message.parts.find((p): p is Extract<KuraPart, { type: 'usage' }> => p.type === 'usage')
     const empty = !message.parts.some((p) => p.type === 'text' || p.type === 'thought')
+    const replyText = message.parts.filter((p): p is Extract<KuraPart, { type: 'text' }> => p.type === 'text').map((p) => p.text).join('').trim()
     const thought = thoughtPart ? { text: thoughtPart.text, ms: thoughtPart.ms, active: !!message.thinking } : null
 
     return (
@@ -98,7 +100,7 @@ export const ChatMessage = memo(function ChatMessage({ message }: { message: Cha
                     <SpinnerDots size={16} /> Kura is writing
                 </div>
             )}
-            {thought && <ReasoningSteps steps={[]} thought={thought} active={!!message.pending} className="min-w-0" />}
+            {thought && (thought.text || thought.active) ? <KuraThinking text={thought.text} ms={thought.ms} active={thought.active} /> : null}
             {message.parts.map((p, i) => {
                 switch (p.type) {
                     case 'text':
@@ -113,7 +115,12 @@ export const ChatMessage = memo(function ChatMessage({ message }: { message: Cha
                         return null
                 }
             })}
-            {usagePart && !message.pending && <MetaLine usage={usagePart.usage} />}
+            {/* Copy and the thumbs once the reply is saved (a local- id has no row yet), with the meta line at the end. */}
+            {!message.pending && replyText && !message.id.startsWith('local-') ? (
+                <MessageActions messageId={message.id} text={replyText} rating={message.rating ?? null} reason={message.ratingReason ?? null}>
+                    {usagePart ? <MetaLine usage={usagePart.usage} /> : null}
+                </MessageActions>
+            ) : usagePart && !message.pending ? <MetaLine usage={usagePart.usage} /> : null}
         </div>
         </div>
     )

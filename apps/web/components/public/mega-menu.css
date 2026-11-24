@@ -5,7 +5,7 @@
 /*
  * The viewport is a transparent frame around the card: --mega-bridge reaches up under the triggers (so the pointer stays
  * inside the menu crossing the gap), --mega-gap is the visible 8px space under the bar, --mega-side and --mega-bottom
- * give the card's shadow room inside the clipped (overflow hidden) box. The card itself is the panel.
+ * give the card's shadow room inside the clipped (overflow hidden) box. The card is drawn by ::before below.
  */
 .mega-viewport {
     --mega-bridge: 20px;
@@ -16,8 +16,26 @@
     overflow: hidden;
     margin: calc(-1 * var(--mega-bridge)) calc(-1 * var(--mega-side)) 0;
     height: calc(var(--radix-navigation-menu-viewport-height) + var(--mega-top) + var(--mega-bottom));
-    transition: height 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition: height 260ms cubic-bezier(0.22, 1, 0.36, 1);
     transform-origin: top center;
+}
+/*
+ * The card is drawn ONCE, on the viewport (owner, 2026-11-24: switching Company -> Resources looked like close + open
+ * because each panel carried its own card and faded out whole). Now the card stays and only the contents cross-fade
+ * and slide inside it while its height eases to the new panel.
+ */
+.mega-viewport::before {
+    content: "";
+    position: absolute;
+    top: var(--mega-top);
+    left: var(--mega-side);
+    right: var(--mega-side);
+    bottom: var(--mega-bottom);
+    border-radius: 1rem;
+    border: 1px solid var(--color-boli-line);
+    background: #fff;
+    box-shadow: 0 24px 60px -24px rgba(20, 20, 20, 0.28), 0 2px 6px rgba(20, 20, 20, 0.04);
+    pointer-events: none;
 }
 .mega-viewport[data-state="open"] {
     animation: mega-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -25,12 +43,15 @@
 .mega-viewport[data-state="closed"] {
     animation: mega-out 140ms ease-in forwards;
 }
-.mega-content[data-motion^="from-"] {
-    animation: mega-fade 180ms ease-out;
-}
-.mega-content[data-motion^="to-"] {
-    animation: mega-fade-out 120ms ease-in forwards;
-}
+/* Switching menus: the new panel slides in from the side it comes from, the old one slides out the other way. */
+.mega-content[data-motion="from-start"] { animation: mega-from-start 220ms cubic-bezier(0.22, 1, 0.36, 1); }
+.mega-content[data-motion="from-end"] { animation: mega-from-end 220ms cubic-bezier(0.22, 1, 0.36, 1); }
+.mega-content[data-motion="to-start"] { animation: mega-to-start 160ms ease-in forwards; }
+.mega-content[data-motion="to-end"] { animation: mega-to-end 160ms ease-in forwards; }
+@keyframes mega-from-start { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes mega-from-end { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes mega-to-start { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-18px); } }
+@keyframes mega-to-end { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(18px); } }
 @keyframes mega-in {
     from { opacity: 0; transform: translateY(-6px); }
     to { opacity: 1; transform: translateY(0); }

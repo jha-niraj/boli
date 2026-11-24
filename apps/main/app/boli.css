@@ -3,3 +3,26 @@
  * cannot drift. Change tokens there. Tailwind scans this app's folder by itself; the package lists its own sources.
  */
 @import "@repo/brand/styles/boli.css";
+
+/* Kura's live labels ("Thinking", the running step): a soft light sweeping across the text. Off under reduced motion. */
+.kura-shimmer {
+    --kura-shimmer-ink: #525252;
+    --kura-shimmer-light: #c7c7c7;
+    background: linear-gradient(90deg, var(--kura-shimmer-ink) 35%, var(--kura-shimmer-light) 50%, var(--kura-shimmer-ink) 65%);
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: kura-shimmer 1.8s linear infinite;
+}
+.dark .kura-shimmer {
+    --kura-shimmer-ink: #a3a3a3;
+    --kura-shimmer-light: #f5f5f5;
+}
+@keyframes kura-shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: -150% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .kura-shimmer { animation: none; -webkit-text-fill-color: currentColor; background: none; }
+}

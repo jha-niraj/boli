@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { KURA_DEFAULTS, type KuraSettings } from '@repo/boli'
 import type { KuraErrorCode, KuraUsage } from '@/lib/ai/protocol'
-import type { ChatViewMessage, ConversationView } from '@/lib/ai/types'
+import type { ChatViewMessage, ConversationView, KuraDislikeReason, KuraRating } from '@/lib/ai/types'
 
 /**
  * Kura's chat state. Client only. The transcript, the composer, the Settings and Code tabs and History all read it.
@@ -46,6 +46,7 @@ interface KuraChatState {
     thoughtEnd: (messageId: string, ms: number) => void
     addNotice: (messageId: string, text: string) => void
     setUsage: (messageId: string, usage: KuraUsage) => void
+    setRating: (messageId: string, rating: KuraRating | null, reason: KuraDislikeReason | null) => void
     finish: (messageId: string) => void
 }
 
@@ -102,6 +103,9 @@ export const useKuraChat = create<KuraChatState>((set) => ({
     })),
     setUsage: (messageId, usage) => set((s) => ({
         messages: mapMessage(s.messages, messageId, (m) => ({ ...m, parts: [...m.parts.filter((p) => p.type !== 'usage'), { type: 'usage', usage }] })),
+    })),
+    setRating: (messageId, rating, reason) => set((s) => ({
+        messages: mapMessage(s.messages, messageId, (m) => ({ ...m, rating, ratingReason: reason })),
     })),
     finish: (messageId) => set((s) => ({
         messages: mapMessage(s.messages, messageId, (m) => ({ ...m, pending: false, thinking: false })),

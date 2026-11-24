@@ -5,12 +5,12 @@
 import { z } from 'zod'
 import { ok, fail, failWith, type ActionResult } from '@repo/errors'
 import { db, and, eq } from '@repo/db'
-import { aiConversations } from '@repo/db/schema'
+import { aiConversations, aiMessages } from '@repo/db/schema'
 import { getSession } from '@/lib/session'
 import { listConversationsFor, loadConversationView, needsYouFor } from '@/lib/ai/conversations'
 import { kuraSettingsSchema } from '@/lib/ai/settings'
 import type { KuraSettings } from '@repo/boli'
-import type { ConversationRow, ConversationView, NeedsYouList } from '@/lib/ai/types'
+import { KURA_DISLIKE_REASONS, type ConversationRow, type ConversationView, type KuraDislikeReason, type KuraRating, type NeedsYouList } from '@/lib/ai/types'
 
 const idSchema = z.string().min(1).max(100)
 
@@ -85,6 +85,34 @@ export async function getNeedsYou(): Promise<ActionResult<NeedsYouList>> {
         const s = await getSession()
         if (!s) return failWith('auth', 'Your session ended. Sign in again.')
         return ok(await needsYouFor({ id: s.user.id, emailVerified: s.user.emailVerified }))
+    } catch (err) {
+        return fail(err)
+    }
+}
+
+const reasonKeys = KURA_DISLIKE_REASONS.map((r) => r.key) as [KuraDislikeReason, ...KuraDislikeReason[]]
+const rateSchema = z.object({
+    messageId: idSchema,
+    rating: z.union([z.literal(1), z.literal(-1), z.null()]),
+    reason: z.enum(reasonKeys).nullable(),
+})
+
+/**
+ * Rate one of Kura's replies: 1 helpful, -1 not helpful (with an optional reason), null clears it. Only the person's
+ * own assistant messages can be rated.
+ */
+export async function rateMessage(messageId: string, rating: KuraRating | null, reason: KuraDislikeReason | null): Promise<ActionResult<null>> {
+    try {
+        const s = await getSession()
+        if (!s) return failWith('auth', 'Your session ended. Sign in again.')
+        const parsed = rateSchema.safeParse({ messageId, rating, reason })
+        if (!parsed.success) return failWith('validation', 'That rating could not be saved.')
+        const d = parsed.data
+        const rows = await db.update(aiMessages)
+            .set({ rating: d.rating, ratingReason: d.rating === -1 ? d.reason : null, ratedAt: d.rating === null ? null : new Date() })
+            .where(and(eq(aiMessages.id, d.messageId), eq(aiMessages.userId, s.user.id), eq(aiMessages.role, 'assistant')))
+            .returning({ id: aiMessages.id })
+        return rows.length ? ok(null) : failWith('notfound', 'That reply could not be found. Refresh the chat and try again.')
     } catch (err) {
         return fail(err)
     }

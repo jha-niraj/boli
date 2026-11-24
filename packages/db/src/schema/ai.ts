@@ -1,6 +1,6 @@
 // AI tables: conversations and messages of Kura (the chat page, apps/main/app/(main)/kura). Every row carries `userId`
 // and every query filters by it.
-import { pgTable, text, timestamp, jsonb, index } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, jsonb, index, smallint } from 'drizzle-orm/pg-core'
 import { user } from './core'
 
 export const aiConversations = pgTable(
@@ -37,6 +37,11 @@ export const aiMessages = pgTable(
         parts: jsonb('parts'),
         /** Assistant rows: the provider-shaped assistant + tool messages, replayed byte for byte on the next turn. */
         modelMessages: jsonb('model_messages'),
+        /** Assistant rows: the person's rating - 1 helpful, -1 not helpful, null not rated (scripts/kura-message-rating.sql). */
+        rating: smallint('rating'),
+        /** Assistant rows: the optional reason picked with a -1 (a KURA_DISLIKE_REASONS key). */
+        ratingReason: text('rating_reason'),
+        ratedAt: timestamp('rated_at'),
         createdAt: timestamp('created_at').notNull().defaultNow(),
     },
     (t) => [

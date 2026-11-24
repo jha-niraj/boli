@@ -17,3 +17,4 @@ One row per doc. Status: Planned / In progress / Done / Dropped.
 | [repo/ml/docintel-testset.md](repo/ml/docintel-testset.md) | Done | 2026-11-24 | Stage 0 document reader measured on ~30 real public Nepali documents: CER, digit accuracy, Preeti trap, next steps |
 | [web/site/web-split.md](web/site/web-split.md) | In progress | 2026-11-24 | Split the public site into apps/web (bolihq.com), shared packages, mega-menu nav, Blog/Models/Guides/Changelog, SEO |
 | [web/site/content-seo.md](web/site/content-seo.md) | In progress | 2026-11-24 | apps/web content SEO to gurukulhq level: authors, topics, takeaways, FAQs, Service schema, RSS, markdown for agents |
+| [main/kura/kura-message-actions.md](main/kura/kura-message-actions.md) | Done | 2026-11-24 | Kura: icon-only panel toggle at the end, thinking steps checked live, copy and like / dislike under replies |

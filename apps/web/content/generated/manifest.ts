@@ -160,7 +160,7 @@ export const ENTRIES: readonly ContentEntry[] = [
         "title": "How Nepal types",
         "date": "2026-11-24",
         "category": "Product",
-        "summary": "Romanized Nepali, English and the mix in between. Why small models answer in Devanagari when you did not ask, and how Boli answers in kind.",
+        "summary": "Romanized Nepali, English and the mix in between. Why the small model we run answered in Devanagari when nobody asked, and how Boli answers in kind.",
         "author": "boli-team",
         "cover": "keyboard",
         "draft": true,
@@ -176,7 +176,7 @@ export const ENTRIES: readonly ContentEntry[] = [
         ],
         "takeaways": [
             "People in Nepal write the same thought in English, Romanized Nepali or a mix - and Romanized Nepali has no fixed spelling (cha, xa, chha).",
-            "Small open models often answer Romanized Nepali in Devanagari, because most Nepali text they learned from is in Devanagari.",
+            "In our tests the small model Boli runs (Gemma 4 E4B, 4-bit) answered Romanized Nepali in Devanagari unless told not to - most Nepali text online is Devanagari.",
             "Kura uses a system prompt that maps each way of writing to the same way of answering; without that line, answers drift.",
             "With it, the model stayed in the user's script in 6 of 8 test prompts; the other small open model tested managed about 3 of 8."
         ],
@@ -379,10 +379,10 @@ export const ENTRIES: readonly ContentEntry[] = [
     {
         "kind": "blog",
         "slug": "reading-nepali-bills-with-open-models",
-        "title": "Reading Nepali bills with open models",
+        "title": "Reading Nepali bills with a small open model",
         "date": "2026-11-24",
         "category": "Research",
-        "summary": "We tested open models and open OCR on 39 public Nepal government notices. Digits are the weak spot - and they fail silently. What we measured, the traps we found, and what comes next.",
+        "summary": "We tested one small open vision model (Gemma 4 E4B, 4-bit) and Tesseract on 39 public Nepal government notices. For this model, digits were the weak spot. What we measured, what we did not, and what comes next.",
         "author": "boli-team",
         "cover": "bill",
         "draft": true,
@@ -396,19 +396,19 @@ export const ENTRIES: readonly ContentEntry[] = [
             "open-models"
         ],
         "takeaways": [
-            "We tested open models and open OCR on 39 public Nepal government documents: digital PDFs, scans, phone photos and degraded copies.",
-            "Digits are the weak spot: the vision model got 71.7% of digits right on digital PDFs, and about 1 digit in 13 was a real misread.",
-            "Tesseract read better than the vision model (0.21 against 0.29 character error rate), and the hybrid route got the most dates right (13 of 16).",
+            "We tested one small open vision model - Gemma 4 E4B, 4-bit, run locally with llama.cpp - and Tesseract 5 on 39 public Nepal government documents.",
+            "For this model, digits were the weak spot: it got 71.7% of digits right on digital PDF pages (405 of 565), and about 1 digit in 13 was a real misread.",
+            "Tesseract read better than this model (0.21 against 0.29 character error rate, 18 pages); the hybrid got the most dates right (13 of 16). Larger models were not tested yet.",
             "Digital PDFs hide three traps: Preeti fonts, broken Unicode text layers and junk OCR layers from scanners."
         ],
         "faqs": [
             {
-                "q": "Can open models read Nepali documents reliably?",
-                "a": "Not yet for numbers. On digital PDFs the open vision model got 71.7% of digits right, and about 1 digit in 13 was a real misread that changed meaning, such as a year or an amount. The output reads fluently, so the errors are easy to miss."
+                "q": "Can a small open model read Nepali documents reliably?",
+                "a": "The one we tested could not, for numbers. Gemma 4 E4B (about 4 billion effective parameters, 4-bit, run locally with llama.cpp) got 71.7% of digits right on digital PDF pages, and about 1 digit in 13 was a real misread such as a year or an amount. This says nothing about larger open models or models trained for OCR - we have not tested those yet."
             },
             {
                 "q": "Is OCR better than a vision model for Nepali text?",
-                "a": "In this test, yes. Tesseract had a character error rate of 0.21 against the vision model's 0.29 across 18 pages, got 81.6% of digits right against 73.8%, and took about 1 second a page instead of about 19."
+                "a": "Than the small model we tested, yes. Tesseract had a character error rate of 0.21 against the vision model's 0.29 across 18 pages, got 81.6% of digits right against 73.8%, and took about 1 second a page instead of about 19."
             },
             {
                 "q": "What is the Preeti font problem?",
@@ -419,12 +419,17 @@ export const ENTRIES: readonly ContentEntry[] = [
                 "a": "Document intelligence is next on the roadmap and ships when it reads digits reliably. The plan is to check text layers, read digits twice (OCR and the model), fix the small things that break numbers, then fine-tune."
             }
         ],
-        "words": 769,
-        "readingMinutes": 4,
+        "words": 1005,
+        "readingMinutes": 5,
         "toc": [
             {
                 "id": "the-test-set",
                 "title": "The test set",
+                "depth": 2
+            },
+            {
+                "id": "what-we-tested-exactly",
+                "title": "What we tested, exactly",
                 "depth": 2
             },
             {
@@ -468,7 +473,7 @@ export const ENTRIES: readonly ContentEntry[] = [
             "romanized-nepali"
         ],
         "takeaways": [
-            "Keep Boli's script-mapping line in the system prompt word for word - without it, small models drift into Devanagari.",
+            "Keep Boli's script-mapping line in the system prompt word for word - without it, boli-chat (Gemma 4 E4B) drifted into Devanagari in our tests.",
             "Put the facts the bot may use in the prompt itself; a small model will invent a delivery date if you do not give it one.",
             "Each call is independent: send the system prompt plus the last few turns, not the whole history.",
             "About 600 tokens in and 80 out per customer message costs a fraction of a rupee; max_tokens caps each reply."

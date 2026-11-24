@@ -28,14 +28,18 @@ export function CodeTabs({
     samples,
     highlighted,
     className,
-    bodyViewportClassName,
+    bodyViewportClassName = CODE_CEILING,
     defaultLanguage = "curl",
 }: {
     samples: Record<SampleLanguage, string>
     /** Lines per language from `highlight()`; leave out to highlight in the browser. */
     highlighted?: Partial<Record<SampleLanguage, HlLine[] | null>>
     className?: string
-    /** A fixed height for the code (e.g. `h-[24rem]`): the block keeps its size for every language and scrolls both ways inside. */
+    /**
+     * Bounds the code. Default: a ceiling (CODE_CEILING) - short samples stay short, a long one scrolls inside its own
+     * ScrollArea instead of stretching the page (owner, 2026-11-24). Pass a fixed height (e.g. `h-[26rem]`) where the
+     * block must keep one size for every language.
+     */
     bodyViewportClassName?: string
     defaultLanguage?: SampleLanguage
 }) {
@@ -101,6 +105,9 @@ export function CodeTabs({
     )
 }
 
+/** The tallest a code block grows before it scrolls inside: about 16 lines of 24px plus padding. */
+export const CODE_CEILING = "max-h-[26rem]"
+
 /**
  * The code itself: warm off-white in light, near-black in dark, Geist Mono, scrolling sideways in its own ScrollArea.
  * Renders Shiki lines when given, else the plain text. Shared by CodeTabs and the docs' single CodeBlock.
@@ -116,7 +123,7 @@ export function CodeBody({
     lines?: HlLine[] | null
     wrap?: boolean
     className?: string
-    /** Bounds the scroller (a fixed height); with it the code scrolls vertically too. */
+    /** Bounds the scroller. Default CODE_CEILING (about 16 lines); a fixed height keeps one size. */
     viewportClassName?: string
 }) {
     const pre = (
@@ -129,11 +136,17 @@ export function CodeBody({
             <code>{lines ? <Lines lines={lines} /> : code}</code>
         </pre>
     )
-    if (wrap) return <div className={cn("min-w-0 bg-boli-ground/60 dark:bg-neutral-950", className)}>{pre}</div>
+    if (wrap) {
+        return (
+            <ScrollArea orientation="vertical" viewportClassName={viewportClassName ?? CODE_CEILING} className={cn("min-w-0 bg-boli-ground/60 dark:bg-neutral-950", className)}>
+                {pre}
+            </ScrollArea>
+        )
+    }
     return (
         <ScrollArea
-            orientation={viewportClassName ? "both" : "horizontal"}
-            viewportClassName={viewportClassName}
+            orientation="both"
+            viewportClassName={viewportClassName ?? CODE_CEILING}
             className={cn("min-w-0 bg-boli-ground/60 dark:bg-neutral-950", className)}
         >
             {pre}

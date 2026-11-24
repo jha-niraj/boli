@@ -54,7 +54,8 @@ export function CodePanel({ draft }: { draft: string }) {
                 <p className="text-xs text-neutral-600 dark:text-neutral-400">
                     This chat as an API call, with its settings and last turns. It updates as you change them.
                 </p>
-                <CodeTabs samples={samples} className="min-w-0" />
+                {/* Fixed height (owner, 2026-11-24): the request grows with the chat, so the block keeps one size and the code scrolls inside. */}
+                <CodeTabs samples={samples} className="min-w-0" bodyViewportClassName="h-[24rem]" />
                 <div className="flex min-w-0 flex-col gap-1.5 text-xs text-neutral-700 dark:text-neutral-300">
                     <p>Set <code className="rounded bg-neutral-100 px-1 py-0.5 font-mono dark:bg-neutral-800">BOLI_API_KEY</code> to a key from your API keys first.</p>
                     <div className="flex flex-wrap gap-x-4 gap-y-1">

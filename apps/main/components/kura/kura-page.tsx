@@ -201,9 +201,10 @@ export function KuraPage({
     const stroke = 1.75
     const actions: PageAction[] = isWide
         ? [
-            { key: 'side', label: columnOpen ? 'Hide side panel' : 'Show side panel', icon: columnOpen ? <PanelRightClose className={icon} strokeWidth={stroke} /> : <PanelRightOpen className={icon} strokeWidth={stroke} />, variant: 'ghost', onClick: () => setColumn(!columnOpen) },
             { key: 'history', label: 'History', icon: <MessagesSquare className={icon} strokeWidth={stroke} />, variant: 'ghost', onClick: () => showTab('history') },
             { key: 'new', label: 'New chat', icon: <Plus className={icon} strokeWidth={stroke} />, primary: true, variant: 'outline', onClick: startNew },
+            // Icon only, last (owner, 2026-11-24): it sits at the edge next to the column it opens and closes.
+            { key: 'side', label: columnOpen ? 'Hide side panel' : 'Show side panel', icon: columnOpen ? <PanelRightClose className={icon} strokeWidth={stroke} /> : <PanelRightOpen className={icon} strokeWidth={stroke} />, variant: 'ghost', iconOnly: true, onClick: () => setColumn(!columnOpen) },
         ]
         : [
             { key: 'settings', label: 'Settings and code', icon: <SlidersHorizontal className={icon} strokeWidth={stroke} />, variant: 'ghost', onClick: () => showTab('settings') },

@@ -6,7 +6,7 @@ import { ROUTES } from '@/lib/navigation'
 import { getBalanceMicro } from '@/lib/platform/credits'
 import { asParts } from './parts'
 import { asKuraSettings } from './settings'
-import type { ChatViewMessage, ConversationRow, ConversationView, NeedsYouItem, NeedsYouList } from './types'
+import { KURA_DISLIKE_REASONS, type ChatViewMessage, type ConversationRow, type ConversationView, type KuraDislikeReason, type NeedsYouItem, type NeedsYouList } from './types'
 
 /**
  * Server reads for Kura. Every read filters by the signed-in person's id - a conversation id from the URL is never
@@ -40,7 +40,15 @@ export async function conversationRows(userId: string, conversationId: string): 
 export function toView(rows: MessageRow[]): ChatViewMessage[] {
     return rows.map((r) => r.role === 'user'
         ? { id: r.id, role: 'user', text: r.display ?? r.content, parts: [] }
-        : { id: r.id, role: 'assistant', text: '', parts: asParts(r.parts) })
+        : {
+            id: r.id, role: 'assistant', text: '', parts: asParts(r.parts),
+            rating: r.rating === 1 || r.rating === -1 ? r.rating : null,
+            ratingReason: isDislikeReason(r.ratingReason) ? r.ratingReason : null,
+        })
+}
+
+function isDislikeReason(v: string | null): v is KuraDislikeReason {
+    return KURA_DISLIKE_REASONS.some((x) => x.key === v)
 }
 
 export async function loadConversationView(userId: string, conversationId: string): Promise<ConversationView | null> {

@@ -12,7 +12,21 @@ export interface ChatViewMessage {
     pending?: boolean
     /** A thinking block is streaming right now. */
     thinking?: boolean
+    /** Assistant rows: the person's rating (1 helpful, -1 not helpful) and the optional reason for a -1. */
+    rating?: KuraRating | null
+    ratingReason?: KuraDislikeReason | null
 }
+
+/** Why a reply was not helpful - the choices in the thumbs-down popover. */
+export const KURA_DISLIKE_REASONS = [
+    { key: 'wrong-script', label: 'Wrong script or language' },
+    { key: 'wrong-facts', label: 'Not true' },
+    { key: 'not-helpful', label: 'Did not answer' },
+    { key: 'too-long', label: 'Too long' },
+    { key: 'other', label: 'Something else' },
+] as const
+export type KuraDislikeReason = typeof KURA_DISLIKE_REASONS[number]['key']
+export type KuraRating = 1 | -1
 
 export interface ConversationView {
     id: string

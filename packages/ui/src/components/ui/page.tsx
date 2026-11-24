@@ -93,6 +93,8 @@ export interface PageAction {
      * that opens them, and `onClick` / `href` are ignored. Folded into More, they list there.
      */
     options?: { key: string; label: string; icon?: React.ReactNode; onClick: () => void }[]
+    /** Always the icon alone (a toggle beside the main action): the label goes into a tooltip and the accessible name. */
+    iconOnly?: boolean
 }
 
 export interface PageProps {
@@ -414,6 +416,27 @@ function ActionButton({ action, iconOnly }: { action: PageAction; iconOnly?: boo
                 disabled={action.disabled || action.pending}
                 options={action.options.map((o) => ({ label: o.label, icon: o.icon, onSelect: o.onClick }))}
             />
+        )
+    }
+    if (action.iconOnly && action.icon && !action.href) {
+        const keepIcon = action.keepSheetOpen ? { "data-sheet-keep-open": "" } : {}
+        return (
+            <Tooltip delayDuration={250}>
+                <TooltipTrigger asChild>
+                    <Button
+                        size="sm"
+                        variant={action.variant ?? "ghost"}
+                        className="h-9 w-9 shrink-0 px-0 [&_svg]:size-4"
+                        onClick={action.onClick}
+                        disabled={action.disabled || action.pending}
+                        aria-label={action.label}
+                        {...keepIcon}
+                    >
+                        {action.pending ? <Spinner className="h-4 w-4" /> : action.icon}
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">{action.label}</TooltipContent>
+            </Tooltip>
         )
     }
     const inner = (
