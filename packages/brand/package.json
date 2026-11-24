@@ -45,6 +45,7 @@
 		"./ornament": "./src/ornament.tsx",
 		"./pill-button": "./src/pill-button.tsx",
 		"./pixel-himalaya": "./src/pixel-himalaya.tsx",
+		"./product-icons": "./src/product-icons.tsx",
 		"./pixel-himalaya-data": "./src/pixel-himalaya-data.ts",
 		"./quiet-badge": "./src/quiet-badge.tsx",
 		"./quiet-select": "./src/quiet-select.tsx",

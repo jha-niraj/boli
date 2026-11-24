@@ -1,24 +1,62 @@
-import { BookOpen, ChartNoAxesColumn, KeyRound, LayoutDashboard, MessagesSquare, Boxes, Wallet } from "lucide-react"
-import type { ShellNavSection } from "@repo/ui/lib/shell"
+import {
+    BookOpen, Boxes, ChartLine, ChartNoAxesColumn, Contact, FlaskConical, House, Inbox, KeyRound, Library, Settings, Share2,
+} from "lucide-react"
+import { ApiIcon, DocumentAiIcon, JawafIcon, KuraIcon, SpeechIcon } from "@repo/brand/product-icons"
+import type { ShellNavSection, ShellProduct } from "@repo/ui/lib/shell"
+import { activeProductId } from "@repo/ui/lib/shell"
+import { LANDING_HOMES, START_ROUTE } from "./landing"
 import { WEB } from "./web-links"
+import { WORKSPACE_ROUTES } from "./workspace-routes"
 
 /**
- * Route constants (every link is built from these, never a guessed URL) and the rail. Links to the public site (docs,
- * legal, about, contact) live in ./web-links.ts - that site is apps/web on its own origin. App URLs carry no hyphens.
- * Profile and Notifications are reached from the account row and the bell at the foot of the rail, so they are not
- * rail items. Boli (plan/main/platform/platform-v0.md): signed-in people land on Kura.
+ * Route constants (every link is built from these, never a guessed URL) and the PRODUCTS (the product rail + each
+ * product's sidebar). Links to the public site (docs, legal, about, contact) live in ./web-links.ts - that site is
+ * apps/web on its own origin. App URLs carry no hyphens. Plan: plan/main/jawaf/jawaf-v1.md "Names and structure".
  */
 export const ROUTES = {
-    /** Where a signed-in person lands (and the brand links): Kura, the chat. */
-    home: "/kura",
-    kura: "/kura",
-    kuraConversation: (id: string) => `/kura/${id}`,
+    /**
+     * Where "home" goes: `/`, which middleware.ts sends to the LAST product used (cookie, lib/landing.ts) or to /start.
+     * Sign-in's default returnTo is the same `/`.
+     */
+    home: "/",
+    /** "Choose where to start" - a browser with no last product. */
+    start: START_ROUTE,
+    /** The Boli overview (account level: credits and spend across products). */
     dashboard: "/home",
+
+    // Kura
+    kura: LANDING_HOMES.kura,
+    kuraConversation: (id: string) => `/kura/${id}`,
+
+    // API
+    api: LANDING_HOMES.api,
     keys: "/keys",
     usage: "/usage",
-    billing: "/billing",
     models: "/models",
+
+    // Jawaf (Wave 2 fills these pages)
+    jawaf: LANDING_HOMES.jawaf,
+    jawafPlayground: "/jawaf/playground",
+    jawafKnowledge: "/jawaf/knowledge",
+    jawafConversations: "/jawaf/conversations",
+    jawafContacts: "/jawaf/contacts",
+    jawafShare: "/jawaf/share",
+    jawafInsights: "/jawaf/insights",
+    jawafSettings: "/jawaf/settings",
+    /** Onboarding (full page, skippable); `?new=1` starts a new bot. */
+    jawafSetup: "/jawaf/setup",
+    /** Where a bot's data lives and who reads it (placeholder until the Data page is written). */
+    jawafData: "/jawaf/data",
+
+    // Soon
+    documentAi: "/kagaj",
+    speech: "/swar",
+
+    // Account
+    billing: "/billing",
     profile: "/profile",
+    /** Workspace members (owned by lib/workspace-routes.ts). */
+    members: WORKSPACE_ROUTES.members,
     notifications: "/notifications",
     settings: "/settings",
     settingsNotifications: "/settings/notifications",
@@ -30,53 +68,131 @@ export const ROUTES = {
     accessDenied: "/accessdenied",
 } as const
 
-/** The rail pin cookie ("1" = unpinned). Each app has its own name: localhost cookies ignore the port. */
+/**
+ * The product SIDEBAR state cookie: "1" = COLLAPSED (the icon rail off screen, the sidebar a 64px icon rail), anything
+ * else = expanded. Read by the (main) layout so the first frame is right. Each app has its own name: localhost cookies
+ * ignore the port.
+ */
 export const MAIN_RAIL_COOKIE = "boli_rail_hidden"
 
+export type ProductId = "kura" | "api" | "jawaf" | "documentai" | "speech"
+
 /**
- * The rail, in labelled groups (owner, 2026-11-24, after Sarvam's console): Home on its own, then one group per kind of
- * work. Live items only - speech to text and text to speech join "Playground" (and their APIs "Build") when they ship,
- * never as placeholders.
+ * One product: its rail entry, the paths that belong to it, and its sidebar.
  *
- * To add a module: create `app/(main)/<module>/page.tsx` (+ loading.tsx), add its route above, then an item in the group
- * it belongs to:
+ * - `prefixes`: a path belongs to the product whose prefix matches it (longest wins). A path no product claims is an
+ *   ACCOUNT page (/home, /billing, /profile, /members, /settings, /notifications, /start): the rail alone, no sidebar.
+ * - `sidebar`: the product's pages in labelled groups (ShellNavSection, as before). `tab: true` puts an item in the
+ *   phone bottom bar (four at most); with none marked, the first four go there.
+ * - `line`: one short line (the /start card, the Soon page).
+ * - `icon`: from @repo/brand/product-icons (one drawn family; lucide stays for the pages inside a product).
+ * - `soon`: greyed in the rail with a "Soon" tag; its page says what it will do.
  *
- *   import { FolderKanban } from "lucide-react"
- *   { name: "Projects", href: "/projects", icon: FolderKanban, tab: true },
- *
- * A group's `label` is shown small and muted over its items (sentence case); the first group has none. `tab: true` puts
- * an item in the phone bottom bar (four at most, in rail order; with none marked, the first four items go there).
+ * To add a page to a product: `app/(main)/<path>/page.tsx` + loading.tsx, a route above, an item in its sidebar.
+ * To add a product: an entry here (and in LANDING_HOMES when it is live), plus its prefix pages.
  */
-export const MAIN_NAV: ShellNavSection[] = [
+export interface Product {
+    id: ProductId
+    label: string
+    icon: ShellProduct["icon"]
+    href: string
+    prefixes: readonly string[]
+    line: string
+    soon?: boolean
+    sidebar: ShellNavSection[]
+}
+
+export const PRODUCTS: Product[] = [
     {
-        id: "overview",
-        items: [
-            { name: "Home", href: ROUTES.dashboard, icon: LayoutDashboard, tab: true },
+        id: "kura",
+        label: "Kura",
+        icon: KuraIcon,
+        href: ROUTES.kura,
+        prefixes: [ROUTES.kura],
+        line: "Chat with Boli's model in Nepali, English or both",
+        // Kura's sidebar is New chat + search + the chat history (main-shell.tsx), not page links.
+        sidebar: [],
+    },
+    {
+        id: "api",
+        label: "API",
+        icon: ApiIcon,
+        href: ROUTES.api,
+        prefixes: [ROUTES.api, ROUTES.keys, ROUTES.models, ROUTES.usage],
+        line: "Call Boli's open model from your own code",
+        sidebar: [
+            {
+                id: "api",
+                items: [
+                    { name: "Home", href: ROUTES.api, icon: House, tab: true },
+                    { name: "API keys", href: ROUTES.keys, icon: KeyRound, tab: true },
+                    { name: "Models", href: ROUTES.models, icon: Boxes },
+                    { name: "Usage", href: ROUTES.usage, icon: ChartNoAxesColumn, tab: true },
+                ],
+            },
+            {
+                id: "learn",
+                label: "Learn",
+                items: [{ name: "Docs", href: WEB.docs, icon: BookOpen }],
+            },
         ],
     },
     {
-        id: "playground",
-        label: "Playground",
-        items: [
-            { name: "Kura", href: ROUTES.kura, icon: MessagesSquare, tab: true },
+        id: "jawaf",
+        label: "Jawaf",
+        icon: JawafIcon,
+        href: ROUTES.jawaf,
+        prefixes: [ROUTES.jawaf],
+        line: "Your business answers customers in Nepali and English",
+        sidebar: [
+            {
+                id: "jawaf",
+                items: [
+                    { name: "Home", href: ROUTES.jawaf, icon: House, tab: true },
+                    { name: "Playground", href: ROUTES.jawafPlayground, icon: FlaskConical, tab: true },
+                    { name: "Knowledge", href: ROUTES.jawafKnowledge, icon: Library },
+                    { name: "Conversations", href: ROUTES.jawafConversations, icon: Inbox, tab: true },
+                    { name: "Contacts", href: ROUTES.jawafContacts, icon: Contact, tab: true },
+                ],
+            },
+            {
+                id: "jawaf-grow",
+                label: "Grow",
+                items: [
+                    { name: "Share", href: ROUTES.jawafShare, icon: Share2 },
+                    { name: "Insights", href: ROUTES.jawafInsights, icon: ChartLine },
+                    { name: "Settings", href: ROUTES.jawafSettings, icon: Settings },
+                ],
+            },
         ],
     },
     {
-        id: "build",
-        label: "Build",
-        items: [
-            { name: "API keys", href: ROUTES.keys, icon: KeyRound, tab: true },
-            { name: "Models", href: ROUTES.models, icon: Boxes },
-            { name: "Usage", href: ROUTES.usage, icon: ChartNoAxesColumn },
-            { name: "Billing", href: ROUTES.billing, icon: Wallet, tab: true },
-        ],
+        id: "documentai",
+        label: "Kagaj",
+        icon: DocumentAiIcon,
+        href: ROUTES.documentAi,
+        prefixes: [ROUTES.documentAi],
+        line: "Read scanned Nepali documents into text and tables",
+        soon: true,
+        sidebar: [],
     },
     {
-        id: "learn",
-        label: "Learn",
-        items: [
-            { name: "Docs", href: WEB.docs, icon: BookOpen },
-        ],
+        id: "speech",
+        label: "Swar",
+        icon: SpeechIcon,
+        href: ROUTES.speech,
+        prefixes: [ROUTES.speech],
+        line: "Speech to text and text to speech in Nepali",
+        soon: true,
+        sidebar: [],
     },
-    // Settings live in the account menu at the bottom of the rail; Help is replaced by Docs (owner, 2026-11-24).
 ]
+
+/** The rail's entries (the shell's shape). */
+export const RAIL_PRODUCTS: ShellProduct[] = PRODUCTS.map((p) => ({ id: p.id, label: p.label, icon: p.icon, href: p.href, soon: p.soon }))
+
+/** The product a path belongs to, or null for an account page. */
+export function productForPath(pathname: string): Product | null {
+    const id = activeProductId(pathname, PRODUCTS)
+    return PRODUCTS.find((p) => p.id === id) ?? null
+}

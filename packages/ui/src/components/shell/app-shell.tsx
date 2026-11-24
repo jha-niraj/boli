@@ -11,10 +11,12 @@ import { MobileTabBar } from "../ui/mobile-tab-bar"
 import { Button } from "../ui/button"
 import { Sheet, SheetContent, SheetTitle } from "../ui/sheet"
 import { usePinPeek } from "../../hooks/use-pin-peek"
-import { RAIL_WIDTH, activeHref, railWidthCookie, tabItems, type ShellNavSection } from "../../lib/shell"
+import { useRailWidth } from "../../hooks/use-rail-width"
+import { RAIL_WIDTH, activeHref, tabItems, type ShellNavSection, type ShellProduct, type ShellSidebar, type ShellWorkspace } from "../../lib/shell"
 import { SHELL_SHADOW_LEFT, SHELL_SHADOW_RIGHT, SHELL_SHADOW_TOP, SHELL_SURFACE } from "../../lib/surfaces"
 import { cn } from "../../lib/utils"
 import { ShellRail, type ShellAccount, type ShellAssistant, type ShellBrand, type ShellNotifications } from "./shell-rail"
+import { ProductShell } from "./product-shell"
 
 /**
  * THE APP SHELL - one for every app (apps/main, apps/admin). AGENTS.md "The shell".
@@ -35,7 +37,27 @@ import { ShellRail, type ShellAccount, type ShellAssistant, type ShellBrand, typ
  *   to the right edge - for a workspace that lays out its own columns (the AI page with its right column).
  * - RIGHT COLUMN: `aside` renders a full-height column at the right edge (desktop only), separated by the same soft
  *   shadow. Most pages that need one (the AI page) draw it inside a bleed page instead.
+ * - PRODUCT RAIL (opt-in, `productRail`): a 56px icon rail of products that widens OVER the page on hover, and beside
+ *   it a sidebar with only the open product's pages (`nav`). The sidebar is EXPANDED or COLLAPSED (Sarvam): collapsed,
+ *   the icon rail goes off screen and the sidebar becomes one 64px icon rail; same cookie (`initialPinned` = expanded)
+ *   and Cmd+\, no peek. See product-shell.tsx. Without `productRail` (apps/admin) nothing changes.
  */
+
+/** The opt-in product rail (apps/main). `nav` then holds only the OPEN product's pages. */
+export interface ProductRailConfig {
+    products: ShellProduct[]
+    /** The product the current path belongs to; null on an account page. */
+    activeProductId: string | null
+    workspaces: ShellWorkspace[]
+    onSwitchWorkspace: (id: string) => void
+    /** Adds "Create workspace" to the switcher menu; the app opens its own dialog (called after the menu closes). */
+    onCreateWorkspace?: () => void
+    /** The open product's sidebar; null = an account page (no sidebar, the rail alone). */
+    sidebar: ShellSidebar | null
+    /** The label under the phone tab bar's last button, which opens the rail as a sheet. Default "Products". */
+    phoneMenuLabel?: string
+}
+
 export interface AppShellProps {
     brand: ShellBrand
     nav: ShellNavSection[]
@@ -55,10 +77,18 @@ export interface AppShellProps {
     railFooterTop?: React.ReactNode
     /** The assistant's own row above the account row (e.g. "Ask AI" -> /ai). */
     assistant?: ShellAssistant
+    /** Opt in to the product rail + product sidebar (apps/main). Omit for the classic single rail (apps/admin). */
+    productRail?: ProductRailConfig
     children: React.ReactNode
 }
 
-export function AppShell({
+export function AppShell(props: AppShellProps) {
+    // Two different trees, chosen once per app (the prop is static), so neither one's hooks run conditionally.
+    if (props.productRail) return <ProductShell {...props} productRail={props.productRail} />
+    return <ClassicShell {...props} />
+}
+
+function ClassicShell({
     brand, nav, account, notifications, initialPinned, initialRailWidth, cookieName, aside, railFooterExtra, railFooterTop, assistant, children,
 }: AppShellProps) {
     const pp = usePinPeek({ initialPinned, cookieName })
@@ -244,49 +274,3 @@ export function AppShell({
 }
 
 export default AppShell
-
-/** The rail width while pinned: dragged with the pointer or the arrow keys, kept in a cookie for the server. */
-function useRailWidth(cookieName: string, initial?: number) {
-    const [width, setWidth] = React.useState(initial ?? RAIL_WIDTH.default)
-    const [dragging, setDragging] = React.useState(false)
-    const save = React.useCallback((w: number) => {
-        document.cookie = `${railWidthCookie(cookieName)}=${w}; path=/; max-age=31536000; samesite=lax`
-    }, [cookieName])
-    const clamp = (w: number) => Math.min(RAIL_WIDTH.max, Math.max(RAIL_WIDTH.min, Math.round(w)))
-
-    const onPointerDown = React.useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-        if (e.button !== 0) return
-        e.preventDefault()
-        const startX = e.clientX
-        const startW = width
-        let last = startW
-        setDragging(true)
-        const move = (ev: PointerEvent) => {
-            // A lost pointerup (window blur, a second button) must not keep the drag alive.
-            if (ev.buttons === 0) { stop(); return }
-            last = clamp(startW + ev.clientX - startX)
-            setWidth(last)
-        }
-        const stop = () => {
-            window.removeEventListener("pointermove", move)
-            window.removeEventListener("pointerup", stop)
-            window.removeEventListener("blur", stop)
-            setDragging(false)
-            save(last)
-        }
-        window.addEventListener("pointermove", move)
-        window.addEventListener("pointerup", stop)
-        window.addEventListener("blur", stop)
-    }, [width, save])
-
-    const reset = React.useCallback(() => { setWidth(RAIL_WIDTH.default); save(RAIL_WIDTH.default) }, [save])
-    const onKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return
-        e.preventDefault()
-        const next = clamp(width + (e.key === "ArrowRight" ? 16 : -16))
-        setWidth(next)
-        save(next)
-    }, [width, save])
-
-    return { width, dragging, onPointerDown, reset, onKeyDown }
-}

@@ -11,7 +11,9 @@ wins**. The build plan: `plan/main/platform/platform-v0.md`. The shared constant
 The landing, About, Contact, Docs, Terms, Privacy, Blog, Models, Guides, Changelog and `/design` live in `apps/web` on
 **bolihq.com** (`apps/web/CLAUDE.md`, plan `plan/web/site/web-split.md`). This app has only the auth pages, onboarding,
 the dashboard, Kura and the API.
-- `/` has no page: `middleware.ts` sends it to `/kura` (signed in) or `/signin`; `app/page.tsx` is only a fallback.
+- `/` has no page: `middleware.ts` sends it to the LAST product used (cookie `boli_last_product`, `lib/landing.ts`;
+  Kura, API or Jawaf home) or to `/start` ("Choose where to start") when there is none, or to `/signin` signed out.
+  Sign-in's default returnTo is `/`. `app/page.tsx` is only a fallback.
 - **Links to the site always go through `lib/web-links.ts`** (`WEB.docs`, `WEB.doc(slug)`, `WEB.about`, `WEB.contact`,
   `WEB.contactAbout(topic)`, `WEB.terms`, `WEB.privacy`, `webUrl(path)`), built from `NEXT_PUBLIC_WEB_URL`. Never a
   relative `/docs` or `/terms` (it would 404 here) and never a hardcoded domain. Same tab; `AppLink` renders an absolute
@@ -62,8 +64,30 @@ the dashboard, Kura and the API.
 - `app/(main)/layout.tsx` is a SERVER layout: it reads the session (`getSession()` from `@/lib/session`, React-cached)
   and the rail cookie (`MAIN_RAIL_COOKIE`), then renders `MainShell` (`app/(main)/_components/main-shell.tsx`), which
   is the shared `AppShell` from `@repo/ui/components/shell/app-shell`. It never awaits page data.
-- The rail lives in `lib/navigation.ts` (`MAIN_NAV`, `ROUTES`). To add a module: a folder under `app/(main)/`, a route
-  constant, a rail item (`tab: true` to put it in the phone bottom bar). Profile is reached from the account row.
+- **Product rail + product sidebar** (Sarvam-style, `plan/main/jawaf/jawaf-v1.md`): `MainShell` passes `productRail`
+  to `AppShell` (`packages/ui/src/components/shell/product-shell.tsx`). A 56px icon rail (Boli mark -> /home, the
+  workspace switcher, the products, then credits + Add, the bell, Feedback and the account menu) widens OVER the page on
+  hover; beside it a sidebar shows ONLY the open product's pages. Account pages (/home, /billing, /profile, /members,
+  /settings, /notifications, /start) and the Soon pages have no sidebar. Kura's sidebar is New chat + search + the chat
+  history (`components/kura/kura-sidebar.tsx`; the layout starts its read as a promise); Jawaf's starts with the bot
+  switcher.
+- **Two states, as dashboard.sarvam.ai** (owner, 2026-11-25), toggled by the sidebar's collapse button and Cmd/Ctrl+\:
+  - EXPANDED (default): the 56px icon rail (hover-widens over the page) + the full product sidebar (resizable,
+    200-360px, width in `boli_rail_hidden_w`). The page starts at 56px + the sidebar width.
+  - COLLAPSED: the icon rail slides off screen and the product sidebar becomes ONE 64px icon rail at the far left
+    (`CompactSidebar` in `shell/product-sidebar.tsx`): the expand button, the product's `compact` controls (Kura: New
+    chat + a search icon whose popover holds the search and the history; Jawaf: the bot as an avatar opening the same
+    menu), the pages as icons with tooltips (active on a soft pill, gaps between groups kept), then `CompactRailFoot`
+    (`shell/product-rail.tsx`): a Products menu (every product + Boli home), credits (a coin; `useProductRail().compact`
+    tells the app's rows to draw compact), Feedback, the bell and the account menu. The page starts at 64px.
+  - No hover-peek in either state: the button or the shortcut. Transitions are transform / width, 200ms, off under
+    reduced motion. The choice is the cookie `MAIN_RAIL_COOKIE` (`boli_rail_hidden`, "1" = collapsed), read by the
+    (main) layout -> `initialPinned` (true = expanded), so the first frame is right. On an account page (no sidebar)
+    the state does not apply and the shortcut does nothing. Phone (bottom bar + Products sheet) and apps/admin (the
+    classic AppShell) are unchanged.
+- `lib/navigation.ts` holds `ROUTES` and `PRODUCTS` (id, label, icon, home, route prefixes, sidebar items). To add a
+  page to a product: a folder under `app/(main)/`, a route constant, an item in that product's `sidebar` (`tab: true`
+  for the phone bottom bar). To add a product: an entry in `PRODUCTS` (+ `LANDING_HOMES` in `lib/landing.ts` once live).
 - Every page and every `'use server'` export checks the session itself; the layout's check is not enough.
 
 ### The shell does not pad. `Page` pads its own column.

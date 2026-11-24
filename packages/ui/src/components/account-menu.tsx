@@ -71,6 +71,13 @@ export interface AccountMenuProps {
     signOutProps?: Omit<React.HTMLAttributes<HTMLElement>, "onSelect">
     /** Icon rail: the chip is the avatar alone and the menu opens to the right. */
     collapsed?: boolean
+    /**
+     * Your own trigger in place of the chip (apps/main's product rail: one full-width row, name over email). One element
+     * that forwards its ref and props (a `Button`); the hover and press handlers are merged onto it.
+     */
+    trigger?: React.ReactElement
+    /** Hover intent before the menu opens, in ms (0 = at once, the chip's behaviour). A press still opens it at once. */
+    openDelay?: number
     /** Controlled open state - a hover rail stays out while its menu is open. */
     open?: boolean
     onOpenChange?: (open: boolean) => void
@@ -89,6 +96,8 @@ export function AccountMenu({
     signingOut = false,
     signOutProps,
     collapsed = false,
+    trigger,
+    openDelay = 0,
     open,
     onOpenChange,
     className,
@@ -105,18 +114,25 @@ export function AccountMenu({
         onOpenChange?.(v)
     }, [open, onOpenChange])
     const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+    const openRef = React.useRef(isOpen)
+    openRef.current = isOpen
     const hover = React.useMemo(() => ({
         onPointerEnter: (e: React.PointerEvent) => {
             if (e.pointerType !== "mouse") return
             if (timer.current) clearTimeout(timer.current)
-            setOpen(true)
+            // Already open (the pointer came back from the menu) or no intent delay: open / keep open now.
+            if (openRef.current || openDelay <= 0) { timer.current = null; setOpen(true); return }
+            timer.current = setTimeout(() => { timer.current = null; setOpen(true) }, openDelay)
         },
         onPointerLeave: (e: React.PointerEvent) => {
             if (e.pointerType !== "mouse") return
             if (timer.current) clearTimeout(timer.current)
-            timer.current = setTimeout(() => setOpen(false), 180)
+            timer.current = null
+            // Left before the intent delay opened it: nothing to close.
+            if (!openRef.current) return
+            timer.current = setTimeout(() => { timer.current = null; setOpen(false) }, 180)
         },
-    }), [setOpen])
+    }), [setOpen, openDelay])
     React.useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
     const face = avatar ?? (
         <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-neutral-700 text-xs font-semibold text-white dark:bg-neutral-600">
@@ -129,9 +145,14 @@ export function AccountMenu({
                 asChild
                 {...hover}
                 // Hover already opened it: a click on the chip must not toggle it shut again.
-                onPointerDown={(e) => { if (e.pointerType === "mouse" && isOpen) e.preventDefault() }}
+                onPointerDown={(e) => {
+                    if (e.pointerType !== "mouse") return
+                    // A press during the hover delay opens it now; the pending hover open is dropped.
+                    if (timer.current) { clearTimeout(timer.current); timer.current = null }
+                    if (isOpen) e.preventDefault()
+                }}
             >
-                <Button
+                {trigger ?? <Button
                     type="button"
                     variant="ghost"
                     aria-label={`Account - ${name}`}
@@ -144,7 +165,7 @@ export function AccountMenu({
                     <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full [&>*]:size-7">{face}</span>
                     {/* The first name on the chip (Niraj, 2026-11-23); the menu's header carries the full name. */}
                     {!collapsed ? <span className="truncate text-sm text-neutral-800 dark:text-neutral-100">{name.trim().split(/\s+/)[0] || name}</span> : null}
-                </Button>
+                </Button>}
             </DropdownMenuTrigger>
             <DropdownMenuContent
                 side={collapsed ? "right" : "top"}

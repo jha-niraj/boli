@@ -220,10 +220,16 @@ function AssistantRow({ assistant, onNavigate }: { assistant: ShellAssistant; on
 
 /** The account chip and its one menu (packages/ui account-menu.tsx): credits, Profile, Settings, the app's links,
  *  Appearance, Sounds, Sign out. */
-export function AccountRow({ account, onNavigate, menu }: {
+export function AccountRow({ account, onNavigate, menu, collapsed = false, trigger, openDelay }: {
     account: ShellAccount
     onNavigate?: () => void
     menu?: { open: boolean; onOpenChange: (open: boolean) => void }
+    /** The avatar alone, the menu opening to the right (the product rail's icon column). */
+    collapsed?: boolean
+    /** Replaces the avatar chip (the product rail's full-width account row). See AccountMenu `trigger`. */
+    trigger?: AccountMenuProps["trigger"]
+    /** Hover intent before the menu opens (ms). See AccountMenu `openDelay`. */
+    openDelay?: number
 }) {
     const { user } = account
     const { signOut, pending, prefetchProps } = useSignOut({ signInPath: account.signInPath, queryClient: account.queryClient })
@@ -243,13 +249,16 @@ export function AccountRow({ account, onNavigate, menu }: {
                 }
                 open={menu?.open}
                 onOpenChange={menu?.onOpenChange}
+                collapsed={collapsed}
+                trigger={trigger}
+                openDelay={openDelay}
                 credits={account.credits}
                 items={[
                     { key: "profile", label: "Profile", icon: <UserRound />, href: account.profileHref, onSelect: go },
-                    ...(account.settingsHref ? [{ key: "settings", label: "Settings", icon: <Settings />, href: account.settingsHref }] : []),
+                    ...(account.settingsHref ? [{ key: "settings", label: "Settings", icon: <Settings />, href: account.settingsHref, onSelect: go }] : []),
                     ...(account.links ?? []).map((l) => {
                         const Icon = l.icon
-                        return { key: l.href, label: l.label, icon: Icon ? <Icon /> : <ChevronRight />, href: l.href }
+                        return { key: l.href, label: l.label, icon: Icon ? <Icon /> : <ChevronRight />, href: l.href, onSelect: go }
                     }),
                 ]}
                 onSignOut={() => { void signOut() }}

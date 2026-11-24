@@ -52,6 +52,8 @@ export interface MobileTabBarProps {
     /** True while that sheet is open, so More reads as the current surface. */
     moreActive?: boolean
     moreLabel?: string
+    /** The last button's icon (default: a menu). */
+    moreIcon?: MobileTabItem["icon"]
     linkAs?: LinkComponent
     className?: string
 }
@@ -87,6 +89,7 @@ export function MobileTabBar({
     onMore,
     moreActive = false,
     moreLabel = "More",
+    moreIcon,
     linkAs,
     className,
 }: MobileTabBarProps) {
@@ -138,7 +141,7 @@ export function MobileTabBar({
                     aria-expanded={moreActive}
                     className={cellClass(moreActive)}
                 >
-                    <TabContent item={{ key: "__more__", label: moreLabel, icon: Menu, active: moreActive }} />
+                    <TabContent item={{ key: "__more__", label: moreLabel, icon: moreIcon ?? Menu, active: moreActive }} />
                 </button>
             </div>
         </nav>
