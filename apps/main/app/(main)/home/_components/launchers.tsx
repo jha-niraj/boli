@@ -26,7 +26,7 @@ const LAUNCHERS: Launcher[] = [
     { id: "keys", title: "API keys", line: "Create and revoke keys", href: ROUTES.keys },
     { id: "models", title: "Models", line: "Prices per 1M tokens", href: ROUTES.models },
     { id: "docs", title: "Docs", line: "Quickstart in 5 languages", href: WEB.doc("quickstart") },
-    { id: "speech", title: "Speech", line: "Speech to text", next: true },
+    { id: "speech", title: "Swar", line: "Speech to text", next: true },
 ]
 
 const SLIP = "rounded-lg bg-white px-2.5 py-1.5 shadow-[0_1px_2px_rgb(20_20_20/0.06)] dark:bg-neutral-900 dark:shadow-none dark:ring-1 dark:ring-inset dark:ring-neutral-800"

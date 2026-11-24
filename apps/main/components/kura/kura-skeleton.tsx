@@ -10,7 +10,7 @@ import { ChatFrame } from './chat-frame'
 /**
  * Skeletons for Kura. The transcript skeleton sits in the SAME reading measure as the transcript, so the page never
  * narrows when messages land. `KuraPageSkeleton` is loading.tsx's and mirrors the page: the chat column (Page header +
- * transcript + composer with its pills, inside the same column lines and frame) and, from lg, the right column with its four tabs and the Settings form.
+ * transcript + composer with its pills, inside the same column lines and frame) and, from lg, the right column with its three tabs and the Settings form.
  * A NEW chat (/kura) draws the welcome instead of a transcript: where the KS1 scene will sit, Kura's pixel bubble types
  * and says "namaste" (F4, owner pick 2026-11-24 for opening Kura), then the title, the subtitle and the suggestion cards.
  */
@@ -107,7 +107,7 @@ export function KuraPageSkeleton({ title, variant = 'transcript' }: { title: str
             <div className={CHAT_AREA}>
                 <div className={CHAT_COLUMN} style={CHAT_COLUMN_STYLE}>
                     <ChatFrame />
-                    <PageSkeleton title={title} icon={false} description={false} actions={3} primaryAction bleed body="fill" className={CHAT_PAGE_CLASS}>
+                    <PageSkeleton title={title} icon={false} description={false} actions={2} primaryAction bleed body="fill" className={CHAT_PAGE_CLASS}>
                         <div className="relative flex min-h-0 flex-1 flex-col">
                             <div className="min-h-0 flex-1 overflow-hidden">{variant === 'welcome' ? <WelcomeSkeleton /> : <TranscriptSkeleton />}</div>
                             <ComposerSkeleton />
@@ -117,7 +117,7 @@ export function KuraPageSkeleton({ title, variant = 'transcript' }: { title: str
             </div>
             <div className={cn('hidden h-full w-[clamp(320px,calc(100vw-1024px),560px)] shrink-0 flex-col lg:flex', SHELL_SURFACE, SHELL_SHADOW_RIGHT)}>
                 <div style={{ height: KURA_HEADER_H }} className="flex shrink-0 items-center gap-1 border-b border-neutral-200 px-3 dark:border-neutral-800">
-                    <Skeleton className="h-8 w-72 rounded-full" />
+                    <Skeleton className="h-8 w-56 rounded-full" />
                 </div>
                 <SettingsSkeleton />
             </div>

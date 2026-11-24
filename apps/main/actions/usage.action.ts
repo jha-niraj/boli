@@ -8,14 +8,16 @@ import { GET_STARTED_COOKIE, GET_STARTED_MAX_AGE } from "@/lib/platform/get-star
 import { getHomeOverview, getUsage } from "@/lib/platform/usage"
 import { usageQuerySchema, type UsageQueryInput } from "@/schemas/usage"
 import type { HomeData, UsageData } from "@/types/platform"
+import { getCurrentWorkspaceFor, requireWorkspaceAccess } from "@/lib/workspace"
 
 export async function getUsageData(input: UsageQueryInput): Promise<ActionResult<UsageData>> {
     try {
-        const session = await requireSession()
+        await requireSession()
         const parsed = usageQuerySchema.safeParse(input)
         if (!parsed.success) return failWith("validation", "Pick a window and a source.")
         const q = parsed.data
-        return ok(await getUsage(session.user.id, q.window, q.source, q.page))
+        const ws = await requireWorkspaceAccess("api")
+        return ok(await getUsage(ws.id, q.window, q.source, q.page))
     } catch (err) {
         return fail(err, "usage.read")
     }
@@ -24,7 +26,8 @@ export async function getUsageData(input: UsageQueryInput): Promise<ActionResult
 export async function getHomeData(): Promise<ActionResult<HomeData>> {
     try {
         const session = await requireSession()
-        return ok(await getHomeOverview(session.user.id))
+        const ws = await getCurrentWorkspaceFor(session.user.id)
+        return ok(await getHomeOverview(ws.id, session.user.id))
     } catch (err) {
         return fail(err, "home.read")
     }

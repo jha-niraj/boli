@@ -46,3 +46,15 @@ see payments and subscriptions at /billing and grant credits with an audit row.
 - [ ] **6. Admin /billing: payments, subscriptions, recheck, grant credits + audit**
   - Verified: _(not run; route needs adding to admin nav)_
 - [-] **7. /api/webhooks/stripe** - folded into /api/payments/stripe/webhook and deleted (one dispatcher route).
+- [ ] **8. Billing payment rows open a right sheet (`/billing?checkout=<id>`), not /checkout/<id>** (2026-11-25)
+  - Asked: a payment row on Billing opens the keep-open sheet with the id in the URL (deep-linkable, a reload reopens
+    it, closing removes the param). /checkout/<id> stays: the gateways return there.
+  - Done: one result card `components/platform/payment-result.tsx` (status, Check again, auto checks) used by the page
+    and by `billing/_components/payment-sheet.tsx`; one access check `lib/platform/payment.ts` (`findViewablePayment`)
+    used by the page, the sheet's read `getPaymentDetail` (stored row only, never the gateway) and `checkPayment`.
+    Rows carry `data-sheet-keep-open` (a press swaps the sheet); the id clears in `onExitComplete`; `?checkout=` is
+    written with `history.replaceState` and followed through `useSearchParams`. "Try again" in the sheet closes it
+    and opens Plans; the page's "Try again" now links to `/billing?tab=plans`.
+  - Audit of other list-to-detail navigations in apps/main: none left to convert (Usage, Home activity and Members
+    already open sheets; Kura chats are full pages; notification links go to other modules; Jawaf out of scope).
+  - Verified: _(not typechecked, not opened in a browser - the lead runs both)_

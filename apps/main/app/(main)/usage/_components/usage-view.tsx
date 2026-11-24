@@ -123,7 +123,7 @@ export function UsageView({ initialData }: { initialData: UsageData }) {
                             <p className="px-4 pb-4 text-sm text-neutral-600 dark:text-neutral-400">No requests in this window.</p>
                         ) : (
                             <ScrollArea orientation="both" className="min-w-0" viewportClassName="max-h-[26rem]">
-                                <div className="min-w-[40rem] px-2 pb-2">
+                                <div className="min-w-[40rem] [&_td:first-child]:pl-4 [&_th:first-child]:pl-4 [&_td:last-child]:pr-4 [&_th:last-child]:pr-4">
                                     <Table scroller="parent">
                                         <TableHeader sticky>
                                             <TableRow>
@@ -181,7 +181,7 @@ export function UsageView({ initialData }: { initialData: UsageData }) {
                                 />
                             ) : (
                                 <ScrollArea orientation="both" className="min-w-0" viewportClassName="max-h-[44rem]">
-                                    <div className="min-w-[56rem] px-2 pb-2">
+                                    <div className="min-w-[56rem] [&_td:first-child]:pl-4 [&_th:first-child]:pl-4 [&_td:last-child]:pr-4 [&_th:last-child]:pr-4">
                                         <Table scroller="parent">
                                             <TableHeader sticky>
                                                 <TableRow>

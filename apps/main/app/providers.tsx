@@ -9,9 +9,11 @@ import { Toaster } from "@repo/ui/components/ui/toast"
 
 /**
  * Auth and welcome pages are designed light-first and always render light (owner, 2026-11-24); the signed-in app follows
- * the person's theme. The public pages live in apps/web (light only there).
+ * the person's theme. The public pages live in apps/web (light only there). A Jawaf page (`/j/<slug>`) belongs to the
+ * business: <html> stays light and the page applies the bot's own light / dark / system setting on its root
+ * (components/jawaf/public/theme-root.tsx), never the visitor's Boli preference.
  */
-const LIGHT_ONLY = ["/signin", "/signup", "/verifyemail", "/forgotpassword", "/resetpassword", "/welcome"]
+const LIGHT_ONLY = ["/signin", "/signup", "/verifyemail", "/forgotpassword", "/resetpassword", "/welcome", "/j"]
 function isLightOnly(pathname: string): boolean {
     return LIGHT_ONLY.some((p) => pathname === p || pathname.startsWith(`${p}/`))
 }

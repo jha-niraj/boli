@@ -98,8 +98,9 @@ export async function POST(req: Request, ctx: Ctx): Promise<Response> {
     if (!limit.ok) {
         return apiError("rate_limit_exceeded", `Too many requests: your account is limited per minute across all keys and Kura. Wait ${limit.retryAfterSec} seconds and try again.`, { "Retry-After": String(limit.retryAfterSec) })
     }
-    if (!(await hasBalance(key.userId))) {
-        return apiError("insufficient_quota", "Your account has no credits left. Add credits on the Billing page, then retry.")
+    // A key belongs to a workspace and spends that workspace's credits.
+    if (!(await hasBalance(key.workspaceId))) {
+        return apiError("insufficient_quota", "This key's workspace has no credits left. Add credits on the Billing page, then retry.")
     }
 
     let raw: unknown
@@ -119,7 +120,7 @@ export async function POST(req: Request, ctx: Ctx): Promise<Response> {
     const model = body.model
     const upstreamBody: Json = { ...body, max_tokens: max_tokens ?? max_completion_tokens ?? KURA_DEFAULTS.maxTokens }
 
-    const base = { userId: key.userId, apiKeyId: key.keyId, source: "api" as const, model, stream }
+    const base = { userId: key.userId, workspaceId: key.workspaceId, apiKeyId: key.keyId, source: "api" as const, model, stream }
     const recordError = async (errorCode: ApiErrorCode) => {
         try {
             await chargeInference({ ...base, inputTokens: 0, outputTokens: 0, latencyMs: Date.now() - started, status: "error", errorCode })
@@ -153,7 +154,7 @@ export async function POST(req: Request, ctx: Ctx): Promise<Response> {
     return answerStream(res, base, started)
 }
 
-type Base = { userId: string; apiKeyId: string; source: "api"; model: string; stream: boolean }
+type Base = { userId: string; workspaceId: string; apiKeyId: string; source: "api"; model: string; stream: boolean }
 
 async function answerJson(res: Response, base: Base, started: number): Promise<Response> {
     let json: unknown

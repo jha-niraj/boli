@@ -5,6 +5,8 @@ import { aiConversations, aiMessages } from '@repo/db/schema'
 import { BOLI_CHAT, costMicro } from '@repo/boli'
 import { ROUTES } from '@/lib/navigation'
 import { getSession } from '@/lib/session'
+import { canUseProduct } from '@repo/boli/workspace-access'
+import { getCurrentWorkspaceFor } from '@/lib/workspace'
 import { chargeInference, hasBalance } from '@/lib/platform/credits'
 import { checkRateLimit } from '@/lib/platform/ratelimit'
 import { buildHistory, conversationRows, titleFrom } from '@/lib/ai/conversations'
@@ -31,7 +33,7 @@ const bodySchema = z.object({
     settings: z.unknown().optional(),
 })
 
-const json = (status: number, code: KuraErrorCode | 'auth' | 'not_found', message: string, extra?: Record<string, unknown>) =>
+const json = (status: number, code: KuraErrorCode | 'auth' | 'not_found' | 'forbidden', message: string, extra?: Record<string, unknown>) =>
     Response.json({ code, message, ...extra }, { status })
 
 const estimateTokens = (text: string) => Math.ceil(text.length / 3)
@@ -59,7 +61,10 @@ export async function POST(req: Request): Promise<Response> {
     if (!rate.ok) {
         return json(429, 'rate', `Too many messages this minute. Try again in ${rate.retryAfterSec}s.`, { retryAfterSec: rate.retryAfterSec })
     }
-    if (!(await hasBalance(me.id))) {
+    // The turn runs in, and charges, the CURRENT workspace (lib/workspace.ts); Kura access is needed there.
+    const ws = await getCurrentWorkspaceFor(me.id)
+    if (!canUseProduct(ws, 'kura')) return json(403, 'forbidden', `You do not have access to Kura in ${ws.name}. Ask its owner, or switch workspace.`)
+    if (!(await hasBalance(ws.id))) {
         return json(402, 'credits', KURA_ERROR_MESSAGES.credits, { href: `${ROUTES.billing}?tab=plans`, actionLabel: 'Add credits' })
     }
 
@@ -68,7 +73,7 @@ export async function POST(req: Request): Promise<Response> {
     let title = 'New chat'
     let historyRows: Awaited<ReturnType<typeof conversationRows>> = null
     if (conversationId) {
-        historyRows = await conversationRows(me.id, conversationId)
+        historyRows = await conversationRows(me.id, ws.id, conversationId)
         if (!historyRows) return json(404, 'not_found', 'That chat could not be found.')
         title = historyRows.title
     }
@@ -81,7 +86,7 @@ export async function POST(req: Request): Promise<Response> {
         conversationId = crypto.randomUUID()
         title = titleFrom(body.message)
         await db.batch([
-            db.insert(aiConversations).values({ id: conversationId, userId: me.id, title, settings }),
+            db.insert(aiConversations).values({ id: conversationId, userId: me.id, workspaceId: ws.id, title, settings }),
             db.insert(aiMessages).values({ ...userRow, conversationId }),
         ])
     } else {
@@ -255,6 +260,7 @@ export async function POST(req: Request): Promise<Response> {
                 const charged = await chargeInference({
                     id: assistantMessageId,
                     userId: me.id,
+                    workspaceId: ws.id,
                     source: 'kura',
                     model: BOLI_CHAT.id,
                     conversationId: failed && created ? undefined : convId,

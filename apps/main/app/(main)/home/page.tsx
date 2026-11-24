@@ -5,6 +5,7 @@ import { ROUTES } from "@/lib/navigation"
 import { GET_STARTED_COOKIE, getStartedHidden } from "@/lib/platform/get-started"
 import { getHomeOverview } from "@/lib/platform/usage"
 import { getSession } from "@/lib/session"
+import { getCurrentWorkspaceFor } from "@/lib/workspace"
 import { HomeView } from "./_components/home-view"
 
 export const metadata: Metadata = { title: "Home" }
@@ -12,6 +13,7 @@ export const metadata: Metadata = { title: "Home" }
 export default async function HomePage() {
     const session = await getSession()
     if (!session) redirect(`${ROUTES.signIn}?stale=1&returnTo=${ROUTES.dashboard}`)
-    const [data, jar] = await Promise.all([getHomeOverview(session.user.id), cookies()])
+    const ws = await getCurrentWorkspaceFor(session.user.id)
+    const [data, jar] = await Promise.all([getHomeOverview(ws.id, session.user.id), cookies()])
     return <HomeView initialData={data} startedHidden={getStartedHidden(jar.get(GET_STARTED_COOKIE)?.value, session.user.id)} />
 }

@@ -2,8 +2,7 @@
 
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
-import { BookOpen, Coins, KeyRound, MessagesSquare, Plus, Sigma, Terminal, Zap } from "lucide-react"
-import { SITE } from "@repo/core/site"
+import { ArrowRight, Coins, KeyRound, MessagesSquare, Sigma, Terminal, Zap } from "lucide-react"
 import { AppLink } from "@repo/ui/components/app-link"
 import { ChartPanel } from "@repo/ui/components/charts/panel-charts"
 import { Button } from "@repo/ui/components/ui/button"
@@ -15,16 +14,13 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { StatBand, type StatBandItem } from "@repo/ui/components/ui/stat-band"
 import { cn } from "@repo/ui/lib/utils"
 import { getHomeData } from "@/actions/usage.action"
-import { CodeTabs, CopyButton } from "@repo/brand/code-tabs"
 import { BoliEmpty } from "@/components/empty/boli-empty"
 import { RequestDetailRows } from "@/components/platform/request-detail"
 import { SKY_LINK } from "@/components/platform/sky"
 import { SpendChart } from "@/components/platform/spend-chart"
 import { formatCredits, MAX_API_KEYS } from "@repo/boli"
-import { buildSamples, codingAgentPrompt } from "@repo/boli/code-samples"
 import { formatTokens } from "@/lib/format"
 import { ROUTES } from "@/lib/navigation"
-import { WEB } from "@/lib/web-links"
 import { addTotals, formatFullDateTime, PLATFORM_KEYS, TIME_ZONE } from "@/lib/platform-display"
 import type { ActivityItem, HomeData } from "@/types/platform"
 import { GetStarted } from "./get-started"
@@ -56,8 +52,6 @@ export function HomeView({ initialData, startedHidden }: { initialData: HomeData
         { key: "keys", icon: KeyRound, label: "Active API keys", value: data.activeKeys.toLocaleString("en-US"), hint: `of ${MAX_API_KEYS}`, href: ROUTES.keys },
     ]
 
-    const samples = React.useMemo(() => buildSamples({ baseUrl: SITE.url }), [])
-    const prompt = React.useMemo(() => codingAgentPrompt(SITE.url), [])
 
     function open(item: ActivityItem) {
         setSelected(item)
@@ -129,44 +123,29 @@ export function HomeView({ initialData, startedHidden }: { initialData: HomeData
                     </section>
                 </div>
 
-                <section className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-                        <div className="min-w-0">
-                            <h2 className="text-base font-semibold text-neutral-900 dark:text-white">Start building</h2>
-                            <p className="text-xs text-neutral-600 dark:text-neutral-400">Create a key, put it in your .env as BOLI_API_KEY, then make your first call.</p>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                            <Button asChild variant="outline" size="sm" className="gap-1.5">
-                                <AppLink href={WEB.doc("quickstart")}><BookOpen className="h-3.5 w-3.5" /> Docs</AppLink>
-                            </Button>
-                            <Button asChild size="sm" className="gap-1.5">
-                                <AppLink href={`${ROUTES.keys}?create=1`}><Plus className="h-3.5 w-3.5" /> Create API key</AppLink>
-                            </Button>
-                        </div>
-                    </div>
-                    <div className="mt-4 grid min-w-0 gap-3 lg:grid-cols-2">
-                        <div className="flex min-w-0 flex-col gap-2">
-                            <p className="text-xs font-medium text-neutral-700 dark:text-neutral-300">Quickstart</p>
-                            <CodeTabs samples={samples} defaultLanguage="python" />
-                        </div>
-                        <div className="flex min-w-0 flex-col gap-2">
-                            <p className="text-xs font-medium text-neutral-700 dark:text-neutral-300">Paste this into any coding agent</p>
-                            <div className="min-w-0 overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800">
-                                <div className="flex items-center justify-between gap-2 border-b border-neutral-200 bg-neutral-50 px-3 py-1.5 dark:border-neutral-800 dark:bg-neutral-950">
-                                    <span className="text-xs text-neutral-600 dark:text-neutral-400">Sets up the key and makes one call</span>
-                                    <CopyButton text={prompt} />
-                                </div>
-                                <ScrollArea orientation="vertical" className="min-w-0" viewportClassName="max-h-[18rem]">
-                                    <pre className="whitespace-pre-wrap break-words p-4 font-mono text-xs leading-5 text-neutral-800 dark:text-neutral-200">{prompt}</pre>
-                                </ScrollArea>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                {/* Start building (quickstart + coding-agent prompt) moved to the API product's Home, /api. */}
+                <ApiCallout />
             </div>
 
             <ActivitySheet item={selected} open={sheetOpen} onOpenChange={setSheetOpen} onExitComplete={() => setSelected(null)} />
         </Page>
+    )
+}
+
+/** A one-line pointer to the API's Home, where Start building now lives. */
+function ApiCallout() {
+    return (
+        <AppLink
+            href={ROUTES.api}
+            className="group flex min-w-0 cursor-pointer items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3 outline-none transition-colors hover:border-neutral-300 focus-visible:ring-2 focus-visible:ring-neutral-400 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
+        >
+            <Terminal className="h-4 w-4 shrink-0 text-neutral-500 dark:text-neutral-400" />
+            <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium text-neutral-900 dark:text-white">Start building with the API</span>
+                <span className="block truncate text-xs text-neutral-600 dark:text-neutral-400">The quickstart in five languages and a prompt for your coding agent</span>
+            </span>
+            <ArrowRight className="h-4 w-4 shrink-0 text-neutral-500 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" />
+        </AppLink>
     )
 }
 

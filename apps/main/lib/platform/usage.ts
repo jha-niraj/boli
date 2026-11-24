@@ -10,7 +10,9 @@ import type {
 import { getBalanceMicro } from "./credits"
 
 /**
- * The platform pages' reads (Home, Usage, Billing), all for ONE signed-in person and always filtered by their id.
+ * The platform pages' reads (Home, Usage, Billing), all for ONE workspace (the current one, lib/workspace.ts) and
+ * always filtered by its id: usage and credits are the workspace's, whoever made the call. Home's recent Kura chats are
+ * the signed-in person's own within it.
  * Every page's reads go out together (one `db.batch` plus the balance in a `Promise.all`), never a query in a loop.
  * Reads never write. Days are Nepal days (UTC+05:45, see lib/platform-display.ts); windows are named (today, last 7,
  * last 30, last 90). Credits are integer micro-credits.
@@ -52,15 +54,15 @@ const SUM_COLS = {
     costMicro: sql<number>`coalesce(sum(${ir.costMicro}), 0)`.mapWith(Number),
 }
 
-function sourceWhere(userId: string, since: Date, source: UsageSourceFilter): SQL | undefined {
-    return and(eq(ir.userId, userId), gte(ir.createdAt, since), source === "all" ? undefined : eq(ir.source, source))
+function sourceWhere(workspaceId: string, since: Date, source: UsageSourceFilter): SQL | undefined {
+    return and(eq(ir.workspaceId, workspaceId), gte(ir.createdAt, since), source === "all" ? undefined : eq(ir.source, source))
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Query builders (not awaited here - they go into one batch)
 // ---------------------------------------------------------------------------------------------------------------------
 
-function bucketsQuery(userId: string, now: Date) {
+function bucketsQuery(workspaceId: string, now: Date) {
     return db
         .select({
             source: ir.source,
@@ -70,19 +72,19 @@ function bucketsQuery(userId: string, now: Date) {
             last90: totalsSince(gte(ir.createdAt, nepalDayStart(89, now))),
         })
         .from(ir)
-        .where(and(eq(ir.userId, userId), gte(ir.createdAt, nepalDayStart(89, now))))
+        .where(and(eq(ir.workspaceId, workspaceId), gte(ir.createdAt, nepalDayStart(89, now))))
         .groupBy(ir.source)
 }
 
-function dailyQuery(userId: string, since: Date, source: UsageSourceFilter) {
+function dailyQuery(workspaceId: string, since: Date, source: UsageSourceFilter) {
     return db
         .select({ day: DAY_EXPR, source: ir.source, ...SUM_COLS })
         .from(ir)
-        .where(sourceWhere(userId, since, source))
+        .where(sourceWhere(workspaceId, since, source))
         .groupBy(DAY_EXPR, ir.source)
 }
 
-function keysQuery(userId: string, since: Date, source: UsageSourceFilter) {
+function keysQuery(workspaceId: string, since: Date, source: UsageSourceFilter) {
     return db
         .select({
             source: ir.source,
@@ -94,7 +96,7 @@ function keysQuery(userId: string, since: Date, source: UsageSourceFilter) {
         })
         .from(ir)
         .leftJoin(apiKey, eq(apiKey.id, ir.apiKeyId))
-        .where(sourceWhere(userId, since, source))
+        .where(sourceWhere(workspaceId, since, source))
         .groupBy(ir.source, ir.apiKeyId, apiKey.name, apiKey.prefix, apiKey.revokedAt)
         .orderBy(desc(sql`coalesce(sum(${ir.costMicro}), 0)`), desc(sql`count(*)`))
 }
@@ -195,16 +197,16 @@ function shapeDaily(rows: ({ day: string; source: UsageSource } & UsageTotals)[]
 // ---------------------------------------------------------------------------------------------------------------------
 
 /** /usage: the named-window band, the daily series and the per-key breakdown for the window, one page of the log. */
-export async function getUsage(userId: string, window: UsageWindow, source: UsageSourceFilter, page: number): Promise<UsageData> {
+export async function getUsage(workspaceId: string, window: UsageWindow, source: UsageSourceFilter, page: number): Promise<UsageData> {
     const now = new Date()
     const days = windowDays(window)
     const since = nepalDayStart(days - 1, now)
-    const where = sourceWhere(userId, since, source)
+    const where = sourceWhere(workspaceId, since, source)
     const safePage = Math.max(1, Math.floor(page) || 1)
     const [buckets, daily, keys, log, [total]] = await db.batch([
-        bucketsQuery(userId, now),
-        dailyQuery(userId, since, source),
-        keysQuery(userId, since, source),
+        bucketsQuery(workspaceId, now),
+        dailyQuery(workspaceId, since, source),
+        keysQuery(workspaceId, since, source),
         logQuery(where, REQUEST_LOG_PAGE_SIZE, (safePage - 1) * REQUEST_LOG_PAGE_SIZE),
         db.select({ n: count() }).from(ir).where(where),
     ])
@@ -233,8 +235,11 @@ export async function getUsage(userId: string, window: UsageWindow, source: Usag
     }
 }
 
-/** /home: balance, named-window totals, active keys, 30 days of spend by source, recent Kura chats + API calls. */
-export async function getHomeOverview(userId: string): Promise<HomeData> {
+/**
+ * /home: the workspace's balance, named-window totals, active keys, 30 days of spend by source and recent API calls,
+ * plus the person's own recent Kura chats in it.
+ */
+export async function getHomeOverview(workspaceId: string, userId: string): Promise<HomeData> {
     const now = new Date()
     const since30 = nepalDayStart(29, now)
     const convStats = sql<UsageTotals>`(
@@ -243,27 +248,27 @@ export async function getHomeOverview(userId: string): Promise<HomeData> {
             'inputTokens', coalesce(sum(${ir.inputTokens}), 0),
             'outputTokens', coalesce(sum(${ir.outputTokens}), 0),
             'costMicro', coalesce(sum(${ir.costMicro}), 0)
-        ) from ${ir} where ${ir.conversationId} = ${aiConversations.id} and ${ir.userId} = ${userId}
+        ) from ${ir} where ${ir.conversationId} = ${aiConversations.id} and ${ir.workspaceId} = ${workspaceId}
     )`.mapWith(toTotals)
 
     const [balanceMicro, [buckets, daily, [active], convs, calls, [started]]] = await Promise.all([
-        getBalanceMicro(userId),
+        getBalanceMicro(workspaceId),
         db.batch([
-            bucketsQuery(userId, now),
-            dailyQuery(userId, since30, "all"),
-            db.select({ n: count() }).from(apiKey).where(and(eq(apiKey.userId, userId), sql`${apiKey.revokedAt} is null`)),
+            bucketsQuery(workspaceId, now),
+            dailyQuery(workspaceId, since30, "all"),
+            db.select({ n: count() }).from(apiKey).where(and(eq(apiKey.workspaceId, workspaceId), sql`${apiKey.revokedAt} is null`)),
             db
                 .select({ id: aiConversations.id, title: aiConversations.title, createdAt: aiConversations.createdAt, updatedAt: aiConversations.updatedAt, stats: convStats })
                 .from(aiConversations)
-                .where(eq(aiConversations.userId, userId))
+                .where(and(eq(aiConversations.workspaceId, workspaceId), eq(aiConversations.userId, userId)))
                 .orderBy(desc(aiConversations.updatedAt))
                 .limit(RECENT_EACH),
-            logQuery(and(eq(ir.userId, userId), eq(ir.source, "api")), RECENT_EACH, 0),
-            // Get started: has the person ever made a key, called the API, used Kura? (Any row, revoked keys included.)
+            logQuery(and(eq(ir.workspaceId, workspaceId), eq(ir.source, "api")), RECENT_EACH, 0),
+            // Get started: has this workspace ever made a key, called the API, used Kura? (Any row, revoked keys included.)
             db.select({
-                key: sql<boolean>`exists (select 1 from ${apiKey} where ${apiKey.userId} = ${userId})`.mapWith(Boolean),
-                apiCall: sql<boolean>`exists (select 1 from ${ir} where ${ir.userId} = ${userId} and ${ir.source} = 'api')`.mapWith(Boolean),
-                kura: sql<boolean>`exists (select 1 from ${ir} where ${ir.userId} = ${userId} and ${ir.source} = 'kura')`.mapWith(Boolean),
+                key: sql<boolean>`exists (select 1 from ${apiKey} where ${apiKey.workspaceId} = ${workspaceId})`.mapWith(Boolean),
+                apiCall: sql<boolean>`exists (select 1 from ${ir} where ${ir.workspaceId} = ${workspaceId} and ${ir.source} = 'api')`.mapWith(Boolean),
+                kura: sql<boolean>`exists (select 1 from ${ir} where ${ir.workspaceId} = ${workspaceId} and ${ir.source} = 'kura')`.mapWith(Boolean),
             }).from(user).where(eq(user.id, userId)).limit(1),
         ]),
     ])
@@ -300,11 +305,11 @@ const LEDGER_LABEL: Record<LedgerKind, string> = {
     spend: "Usage",
 }
 
-/** /billing: balance, purchases and grants (ledger, spends excluded), spending summed per Nepal day, payments. */
-export async function getBillingSummary(userId: string): Promise<BillingData> {
-    const ownedBy = and(eq(billingAccount.ownerType, "user"), eq(billingAccount.ownerId, userId))
+/** /billing: the workspace's balance, purchases and grants (ledger, spends excluded), spending per Nepal day, payments. */
+export async function getBillingSummary(workspaceId: string): Promise<BillingData> {
+    const ownedBy = and(eq(billingAccount.ownerType, "workspace"), eq(billingAccount.ownerId, workspaceId))
     const [balanceMicro, [ledger, spendDays, payments]] = await Promise.all([
-        getBalanceMicro(userId),
+        getBalanceMicro(workspaceId),
         db.batch([
             db
                 .select({ id: creditLedger.id, kind: creditLedger.kind, amountMicro: creditLedger.amountMicro, description: creditLedger.description, createdAt: creditLedger.createdAt })
@@ -316,7 +321,7 @@ export async function getBillingSummary(userId: string): Promise<BillingData> {
             db
                 .select({ day: DAY_EXPR, requests: sql<number>`count(*)`.mapWith(Number), costMicro: sql<number>`coalesce(sum(${ir.costMicro}), 0)`.mapWith(Number) })
                 .from(ir)
-                .where(and(eq(ir.userId, userId), gt(ir.costMicro, 0)))
+                .where(and(eq(ir.workspaceId, workspaceId), gt(ir.costMicro, 0)))
                 .groupBy(DAY_EXPR)
                 .orderBy(desc(DAY_EXPR))
                 .limit(SPEND_DAYS_LIMIT),

@@ -9,15 +9,16 @@ import { asKuraSettings } from './settings'
 import { KURA_DISLIKE_REASONS, type ChatViewMessage, type ConversationRow, type ConversationView, type KuraDislikeReason, type NeedsYouItem, type NeedsYouList } from './types'
 
 /**
- * Server reads for Kura. Every read filters by the signed-in person's id - a conversation id from the URL is never
- * trusted on its own. Called from the route's server half and from actions/ai (which check the session).
+ * Server reads for Kura. Every read filters by the signed-in person's id AND the current workspace (a chat belongs to
+ * the workspace it was started in and charges it; each person's chats stay their own) - a conversation id from the URL
+ * is never trusted on its own. Called from the route's server half and from actions/ai (which check the session).
  */
 
-export async function listConversationsFor(userId: string): Promise<ConversationRow[]> {
+export async function listConversationsFor(userId: string, workspaceId: string): Promise<ConversationRow[]> {
     const rows = await db
         .select({ id: aiConversations.id, title: aiConversations.title, updatedAt: aiConversations.updatedAt })
         .from(aiConversations)
-        .where(eq(aiConversations.userId, userId))
+        .where(and(eq(aiConversations.userId, userId), eq(aiConversations.workspaceId, workspaceId)))
         .orderBy(desc(aiConversations.updatedAt))
         .limit(100)
     return rows.map((r) => ({ id: r.id, title: r.title, updatedAt: r.updatedAt.toISOString() }))
@@ -25,10 +26,10 @@ export async function listConversationsFor(userId: string): Promise<Conversation
 
 export type MessageRow = typeof aiMessages.$inferSelect
 
-export async function conversationRows(userId: string, conversationId: string): Promise<{ title: string; settings: unknown; rows: MessageRow[] } | null> {
+export async function conversationRows(userId: string, workspaceId: string, conversationId: string): Promise<{ title: string; settings: unknown; rows: MessageRow[] } | null> {
     const [conv, rows] = await db.batch([
         db.select({ title: aiConversations.title, settings: aiConversations.settings }).from(aiConversations)
-            .where(and(eq(aiConversations.id, conversationId), eq(aiConversations.userId, userId))).limit(1),
+            .where(and(eq(aiConversations.id, conversationId), eq(aiConversations.userId, userId), eq(aiConversations.workspaceId, workspaceId))).limit(1),
         db.select().from(aiMessages)
             .where(and(eq(aiMessages.conversationId, conversationId), eq(aiMessages.userId, userId)))
             .orderBy(asc(aiMessages.createdAt)),
@@ -51,8 +52,8 @@ function isDislikeReason(v: string | null): v is KuraDislikeReason {
     return KURA_DISLIKE_REASONS.some((x) => x.key === v)
 }
 
-export async function loadConversationView(userId: string, conversationId: string): Promise<ConversationView | null> {
-    const found = await conversationRows(userId, conversationId)
+export async function loadConversationView(userId: string, workspaceId: string, conversationId: string): Promise<ConversationView | null> {
+    const found = await conversationRows(userId, workspaceId, conversationId)
     return found
         ? { id: conversationId, title: found.title, messages: toView(found.rows), settings: asKuraSettings(found.settings) }
         : null
@@ -102,7 +103,7 @@ const LOW_BALANCE_MICRO = 10 * MICRO_PER_CREDIT
  * What a Boli person should act on. Each source has its own try/catch, so one failure marks the list partial instead
  * of hiding it.
  */
-export async function needsYouFor(viewer: { id: string; emailVerified: boolean }): Promise<NeedsYouList> {
+export async function needsYouFor(viewer: { id: string; emailVerified: boolean }, workspaceId: string): Promise<NeedsYouList> {
     const items: NeedsYouItem[] = []
     const failed: string[] = []
 
@@ -118,8 +119,8 @@ export async function needsYouFor(viewer: { id: string; emailVerified: boolean }
     }
 
     const [balance, keys] = await Promise.allSettled([
-        getBalanceMicro(viewer.id),
-        db.select({ n: count() }).from(apiKey).where(and(eq(apiKey.userId, viewer.id), isNull(apiKey.revokedAt))),
+        getBalanceMicro(workspaceId),
+        db.select({ n: count() }).from(apiKey).where(and(eq(apiKey.workspaceId, workspaceId), isNull(apiKey.revokedAt))),
     ])
 
     if (balance.status === 'fulfilled') {

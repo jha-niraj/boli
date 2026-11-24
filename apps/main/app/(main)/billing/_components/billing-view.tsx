@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
-import { ArrowRight, Plus } from "lucide-react"
+import { useSearchParams } from "next/navigation"
+import { ArrowRight, ChevronRight, Plus } from "lucide-react"
 import { AppLink } from "@repo/ui/components/app-link"
 import { Button } from "@repo/ui/components/ui/button"
 import { Page } from "@repo/ui/components/ui/page"
@@ -16,8 +17,9 @@ import { SKY_LINK } from "@/components/platform/sky"
 import { BOLI_CHAT, formatCredits } from "@repo/boli"
 import { WEB } from "@/lib/web-links"
 import { formatDateTime, formatDay, formatRupeesMinor, PAYMENT_STATUS_LABELS, PLATFORM_KEYS, PROVIDER_NAMES } from "@/lib/platform-display"
-import type { BillingData, BillingHistoryRow } from "@/types/platform"
+import type { BillingData, BillingHistoryRow, PaymentDetail } from "@/types/platform"
 import { AddCreditsDialog } from "./add-credits-dialog"
+import { PaymentSheet } from "./payment-sheet"
 import { PlansTab, type BillingPreselect } from "./plans-tab"
 import { BILLING_DESCRIPTION, BILLING_TABS, BILLING_TITLE, type BillingTab } from "./billing-skeleton"
 
@@ -35,12 +37,25 @@ function signed(micro: number): string {
     return `${micro > 0 ? "+" : micro < 0 ? "-" : ""}${formatCredits(Math.abs(micro))}`
 }
 
-export function BillingView({ initialData, initialTab, openAdd, preselect }: {
+/** The payment sheet's URL param: `/billing?checkout=<paymentId>`. */
+const CHECKOUT_PARAM = "checkout"
+
+/** Writes `?checkout=` without a server round trip (AGENTS.md section 11); null removes it. */
+function writeCheckoutParam(id: string | null) {
+    const url = new URL(globalThis.location.href)
+    if (id) url.searchParams.set(CHECKOUT_PARAM, id)
+    else url.searchParams.delete(CHECKOUT_PARAM)
+    globalThis.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`)
+}
+
+export function BillingView({ initialData, initialTab, openAdd, preselect, initialCheckout }: {
     initialData: BillingData
     initialTab: string | string[] | undefined
     openAdd: boolean
     /** From the landing's pricing (`?pack=` / `?amount=`), validated on the server. */
     preselect: BillingPreselect | null
+    /** `?checkout=<id>` read on the server: that payment, when this person may see it. */
+    initialCheckout: PaymentDetail | null
 }) {
     const { data } = useQuery({
         queryKey: PLATFORM_KEYS.billing,
@@ -54,6 +69,51 @@ export function BillingView({ initialData, initialTab, openAdd, preselect }: {
     const [tab, setTab] = useUrlTab<BillingTab>(BILLING_TABS.map((t) => t.value), initialTab, "credits")
     const [addOpen, setAddOpen] = React.useState(openAdd)
 
+    // The payment sheet. Its open state IS `?checkout=<id>`: a row press sets it, closing removes it, a reload (or a
+    // pasted link) reopens it. Another row swaps the sheet (rows carry data-sheet-keep-open). The id is cleared only
+    // in onExitComplete, so the card does not empty while sliding out.
+    const searchParams = useSearchParams()
+    const urlCheckout = searchParams?.get(CHECKOUT_PARAM) ?? null
+    const [checkoutId, setCheckoutId] = React.useState<string | null>(initialCheckout?.payment.id ?? null)
+    const [sheetOpen, setSheetOpen] = React.useState(!!initialCheckout)
+    // What this view last wrote, so its own write echoing back through useSearchParams is not treated as a link.
+    const lastCheckout = React.useRef<string | null>(urlCheckout)
+
+    // A payment this person may not see (or a stale link) is dropped from the URL instead of opening an empty sheet.
+    React.useEffect(() => {
+        if (urlCheckout && !initialCheckout) {
+            lastCheckout.current = null
+            writeCheckoutParam(null)
+        }
+        // Once, at mount: the server's answer for the URL it was given.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    // Follow an in-app link to `?checkout=<id>` (or its removal) while the page is already open.
+    React.useEffect(() => {
+        if (urlCheckout === lastCheckout.current) return
+        lastCheckout.current = urlCheckout
+        if (urlCheckout) {
+            setCheckoutId(urlCheckout)
+            setSheetOpen(true)
+        } else setSheetOpen(false)
+    }, [urlCheckout])
+
+    const openPayment = React.useCallback((id: string) => {
+        setCheckoutId(id)
+        setSheetOpen(true)
+        lastCheckout.current = id
+        writeCheckoutParam(id)
+    }, [])
+
+    const onSheetOpenChange = React.useCallback((next: boolean) => {
+        setSheetOpen(next)
+        if (!next) {
+            lastCheckout.current = null
+            writeCheckoutParam(null)
+        }
+    }, [])
+
     // One-shot params: read once, then dropped from the URL so a reload does not reopen them.
     React.useEffect(() => {
         if (!openAdd && !preselect) return
@@ -62,7 +122,7 @@ export function BillingView({ initialData, initialTab, openAdd, preselect }: {
         url.searchParams.delete("pack")
         url.searchParams.delete("amount")
         if (preselect) url.searchParams.set("tab", "plans")
-        globalThis.history.replaceState(globalThis.history.state, "", url.toString())
+        globalThis.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`)
     }, [openAdd, preselect])
 
     const empty = data.balanceMicro <= 0
@@ -85,7 +145,7 @@ export function BillingView({ initialData, initialTab, openAdd, preselect }: {
                     ) : (
                         <section className="min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
                             <ScrollArea orientation="both" className="min-w-0" viewportClassName="max-h-[44rem]">
-                                <div className="min-w-[36rem] px-2 pb-2">
+                                <div className="min-w-[36rem] [&_td:first-child]:pl-4 [&_th:first-child]:pl-4 [&_td:last-child]:pr-4 [&_th:last-child]:pr-4">
                                     <Table scroller="parent">
                                         <TableHeader sticky>
                                             <TableRow>
@@ -160,7 +220,7 @@ export function BillingView({ initialData, initialTab, openAdd, preselect }: {
                 ) : (
                     <section className="min-w-0 overflow-hidden rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
                         <ScrollArea orientation="both" className="min-w-0" viewportClassName="max-h-[44rem]">
-                            <div className="min-w-[40rem] px-2 pb-2">
+                            <div className="min-w-[40rem] [&_td:first-child]:pl-4 [&_th:first-child]:pl-4 [&_td:last-child]:pr-4 [&_th:last-child]:pr-4">
                                 <Table scroller="parent">
                                     <TableHeader sticky>
                                         <TableRow>
@@ -173,20 +233,29 @@ export function BillingView({ initialData, initialTab, openAdd, preselect }: {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {data.payments.map((p) => (
-                                            <TableRow key={p.id}>
+                                        {data.payments.map((p) => {
+                                            const active = sheetOpen && checkoutId === p.id
+                                            return (
+                                            <TableRow
+                                                key={p.id}
+                                                data-sheet-keep-open=""
+                                                tabIndex={0}
+                                                aria-selected={active}
+                                                onClick={() => openPayment(p.id)}
+                                                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openPayment(p.id) } }}
+                                                className={cn("cursor-pointer", active && "bg-neutral-50 dark:bg-neutral-800/60")}
+                                            >
                                                 <TableCell className="whitespace-nowrap text-neutral-700 dark:text-neutral-300">{formatDateTime(p.createdAt)}</TableCell>
                                                 <TableCell className="text-right tabular-nums">{p.credits !== null ? p.credits.toLocaleString("en-US") : "-"}</TableCell>
                                                 <TableCell className="whitespace-nowrap text-right tabular-nums">{p.currency === "NPR" ? formatRupeesMinor(p.amountMinor) : `${p.currency} ${(p.amountMinor / 100).toFixed(2)}`}</TableCell>
                                                 <TableCell>{PROVIDER_NAMES[p.provider] ?? p.provider}</TableCell>
                                                 <TableCell className={cn(p.status === "failed" && "text-rose-700 dark:text-rose-400")}>{PAYMENT_STATUS_LABELS[p.status] ?? p.status}</TableCell>
-                                                <TableCell pin="end" className="text-right">
-                                                    <Button asChild variant="ghost" size="sm">
-                                                        <AppLink href={`/checkout/${encodeURIComponent(p.id)}`}>Details</AppLink>
-                                                    </Button>
+                                                <TableCell pin="end" className="w-10 text-right">
+                                                    <ChevronRight className="ml-auto h-4 w-4 text-neutral-400 dark:text-neutral-500" aria-hidden />
                                                 </TableCell>
                                             </TableRow>
-                                        ))}
+                                            )
+                                        })}
                                     </TableBody>
                                 </Table>
                             </div>
@@ -198,6 +267,17 @@ export function BillingView({ initialData, initialTab, openAdd, preselect }: {
             </div>
 
             <AddCreditsDialog open={addOpen} onOpenChange={setAddOpen} />
+            <PaymentSheet
+                paymentId={checkoutId}
+                initial={initialCheckout}
+                open={sheetOpen}
+                onOpenChange={onSheetOpenChange}
+                onExitComplete={() => setCheckoutId(null)}
+                onRetry={() => {
+                    onSheetOpenChange(false)
+                    setTab("plans")
+                }}
+            />
         </Page>
     )
 }

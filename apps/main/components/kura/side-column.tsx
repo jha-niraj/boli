@@ -10,19 +10,19 @@ import { SHELL_SHADOW_RIGHT, SHELL_SURFACE } from '@repo/ui/lib/surfaces'
 import { cn } from '@repo/ui/lib/utils'
 
 /**
- * THE RIGHT COLUMN of Kura (wide screens): the tabs Settings | Code | History | Needs you. On a phone the same tabs
+ * THE RIGHT COLUMN of Kura (wide screens): the tabs Settings | Code | Needs you (History moved to the product sidebar,
+ * kura-sidebar.tsx). On a phone the same tabs
  * open in a sheet (kura-page.tsx). The column is square, on the page's own ground (SHELL_SURFACE), separated from the
  * chat by the shell's soft SHADOW, not a hairline.
  * Width: automatic clamp(320, viewport - 1024, 560) until dragged from the left edge; the dragged width is remembered
  * per browser and a double-click on the edge goes back to automatic.
  */
 
-export type SideTab = 'settings' | 'code' | 'history' | 'needs'
+export type SideTab = 'settings' | 'code' | 'needs'
 
 export const SIDE_TABS: { id: SideTab; label: string }[] = [
     { id: 'settings', label: 'Settings' },
     { id: 'code', label: 'Code' },
-    { id: 'history', label: 'History' },
     { id: 'needs', label: 'Needs you' },
 ]
 

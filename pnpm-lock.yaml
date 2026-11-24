@@ -9,6 +9,7 @@ overrides:
   react-dom: 19.3.1
   '@radix-ui/react-slot@<1.2.4': 1.2.4
   zod@^4: 4.6.7
+  recharts: 3.11.0
 
 patchedDependencies:
   next@16.4.6:
@@ -40,6 +41,12 @@ importers:
       '@repo/billing':
         specifier: workspace:*
         version: link:../../packages/billing
+      '@repo/boli':
+        specifier: workspace:*
+        version: link:../../packages/boli
+      '@repo/brand':
+        specifier: workspace:*
+        version: link:../../packages/brand
       '@repo/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -101,7 +108,7 @@ importers:
         specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
       recharts:
-        specifier: ^3.11.0
+        specifier: 3.11.0
         version: 3.11.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react-is@18.3.1)(react@19.3.1)(redux@5.0.1)
       tailwindcss:
         specifier: ^4.3.5
@@ -209,6 +216,21 @@ importers:
       '@tanstack/react-table':
         specifier: ^9.3.1
         version: 9.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@tiptap/extension-link':
+        specifier: ^3.23.5
+        version: 3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6)
+      '@tiptap/extension-underline':
+        specifier: ^3.23.5
+        version: 3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))
+      '@tiptap/pm':
+        specifier: ^3.23.5
+        version: 3.23.6
+      '@tiptap/react':
+        specifier: ^3.23.5
+        version: 3.23.6(@floating-ui/dom@1.8.0)(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@tiptap/starter-kit':
+        specifier: ^3.23.5
+        version: 3.23.6
       framer-motion:
         specifier: ^12.23.26
         version: 12.23.26(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -231,7 +253,7 @@ importers:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.3.0)(react@19.3.1)
       recharts:
-        specifier: ^3.11.0
+        specifier: 3.11.0
         version: 3.11.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react-is@18.3.1)(react@19.3.1)(redux@5.0.1)
       remark-gfm:
         specifier: ^4.0.1
@@ -242,6 +264,9 @@ importers:
       tailwindcss:
         specifier: ^4.3.5
         version: 4.3.5
+      uqr:
+        specifier: 0.1.3
+        version: 0.1.3
       zod:
         specifier: 4.6.7
         version: 4.6.7
@@ -1094,8 +1119,8 @@ importers:
         specifier: 16.4.6
         version: 16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       recharts:
-        specifier: ^3.6.0
-        version: 3.10.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react-is@18.3.1)(react@19.3.1)(redux@5.0.1)
+        specifier: 3.11.0
+        version: 3.11.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react-is@18.3.1)(react@19.3.1)(redux@5.0.1)
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -6708,14 +6733,6 @@ packages:
     resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
     engines: {node: '>= 14.18.0'}
 
-  recharts@3.10.1:
-    resolution: {integrity: sha512-QXFrvt6IVcw7eeZCoyXTwkIJAX3Dv1nyVhMicXJ47GsGDDpcN8z6o644DibE9XjpBTThtsomLKnTV6lc+cVFUA==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      react: 19.3.1
-      react-dom: 19.3.1
-      react-is: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-
   recharts@3.11.0:
     resolution: {integrity: sha512-Hs7vXskAYl82TKKkeikPxMFOaOqVJBoqxay6a4Oj+sBURVorpSKk8J732vyNsmedxK08lpPhyj2GL4E6ZMHR6Q==}
     engines: {node: '>=18'}
@@ -7225,6 +7242,9 @@ packages:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
     engines: {node: '>= 0.8'}
 
+  uqr@0.1.3:
+    resolution: {integrity: sha512-0rjE8iEJe4YmT9TOhwsZtqCMRLc5DXZUI2UEYUUg63ikBkqqE5EYWaI0etFe/5KUcmcYwLih2RND1kq+hrUJXA==}
+
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
@@ -7250,11 +7270,6 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
-
-  use-sync-external-store@1.6.0:
-    resolution: {integrity: sha512-Pp6GSwGP/NrPIrxVFAIkOQeyw8lFenOHijQWkUTrDvrF4ALqylP2C/KCkeS9dpUM3KvYRQhna5vt7IL95+ZQ9w==}
-    peerDependencies:
-      react: 19.3.1
 
   use-sync-external-store@1.7.0:
     resolution: {integrity: sha512-6L+EeigHMQhdaIPNIFUKwfWJSwWFQ8gJbJ2DLOs5sDIegTwR9fRxvnM3uciHKjIZhFz+KAv2emhWMRvDmMcY8A==}
@@ -10155,7 +10170,7 @@ snapshots:
   '@radix-ui/react-use-is-hydrated@0.1.0(@types/react@19.3.0)(react@19.3.1)':
     dependencies:
       react: 19.3.1
-      use-sync-external-store: 1.6.0(react@19.3.1)
+      use-sync-external-store: 1.7.0(react@19.3.1)
     optionalDependencies:
       '@types/react': 19.3.0
 
@@ -10246,7 +10261,7 @@ snapshots:
       immer: 11.2.9
       redux: 5.0.1
       redux-thunk: 3.1.0(redux@5.0.1)
-      reselect: 5.2.0
+      reselect: 5.3.0
     optionalDependencies:
       react: 19.3.1
       react-redux: 9.3.0(@types/react@19.3.0)(react@19.3.1)(redux@5.0.1)
@@ -10702,7 +10717,7 @@ snapshots:
 
   '@tiptap/extension-bubble-menu@3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6)':
     dependencies:
-      '@floating-ui/dom': 1.7.4
+      '@floating-ui/dom': 1.8.0
       '@tiptap/core': 3.23.6(@tiptap/pm@3.23.6)
       '@tiptap/pm': 3.23.6
     optional: true
@@ -10825,7 +10840,7 @@ snapshots:
       fast-equals: 5.4.0
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
-      use-sync-external-store: 1.6.0(react@19.3.1)
+      use-sync-external-store: 1.7.0(react@19.3.1)
     optionalDependencies:
       '@tiptap/extension-bubble-menu': 3.23.6(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6)
       '@tiptap/extension-floating-menu': 3.23.6(@floating-ui/dom@1.8.0)(@tiptap/core@3.23.6(@tiptap/pm@3.23.6))(@tiptap/pm@3.23.6)
@@ -13662,7 +13677,7 @@ snapshots:
     dependencies:
       '@types/use-sync-external-store': 0.0.6
       react: 19.3.1
-      use-sync-external-store: 1.6.0(react@19.3.1)
+      use-sync-external-store: 1.7.0(react@19.3.1)
     optionalDependencies:
       '@types/react': 19.3.0
       redux: 5.0.1
@@ -13698,26 +13713,6 @@ snapshots:
 
   readdirp@4.1.2:
     optional: true
-
-  recharts@3.10.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react-is@18.3.1)(react@19.3.1)(redux@5.0.1):
-    dependencies:
-      '@reduxjs/toolkit': 2.13.0(react-redux@9.3.0(@types/react@19.3.0)(react@19.3.1)(redux@5.0.1))(react@19.3.1)
-      clsx: 2.1.1
-      decimal.js-light: 2.5.1
-      es-toolkit: 1.53.0
-      eventemitter3: 5.0.4
-      immer: 11.2.9
-      react: 19.3.1
-      react-dom: 19.3.1(react@19.3.1)
-      react-is: 18.3.1
-      react-redux: 9.3.0(@types/react@19.3.0)(react@19.3.1)(redux@5.0.1)
-      reselect: 5.2.0
-      tiny-invariant: 1.3.3
-      use-sync-external-store: 1.6.0(react@19.3.1)
-      victory-vendor: 37.3.6
-    transitivePeerDependencies:
-      - '@types/react'
-      - redux
 
   recharts@3.11.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react-is@18.3.1)(react@19.3.1)(redux@5.0.1):
     dependencies:
@@ -14379,6 +14374,8 @@ snapshots:
 
   unpipe@1.0.0: {}
 
+  uqr@0.1.3: {}
+
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
@@ -14399,10 +14396,6 @@ snapshots:
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 19.3.0
-
-  use-sync-external-store@1.6.0(react@19.3.1):
-    dependencies:
-      react: 19.3.1
 
   use-sync-external-store@1.7.0(react@19.3.1):
     dependencies:

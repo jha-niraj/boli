@@ -1,7 +1,7 @@
 import "server-only"
 import { db } from "@repo/db"
 import { inferenceRequest } from "@repo/db/schema"
-import { accountForUser, appliedBalance, balanceMicroForUser, creditsEnforced, grantWelcome, ledgerEntrySql } from "@repo/billing"
+import { accountForWorkspace, appliedBalance, balanceMicroForWorkspace, creditsEnforced, grantWelcome, ledgerEntrySql, workspaceHasCredits } from "@repo/billing"
 import { costMicro, CREDIT_PACKS, MICRO_PER_CREDIT, modelById, WELCOME_CREDITS } from "@repo/boli"
 import {
     CREDIT_PACKS as BILLING_PACKS, findPack, PAISA_PER_CREDIT, WELCOME_CREDITS as BILLING_WELCOME_CREDITS, MICRO_PER_CREDIT as BILLING_MICRO_PER_CREDIT,
@@ -10,6 +10,8 @@ import {
 /**
  * Credits for Kura and the API, in integer micro-credits (1 credit = Rs 1 = 1,000,000). Money moves INLINE, never in
  * after(): a charge is one db.batch (one round trip, one transaction on Neon HTTP) and is idempotent on the request id.
+ * Credits belong to a WORKSPACE (plan/main/jawaf/jawaf-v1.md): every read and charge here takes the workspace id - the
+ * current one for Kura (lib/workspace.ts), the key's own for the API.
  */
 
 if (WELCOME_CREDITS !== BILLING_WELCOME_CREDITS || MICRO_PER_CREDIT !== BILLING_MICRO_PER_CREDIT) {
@@ -29,7 +31,10 @@ if (
 
 export type ChargeInput = {
     id?: string
+    /** Who made the call (kept on the row for history). */
     userId: string
+    /** The workspace charged. */
+    workspaceId: string
     apiKeyId?: string | null
     source: "kura" | "api"
     model: string
@@ -44,21 +49,21 @@ export type ChargeInput = {
     errorCode?: string | null
 }
 
-/** The balance in micro-credits; no account yet = 0 (a read never creates one). */
-export async function getBalanceMicro(userId: string): Promise<number> {
-    return balanceMicroForUser(userId)
+/** A workspace's balance in micro-credits; no account yet = 0 (a read never creates one). */
+export async function getBalanceMicro(workspaceId: string): Promise<number> {
+    return balanceMicroForWorkspace(workspaceId)
 }
 
 /**
  * Whether the person may START a model call: true when CREDITS_ENFORCED is off, else balance > 0. A call already
  * running always finishes and is charged, so a balance can end slightly below zero.
  */
-export async function hasBalance(userId: string): Promise<boolean> {
+export async function hasBalance(workspaceId: string): Promise<boolean> {
     if (!creditsEnforced()) return true
-    return (await balanceMicroForUser(userId)) > 0
+    return workspaceHasCredits(workspaceId)
 }
 
-/** The one-time welcome grant (WELCOME_CREDITS, key `welcome:<accountId>`). Safe to call any number of times. */
+/** The one-time welcome grant (WELCOME_CREDITS, key `welcome:<accountId>`) on the person's PERSONAL workspace. Idempotent. */
 export async function grantWelcomeCredits(userId: string): Promise<{ applied: boolean }> {
     const r = await grantWelcome(userId)
     return { applied: r.applied }
@@ -78,11 +83,12 @@ export async function chargeInference(row: ChargeInput): Promise<{ requestId: st
     const outputTokens = whole(row.outputTokens)
     const model = modelById(row.model)
     const cost = row.status === "ok" && model ? costMicro(model, inputTokens, outputTokens) : 0
-    const account = await accountForUser(row.userId)
+    const account = await accountForWorkspace(row.workspaceId)
 
     const insertRow = db.insert(inferenceRequest).values({
         id: requestId,
         userId: row.userId,
+        workspaceId: row.workspaceId,
         apiKeyId: row.apiKeyId ?? null,
         source: row.source,
         model: row.model,
@@ -113,5 +119,5 @@ export async function chargeInference(row: ChargeInput): Promise<{ requestId: st
         })),
     ])
     const after = appliedBalance(ledger)
-    return { requestId, costMicro: cost, balanceMicro: after ?? (await balanceMicroForUser(row.userId)) }
+    return { requestId, costMicro: cost, balanceMicro: after ?? (await balanceMicroForWorkspace(row.workspaceId)) }
 }

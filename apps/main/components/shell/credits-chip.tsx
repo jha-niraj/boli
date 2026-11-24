@@ -96,3 +96,47 @@ export function CreditsRow({ className }: { className?: string }) {
         </div>
     )
 }
+
+/**
+ * The product rail's credits row (plan/main/jawaf/jawaf-v1.md: "credits pill + account at the bottom"). Drawn on the
+ * rail's fixed inner width with the coin in the first 40px, so the collapsed rail shows the coin alone and the hovered
+ * rail reveals "Credits 99.96" (-> Billing) and an "Add" pill (-> Billing > Plans). Out of credits it turns crimson.
+ */
+export function RailCreditsRow({ className }: { className?: string }) {
+    const { data } = useBalance()
+    const value = data !== undefined ? formatCredits(data) : null
+    const low = data !== undefined && data <= 0
+    return (
+        <div
+            className={cn(
+                "flex h-10 min-w-0 items-center gap-1 rounded-xl pr-1.5 text-sm",
+                low ? "bg-boli-crimson-soft text-boli-crimson-ink dark:bg-boli-crimson/15 dark:text-red-300" : "text-neutral-600 dark:text-neutral-400",
+                className,
+            )}
+        >
+            <AppLink
+                href={ROUTES.billing}
+                aria-label={value !== null ? `${value} credits - open Billing` : "Credits - open Billing"}
+                className={cn(
+                    "flex h-10 min-w-0 flex-1 cursor-pointer items-center gap-1 rounded-xl pr-1 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-neutral-400",
+                    !low && "hover:bg-neutral-950/[0.04] hover:text-neutral-900 dark:hover:bg-white/[0.05] dark:hover:text-white",
+                )}
+            >
+                <span className="relative flex size-10 shrink-0 items-center justify-center">
+                    <Coins aria-hidden className="size-[18px]" />
+                    {low ? <span aria-hidden className="absolute right-2 top-2 size-2 rounded-full bg-boli-crimson" /> : null}
+                </span>
+                <span className="shrink-0">{low ? "Out of credits" : "Credits"}</span>
+                <span className="ml-auto min-w-0 truncate font-semibold tabular-nums text-neutral-900 dark:text-white">
+                    {value ?? <span className="inline-block h-2 w-10 animate-pulse rounded-full bg-current opacity-20" />}
+                </span>
+            </AppLink>
+            <AppLink
+                href={`${ROUTES.billing}?tab=plans`}
+                className="shrink-0 cursor-pointer rounded-full bg-neutral-900 px-2.5 py-1 text-xs font-medium text-white outline-none transition-colors hover:bg-neutral-700 focus-visible:ring-2 focus-visible:ring-neutral-400 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+            >
+                Add
+            </AppLink>
+        </div>
+    )
+}

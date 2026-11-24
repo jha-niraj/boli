@@ -2,11 +2,12 @@
 
 /**
  * API keys: create (the full key is returned ONCE, here, and never again), list, revoke. Every export checks the
- * session itself and returns ActionResult. The key logic (hashing, the MAX_API_KEYS limit) lives in lib/platform/keys.ts.
+ * session itself and returns ActionResult. Keys belong to the CURRENT workspace and need its API access. The key logic (hashing, the MAX_API_KEYS limit) lives in lib/platform/keys.ts.
  */
 import { requireSession } from "@repo/auth/next"
 import { fail, failWith, ok, type ActionResult } from "@repo/errors"
 import { createApiKey, listApiKeys, revokeApiKey } from "@/lib/platform/keys"
+import { requireWorkspaceAccess } from "@/lib/workspace"
 import { createKeySchema, keyIdSchema, type CreateKeyInput } from "@/schemas/keys"
 import type { ApiKeyRow, CreatedApiKey } from "@/types/platform"
 
@@ -17,8 +18,9 @@ function iso(d: Date | string | null | undefined): string | null {
 
 export async function getApiKeys(): Promise<ActionResult<ApiKeyRow[]>> {
     try {
-        const session = await requireSession()
-        const rows = await listApiKeys(session.user.id)
+        await requireSession()
+        const ws = await requireWorkspaceAccess("api")
+        const rows = await listApiKeys(ws.id)
         return ok(rows.map((k) => ({
             id: k.id,
             name: k.name,
@@ -37,7 +39,8 @@ export async function createKey(input: CreateKeyInput): Promise<ActionResult<Cre
         const session = await requireSession({ fresh: true })
         const parsed = createKeySchema.safeParse(input)
         if (!parsed.success) return failWith("validation", parsed.error.issues[0]?.message ?? "Give the key a name.")
-        const created = await createApiKey(session.user.id, parsed.data.name)
+        const ws = await requireWorkspaceAccess("api")
+        const created = await createApiKey(ws.id, session.user.id, parsed.data.name)
         return ok({ id: created.id, key: created.key, prefix: created.prefix, createdAt: iso(created.createdAt) ?? "" })
     } catch (err) {
         return fail(err, "keys.create")
@@ -46,10 +49,11 @@ export async function createKey(input: CreateKeyInput): Promise<ActionResult<Cre
 
 export async function revokeKey(id: string): Promise<ActionResult<{ id: string }>> {
     try {
-        const session = await requireSession({ fresh: true })
+        await requireSession({ fresh: true })
         const parsed = keyIdSchema.safeParse(id)
         if (!parsed.success) return failWith("validation", "That key could not be found.")
-        await revokeApiKey(session.user.id, parsed.data)
+        const ws = await requireWorkspaceAccess("api")
+        await revokeApiKey(ws.id, parsed.data)
         return ok({ id: parsed.data })
     } catch (err) {
         return fail(err, "keys.revoke")

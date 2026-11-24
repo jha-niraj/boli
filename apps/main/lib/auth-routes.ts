@@ -7,8 +7,8 @@ export const AUTH_ROUTES = {
     verifyEmail: '/verifyemail',
     forgotPassword: '/forgotpassword',
     resetPassword: '/resetpassword',
-    /** Where a signed-in person lands by default. */
-    home: '/kura',
+    /** Where a signed-in person lands by default: `/`, which middleware.ts sends to the last product (or /start). */
+    home: '/',
     terms: WEB.terms,
     privacy: WEB.privacy,
 } as const

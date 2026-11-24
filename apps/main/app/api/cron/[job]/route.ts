@@ -4,11 +4,12 @@
 import { renewalRemindersJob } from '@repo/billing'
 import { BUILT_IN_JOBS, authorizeCronRequest, isCronSlot, runCronSlot, type CronJob } from '@repo/cron'
 import { ok } from '@repo/errors'
+import { jawafJobsCron } from '@/lib/jawaf/cron'
 
 export const dynamic = 'force-dynamic'
 
 /** Every job this app runs. Add yours here (defineCronJob from @repo/cron). */
-const JOBS: readonly CronJob[] = [...BUILT_IN_JOBS, renewalRemindersJob]
+const JOBS: readonly CronJob[] = [...BUILT_IN_JOBS, renewalRemindersJob, jawafJobsCron]
 
 export async function POST(request: Request, { params }: { params: Promise<{ job: string }> }): Promise<Response> {
     if (!authorizeCronRequest(request)) {

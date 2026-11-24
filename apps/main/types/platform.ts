@@ -3,6 +3,8 @@
  * credit amount is integer MICRO-credits (display with `formatCredits` from lib/boli.ts).
  */
 
+import type { PaymentView } from "@repo/billing"
+
 export type UsageSource = "kura" | "api"
 export type UsageSourceFilter = "all" | UsageSource
 export type UsageWindow = "7d" | "30d" | "90d"
@@ -152,6 +154,13 @@ export interface BillingPaymentRow {
     credits: number | null
     amountMinor: number
     currency: string
+}
+
+/** One payment as the result card (on /checkout/<id> or in the billing sheet) shows it. */
+export interface PaymentDetail {
+    payment: PaymentView
+    /** The gateway charged a different amount than the order, so nothing was applied. */
+    mismatch: boolean
 }
 
 export interface BillingData {

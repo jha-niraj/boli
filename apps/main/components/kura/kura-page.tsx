@@ -1,14 +1,15 @@
 'use client'
 
-import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { MessagesSquare, PanelRightClose, PanelRightOpen, Plus, SlidersHorizontal } from 'lucide-react'
 import { Page, type PageAction } from '@repo/ui/components/ui/page'
+import { useShellNav } from '@repo/ui/components/shell/shell-context'
 import { ScrollArea } from '@repo/ui/components/ui/scroll-area'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@repo/ui/components/ui/sheet'
 import { cn } from '@repo/ui/lib/utils'
 import { KURA } from '@repo/boli'
 import { ROUTES } from '@/lib/navigation'
-import type { ConversationRow, ConversationView, NeedsYouList } from '@/lib/ai/types'
+import type { ConversationView, NeedsYouList } from '@/lib/ai/types'
 import { useKuraChat } from '@/stores/kura-chat.store'
 import { ChatFrame } from './chat-frame'
 import { KuraWelcome } from './kura-welcome'
@@ -18,7 +19,7 @@ import { KuraNote } from './kura-states'
 import { SettingsPanel } from './settings-panel'
 import { CodePanel } from './code-panel'
 import { SideBodiesView, SideColumn, SideTabsStrip, type SideBodies, type SideTab } from './side-column'
-import { HistoryFromPromise, HistorySkeleton } from './history-panel'
+import { useKuraBridge } from './kura-bridge'
 import { NeedsYouFromPromise, NeedsYouSkeleton } from './needs-you'
 import { TranscriptSkeleton } from './kura-skeleton'
 import { CHAT_AREA, CHAT_COLUMN, CHAT_COLUMN_STYLE, CHAT_GUTTER, CHAT_PAGE_CLASS } from './query-keys'
@@ -31,7 +32,8 @@ import { useKuraSettings } from './use-kura-settings'
  *   wide (lg+):  [ chat area [ column between two lines: header, rule, welcome | transcript, note, composer ] ][ right column ]
  *   below lg:    the chat alone; the right column's tabs open in a sheet
  *
- * The right column holds the tabs Settings | Code | History | Needs you. Every message goes through the ONE `send`
+ * The right column holds the tabs Settings | Code | Needs you. The chat HISTORY lives in the product sidebar (the shell,
+ * kura-sidebar.tsx): its rows open a chat in place here through kura-bridge.ts. Every message goes through the ONE `send`
  * (use-kura-chat.ts) with the conversation's current settings; the Think pill in the composer is `settings.think`.
  */
 
@@ -51,11 +53,9 @@ function useIsWide(): boolean {
 
 export function KuraPage({
     initialConversation,
-    historyPromise,
     needsYouPromise,
 }: {
     initialConversation: ConversationView | null
-    historyPromise: Promise<ConversationRow[]>
     needsYouPromise: Promise<NeedsYouList>
 }) {
     const isWide = useIsWide()
@@ -182,44 +182,44 @@ export function KuraPage({
         else setSheetOpen(true)
     }, [isWide, setColumn])
 
-    const selectConversation = useCallback((id: string) => {
-        setSheetOpen(false)
-        openConversation(id).catch(() => undefined)
-    }, [openConversation])
-    const onDeleted = useCallback((id: string) => {
-        if (useKuraChat.getState().conversationId === id) newChat()
-    }, [newChat])
     const startNew = useCallback(() => {
         newChat()
         setDraft('')
         requestAnimationFrame(() => composerRef.current?.focus())
     }, [newChat])
 
+    // The sidebar's history rows and its New chat act here while this page is mounted (kura-bridge.ts).
+    const bridge = useMemo(() => ({
+        open: (id: string) => {
+            setSheetOpen(false)
+            if (useKuraChat.getState().conversationId === id) return
+            openConversation(id).catch(() => undefined)
+        },
+        newChat: startNew,
+    }), [openConversation, startNew])
+    useKuraBridge(bridge)
+    // Phone: History is in the shell's navigation sheet (the product sidebar), opened from the header.
+    const shellNav = useShellNav()
+
     // Header icons, one family and weight (owner, 2026-11-24: the old set looked mismatched). The panel toggle is drawn
-    // from its state (open shows "close", closed shows "open"); History is the stack of conversations; New chat a plus.
+    // from its state (open shows "close", closed shows "open"); New chat a plus. On wide screens History is the sidebar.
     const icon = 'h-[15px] w-[15px]'
     const stroke = 1.75
     const actions: PageAction[] = isWide
         ? [
-            { key: 'history', label: 'History', icon: <MessagesSquare className={icon} strokeWidth={stroke} />, variant: 'ghost', onClick: () => showTab('history') },
             { key: 'new', label: 'New chat', icon: <Plus className={icon} strokeWidth={stroke} />, primary: true, variant: 'outline', onClick: startNew },
             // Icon only, last (owner, 2026-11-24): it sits at the edge next to the column it opens and closes.
             { key: 'side', label: columnOpen ? 'Hide side panel' : 'Show side panel', icon: columnOpen ? <PanelRightClose className={icon} strokeWidth={stroke} /> : <PanelRightOpen className={icon} strokeWidth={stroke} />, variant: 'ghost', iconOnly: true, onClick: () => setColumn(!columnOpen) },
         ]
         : [
             { key: 'settings', label: 'Settings and code', icon: <SlidersHorizontal className={icon} strokeWidth={stroke} />, variant: 'ghost', onClick: () => showTab('settings') },
-            { key: 'history', label: 'History', icon: <MessagesSquare className={icon} strokeWidth={stroke} />, variant: 'ghost', onClick: () => showTab('history') },
+            { key: 'history', label: 'History', icon: <MessagesSquare className={icon} strokeWidth={stroke} />, variant: 'ghost', onClick: shellNav.openNav },
             { key: 'new', label: 'New chat', icon: <Plus className={icon} strokeWidth={stroke} />, primary: true, variant: 'outline', onClick: startNew },
         ]
 
     const bodies: SideBodies = {
         settings: <SettingsPanel />,
         code: <CodePanel draft={draft} />,
-        history: (
-            <Suspense fallback={<HistorySkeleton />}>
-                <HistoryFromPromise promise={historyPromise} currentId={conversationId} onSelect={selectConversation} onDeleted={onDeleted} />
-            </Suspense>
-        ),
         needs: (
             <Suspense fallback={<NeedsYouSkeleton />}>
                 <NeedsYouFromPromise promise={needsYouPromise} />
@@ -278,7 +278,7 @@ export function KuraPage({
                 <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                     <SheetContent side="right" resizable={false} className="flex h-[100dvh] w-full flex-col gap-0 p-0 sm:max-w-md">
                         <SheetTitle className="sr-only">Kura side panel</SheetTitle>
-                        <SheetDescription className="sr-only">Settings, code, history and what needs you</SheetDescription>
+                        <SheetDescription className="sr-only">Settings, code and what needs you</SheetDescription>
                         <div className="flex min-h-12 shrink-0 items-center border-b border-neutral-200 px-3 pr-12 dark:border-neutral-800">
                             <SideTabsStrip tab={tab} onTab={setTab} />
                         </div>
