@@ -1,7 +1,7 @@
 import { ProductCards } from "@/components/public/product-cards"
 import { Band, Kicker, SectionTitle } from "@/components/public/section"
 
-/** PC3: one open model and the ways in - live now, Document intelligence next, Speech later. */
+/** PC3: one open model and the ways in - Kura and the API live, Jawaf in pilot, Document AI and Speech soon. */
 export function Products() {
     return (
         <Band id="products" tone="white" labelledBy="products-title">

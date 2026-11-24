@@ -1,33 +1,43 @@
-import { AudioLines, BookOpen, Boxes, Braces, Briefcase, Coins, Compass, FileText, History, Mail, MessagesSquare, Mountain, Newspaper, Rocket, SquareTerminal, type LucideIcon } from "lucide-react"
+import { AudioLines, BookOpen, Boxes, Braces, Briefcase, Coins, Compass, FileText, History, Mail, MessageCircleQuestionMark, MessagesSquare, Mountain, Newspaper, Rocket, SquareTerminal, type LucideIcon } from "lucide-react"
 import { KURA } from "@repo/boli"
 import { ROUTES } from "@/lib/routes"
-import { KURA_URL } from "@/lib/app-links"
 
 /**
- * The public nav and footer links - one list, so the mega menu, the phone menu and the footer never disagree. Kura is in
- * the app (an absolute URL); render these with SiteLink. An item without `href` is shown but not linked ("Later").
+ * The public nav and footer links - one list, so the mega menu, the phone menu and the footer never disagree. Kura and
+ * Jawaf link to their own pages (/kura, /jawaf); any app link is absolute (lib/app-links.ts), so render these with SiteLink. An item without `href` is shown but not linked ("Later").
+ * Badges: "Pilot" = being tried with a few businesses (Jawaf), "Soon" = a product on the roadmap, "Later" = not yet.
  */
 export type NavItem = {
     label: string
     subtitle: string
     icon: LucideIcon
     href?: string
-    badge?: "Next" | "Later"
+    badge?: NavBadge
+}
+
+export type NavBadge = "Pilot" | "Soon" | "Later"
+
+/** Pilot reads as an outlined pill (something you can join); Soon and Later are quiet sand. */
+export function navBadgeTone(badge: NavBadge): "outline" | "neutral" {
+    return badge === "Pilot" ? "outline" : "neutral"
 }
 
 export type NavGroupId = "products" | "developers" | "resources" | "company"
-export type NavGroup = { id: NavGroupId; label: string; items: readonly NavItem[] }
+/** `more` is one quiet link under a group's items ("All products"). */
+export type NavGroup = { id: NavGroupId; label: string; items: readonly NavItem[]; more?: { label: string; href: string } }
 
 export const NAV_GROUPS: readonly NavGroup[] = [
     {
         id: "products",
         label: "Products",
         items: [
-            { label: KURA.name, subtitle: "Chat in Nepali, English or both", icon: MessagesSquare, href: KURA_URL },
-            { label: "Chat API", subtitle: "OpenAI-compatible, priced in rupees", icon: SquareTerminal, href: ROUTES.doc("quickstart") },
-            { label: "Document intelligence", subtitle: "Read bills, forms and notices", icon: FileText, href: ROUTES.modelsRoadmap, badge: "Next" },
-            { label: "Speech", subtitle: "Talk and listen in Nepali", icon: AudioLines, href: ROUTES.modelsRoadmap, badge: "Later" },
+            { label: KURA.name, subtitle: "Chat in Nepali, English or both", icon: MessagesSquare, href: ROUTES.kura },
+            { label: "API", subtitle: "OpenAI-compatible, priced in rupees", icon: SquareTerminal, href: ROUTES.doc("quickstart") },
+            { label: "Jawaf", subtitle: "Answers your customers, day and night", icon: MessageCircleQuestionMark, href: ROUTES.jawaf, badge: "Pilot" },
+            { label: "Kagaj", subtitle: "Reads bills, forms and notices", icon: FileText, href: ROUTES.modelsRoadmap, badge: "Later" },
+            { label: "Swar", subtitle: "Talk and listen in Nepali", icon: AudioLines, href: ROUTES.modelsRoadmap, badge: "Later" },
         ],
+        more: { label: "All products", href: ROUTES.products },
     },
     {
         id: "developers",
@@ -64,7 +74,9 @@ export const FOOTER_COLUMNS = [
     {
         title: "Product",
         links: [
-            { label: KURA.name, href: KURA_URL },
+            { label: "All products", href: ROUTES.products },
+            { label: KURA.name, href: ROUTES.kura },
+            { label: "Jawaf", href: ROUTES.jawaf },
             { label: "API", href: ROUTES.doc("quickstart") },
             { label: "Models", href: ROUTES.models },
             { label: "Pricing", href: ROUTES.pricing },

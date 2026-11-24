@@ -5,7 +5,7 @@ import { z } from 'zod'
  * defined in the 'use server' file (a non-function export empties that module at build).
  */
 /** Topic choices on /contact (owner, 2026-11-24). Stored as plain text, so older rows keep their old labels. */
-export const CONTACT_TOPICS = ['API', 'Billing', 'Enterprise', 'Partnership', 'Press', 'Other'] as const
+export const CONTACT_TOPICS = ['API', 'Jawaf', 'Billing', 'Enterprise', 'Partnership', 'Press', 'Other'] as const
 export type ContactTopic = (typeof CONTACT_TOPICS)[number]
 
 export const CONTACT_NAME_MAX = 120

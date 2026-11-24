@@ -1,6 +1,6 @@
 # apps/web - Boli's public site (bolihq.com)
 
-The public site: landing `/`, `/about`, `/contact`, `/docs` (+ `/docs/*`), `/terms`, `/privacy`, `/blog`, `/models`,
+The public site: landing `/`, `/products` (+ the product pages `/kura` and `/jawaf` at the top level), `/about`, `/contact`, `/docs` (+ `/docs/*`), `/terms`, `/privacy`, `/blog`, `/models`,
 `/guides`, `/changelog`, and `/design` (dev only, 404 in production). Next 16.4.6 + React 19 + Tailwind 4, built with
 webpack, deployed as its own Cloudflare Worker through OpenNext. Port **3102**. The product (sign-in, sign-up,
 onboarding, Kura, keys, billing and the `/v1` API) is `apps/main` at **app.bolihq.com** - this site only links to it.
@@ -45,6 +45,20 @@ The app is on ANOTHER origin, so its paths (`/signin`, `/kura`, `/billing`) do n
 - Controls from `@repo/ui` / `@repo/brand`, never a native `<button>`, `<select>` or `<input>`.
 - Fonts via `next/font/local` (`app/fonts.ts`, woff2 committed), never `next/font/google`.
 
+## Every public page matches the landing (owner, 2026-11-25)
+
+Every public page is top-notch and matches the landing page: a full-screen hero for landing-type pages, pixel art,
+Dhaka bands, sky gradients, the landing's section rhythm. Show, don't tell - each section is an eyebrow + a heading + at
+most two short lines + a visual. Reuse the landing components. **A page that is mostly paragraphs is not done.**
+- Full-screen hero: `ProductHero` (`components/public/product-hero.tsx`) - the landing hero's composition with a wide
+  pixel scene along the bottom (a phone crop below sm) and a Dhaka band on its edge. `PageHero` is for inner pages
+  (docs, legal, about chapters).
+- Rhythm: `Band` alternating white / ground, `DhakaBand` between the big movements (the band after it takes
+  `border-t-0`), `CtaBand` (with `tone`) to close, `FaqSection` for questions. Long facts go in the FAQ, not in cards.
+- Visuals before words: an animated slice (`product-slices`, `LanguageExchanges`), a pixel vignette or scene
+  (`@repo/brand/art`), a mock UI card, a numbered step strip with pixel icons (`PixelIcon`, `pixel-icon-sprites.ts`).
+  Mock-ups are examples, drawn with divs and spans (never controls), and never show invented customers or reviews.
+
 ## Content
 
 Blog, Guides, Changelog and Models pages are MDX and typed data under `content/`. How to add a post, a guide or a
@@ -63,10 +77,10 @@ Learned from gurukulhq's apps/web (its lib/schema.ts, content/active-posts.ts, m
   (blog pages: `BLOG_FEED`; changelog: `CHANGELOG_FEED`). A new page goes into `app/sitemap.ts`.
 - **OG images are files** (`opengraph-image.tsx` + `lib/og.tsx`, Boli's card with a pixel cover): the root one, and
   their own for /blog, /blog/[slug], /blog/topics, /blog/topics/[topic], /guides, /guides/[slug], /changelog,
-  /models, /models/boli-chat. A new index page gets its own card.
+  /models, /models/boli-chat, /products, /kura, /jawaf. A new index page gets its own card.
 - **JSON-LD only through `lib/schema.ts`** (rendered with `<JsonLd>`): Organization + WebSite once from the root
   layout, everything else references them by @id. `areaServed` is an array so a market is appended, never replaced.
-  - The product is **`Service`** (`apiServiceSchema`, `kuraServiceSchema`; offers in NPR from `@repo/boli`), **never
+  - The product is **`Service`** (`apiServiceSchema`, `kuraServiceSchema`; offers in NPR from `@repo/boli`; Jawaf gets none while it is a pilot), **never
     `SoftwareApplication`**: Google validates that as a Software App rich result needing aggregateRating or review, and
     a made-up rating is a spam-policy violation (gurukulhq measured the errors and switched). Only with real,
     verifiable reviews: switch back AND add the genuine rating in the same change.

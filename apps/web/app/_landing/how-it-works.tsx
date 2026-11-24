@@ -5,7 +5,7 @@ import { StepsPanels } from "@/components/public/steps-panels"
 /** PS2, later on the page with its own story: how Boli works for a developer, sign-up to rupees. */
 export function HowItWorks() {
     return (
-        <Band id="how" labelledBy="how-title">
+        <Band id="how" tone="white" labelledBy="how-title">
             <Kicker>How it works</Kicker>
             <SectionTitle>
                 <span id="how-title">From sign-up to your first answer in a minute</span>

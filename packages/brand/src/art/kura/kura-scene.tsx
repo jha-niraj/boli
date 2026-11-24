@@ -1,17 +1,28 @@
 import type { ArtStyle } from "../frame"
 import { Frames, Pixels, PixelSvg } from "../pixel/pixels"
 import { VALLEY, type ValleyVariant } from "../valley/palette"
-import { KURA_H, KURA_PIGEON, KURA_SCENE, KURA_W } from "./scene"
+import { KURA_BANNER, KURA_H, KURA_PIGEON, KURA_SCENE } from "./scene"
 
 /*
  * K1 v2's pixel scene. Four turns in 16s (elder, student, elder, student); with motion off the first exchange shows.
- * `variant="gold"` is the dusk palette for Kura in dark mode.
+ * `variant="gold"` is the dusk palette for Kura in dark mode. `wide` is the 200 x 48 banner crop (the /kura hero);
+ * `preserve` as in an SVG.
  */
-export function KuraScene({ variant = "day", className }: { variant?: ValleyVariant; className?: string }) {
+export function KuraScene({
+    variant = "day",
+    wide = false,
+    className,
+    preserve,
+}: {
+    variant?: ValleyVariant
+    wide?: boolean
+    className?: string
+    preserve?: string
+}) {
     const palette = VALLEY[variant]
-    const s = KURA_SCENE
+    const s = wide ? KURA_BANNER : KURA_SCENE
     return (
-        <PixelSvg w={KURA_W} h={KURA_H} className={className} label="Pixel illustration: an elder in a Dhaka topi asks a student 'k cha?' by the stupa, and she answers">
+        <PixelSvg w={s.w} h={KURA_H} className={className} preserve={preserve} label="Pixel illustration: an elder in a Dhaka topi asks a student 'k cha?' by the stupa, and she answers">
             <Pixels grid={s.sky} palette={palette} />
             <Pixels grid={s.land} palette={palette} />
             {s.flags.map((f, i) => (

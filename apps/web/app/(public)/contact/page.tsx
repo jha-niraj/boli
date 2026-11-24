@@ -24,7 +24,7 @@ import { ContactForm } from "./_components/contact-form"
 
 export const metadata: Metadata = pageMeta({
     title: "Contact",
-    description: `Write to ${BRAND.name} about the API, billing, Enterprise volumes, a partnership or the press. We reply within 1-2 working days.`,
+    description: `Write to ${BRAND.name} about the API, the Jawaf pilot, billing, Enterprise volumes, a partnership or the press. We reply within 1-2 working days.`,
     path: ROUTES.contact,
 })
 
@@ -45,7 +45,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
                         Write to us. <span className={SKY_TEXT}>We read every message.</span>
                     </>
                 }
-                line="Questions about the API or billing, Enterprise volumes, a partnership, a story - or just an idea for what Boli should do next."
+                line="Questions about the API or billing, the Jawaf pilot for your business, Enterprise volumes, a partnership, a story - or just an idea for what Boli should do next."
                 artAspect={vignetteAspect("contactPasal")}
                 art={<PixelVignette id="contactPasal" />}
             />

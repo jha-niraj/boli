@@ -1,7 +1,7 @@
 import { Grid, spriteGrid } from "../pixel/grid"
 import { cord, disc, paintCourtyard, paintHills, paintRange, paintSky, type Peak } from "../pixel/scenery"
 import { measure, write } from "../valley/font"
-import { type Bubble, bubble, CHAR3, counter, DEVELOPER, ELDER, flag, outlined, type Pair, pagoda, PIGEON, SHOPKEEPER, stallBack, stamp, STUDENT, swap } from "../valley/kit"
+import { type Bubble, bubble, CHAR3, counter, DEVELOPER, ELDER, flag, house, outlined, type Pair, pagoda, PIGEON, SHOPKEEPER, stallBack, stamp, STUDENT, swap } from "../valley/kit"
 
 /*
  * Vignettes (round 4, 2026-11-24): small pixel scenes for the public page heroes, the "Who it's for" portraits and the
@@ -517,6 +517,132 @@ function pasalLetter(): Vignette {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------ */
+/* Jawaf: the pasal answers - a customer asks at the QR stand, the counter answers                                    */
+/* ------------------------------------------------------------------------------------------------------------------ */
+
+/** A QR code on a small wooden stand: three finder squares and a scatter of modules on a white board. */
+function qrStand(): Grid {
+    const g = new Grid(16, 26)
+    g.rect(0, 0, 16, 16, "wood")
+    g.rect(1, 1, 14, 14, "page")
+    for (const [fx, fy] of [
+        [2, 2],
+        [9, 2],
+        [2, 9],
+    ] as const) {
+        g.rect(fx, fy, 5, 5, "line")
+        g.rect(fx + 1, fy + 1, 3, 3, "page")
+        g.set(fx + 2, fy + 2, "line")
+    }
+    for (const [mx, my] of [
+        [9, 9],
+        [11, 9],
+        [13, 10],
+        [10, 11],
+        [12, 12],
+        [9, 13],
+        [11, 13],
+        [13, 13],
+        [8, 8],
+        [8, 4],
+        [4, 8],
+    ] as const)
+        g.set(mx, my, "line")
+    g.rect(7, 16, 2, 8, "woodShade")
+    g.rect(4, 24, 8, 2, "woodShade")
+    return outlined(g, "line")
+}
+
+function jawafCounter(): Vignette {
+    const W = 96
+    const H = 60
+    const g = new Grid(W, H)
+    outdoors(g, 46, [
+        [12, 16, 1, 1],
+        [46, 11, 1, 1],
+        [84, 14, 1, 1],
+    ])
+    const back = stallBack()
+    const sx = 4
+    const sy = H - back.h + 1
+    stamp(g, back, sx, sy)
+    const front = counter("pasal")
+    const cy = H - front.h + 1
+    const qr = qrStand()
+    stamp(g, qr, 54, H - qr.h)
+    return {
+        w: W,
+        h: H,
+        grid: g,
+        label: "Pixel illustration: a student at a QR stand beside a pasal asks when it opens, and the counter answers at once",
+        overlays: [
+            { kind: "frames", pair: SHOPKEEPER, x: sx + 11, y: sy + 6, dur: 4.6, motion: "blink" },
+            { kind: "layer", grid: front, x: sx, y: cy },
+            { kind: "layer", grid: phone(), x: sx + 22, y: cy - 5 },
+            { kind: "frames", pair: STUDENT, x: 74, y: H - 26, dur: 3.8, motion: "blink" },
+            { kind: "frames", pair: PIGEON, x: 44, y: H - 6, dur: 1.6 },
+            { kind: "bubble", b: bubble(["kati baje", "khulcha?"], { side: "bottom", at: 26 }), x: 66, y: 16 },
+            { kind: "bubble", b: bubble(["bihana", "10 baje!"], { side: "left", at: 10 }), x: 33, y: 19 },
+        ],
+    }
+}
+
+/**
+ * The /jawaf hero banner (owner, 2026-11-25): the same pasal moment as `jawafCounter`, opened out to a street - a house
+ * on the left, the pasal with its counter, prayer flags to a pole, the QR stand with the student asking, the pagoda and
+ * the elder on the right. 200 x 60, laid along the bottom of a full-screen hero like the landing's valley banner.
+ */
+function jawafBanner(): Vignette {
+    const W = 200
+    const H = 60
+    const court = 46
+    const g = new Grid(W, H)
+    outdoors(g, court, [
+        [14, 16, 1, 1],
+        [50, 11, 1, 1],
+        [88, 15, 1, 1],
+        [124, 10, 1, 1],
+        [160, 14, 1, 1],
+        [194, 11, 1, 1],
+    ])
+    const home = house(18, 12)
+    stamp(g, home.grid, 6, court - home.grid.h + 1)
+    const pg = pagoda()
+    stamp(g, pg.grid, 158, court - pg.grid.h + 1)
+
+    const back = stallBack()
+    const sx = 40
+    const sy = H - back.h + 1
+    // Prayer flags from the stall's awning to a pole past the QR stand.
+    const flags = cord(g, sx + 34, sy + 1, 150, 30, 3, 3)
+    g.rect(150, 30, 1, court - 30 + 1, "woodShade")
+    g.set(150, 29, "gold")
+    stamp(g, back, sx, sy)
+    const front = counter("pasal")
+    const cy = H - front.h + 1
+    const qr = qrStand()
+    stamp(g, qr, 96, H - qr.h)
+    return {
+        w: W,
+        h: H,
+        grid: g,
+        label: "Pixel illustration: a street with a pasal - a student at the QR stand asks when it opens and the counter answers at once, prayer flags, a pagoda and an elder walking by",
+        overlays: [
+            ...flags.map((f, i) => ({ kind: "frames" as const, pair: flag(f.key), x: f.x, y: f.y, dur: 1.1 + (i % 3) * 0.15, delay: i * 0.17 })),
+            { kind: "frames", pair: SHOPKEEPER, x: sx + 11, y: sy + 6, dur: 4.6, motion: "blink" },
+            { kind: "layer", grid: front, x: sx, y: cy },
+            { kind: "layer", grid: phone(), x: sx + 22, y: cy - 5 },
+            { kind: "frames", pair: STUDENT, x: 116, y: H - 26, dur: 3.8, motion: "blink" },
+            { kind: "frames", pair: ELDER, x: 180, y: feetY(ELDER, H - 1), dur: 0.7 },
+            { kind: "frames", pair: PIGEON, x: 86, y: H - 6, dur: 1.6 },
+            { kind: "frames", pair: PIGEON, x: 142, y: H - 5, dur: 1.9, delay: 0.6 },
+            { kind: "bubble", b: bubble(["kati baje", "khulcha?"], { side: "bottom", at: 26 }), x: 108, y: 16 },
+            { kind: "bubble", b: bubble(["bihana", "10 baje!"], { side: "left", at: 10 }), x: sx + 29, y: 19 },
+        ],
+    }
+}
+
+/* ------------------------------------------------------------------------------------------------------------------ */
 /* Terms and Privacy: the elder with a scroll                                                                         */
 /* ------------------------------------------------------------------------------------------------------------------ */
 
@@ -684,6 +810,10 @@ export const VIGNETTES = {
     docsDesk: developerDesk(96, 60),
     contactPasal: pasalLetter(),
     legalElder: elderScroll(),
+    /** Jawaf on the landing (96 x 60). */
+    jawafCounter: jawafCounter(),
+    /** The /jawaf hero banner (200 x 60). */
+    jawafBanner: jawafBanner(),
     /** About chapters (96 x 60). */
     aboutScorecard: scorecard(),
     aboutBench: testBench(),

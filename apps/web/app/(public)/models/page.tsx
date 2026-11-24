@@ -13,11 +13,11 @@ import { ROUTES } from "@/lib/routes"
 import { breadcrumbSchema, collectionPageSchema } from "@/lib/schema"
 import { pageMeta } from "@/lib/seo"
 
-const DESCRIPTION = `Boli's open models: ${BOLI_CHAT.id} (${BOLI_CHAT.label}) for chat in Nepali, Romanized Nepali and English today; document reading next; speech later.`
+const DESCRIPTION = `Boli's open models: ${BOLI_CHAT.id} (${BOLI_CHAT.label}) for chat in Nepali, Romanized Nepali and English today; document reading and speech soon.`
 
 export const metadata: Metadata = pageMeta({ title: "Models", description: DESCRIPTION, path: ROUTES.models })
 
-type Card = { name: string; stage: "Live" | "Next" | "Later"; line: string; facts: string[]; href?: string; art: CoverId }
+type Card = { name: string; stage: "Live" | "Later"; line: string; facts: string[]; href?: string; art: CoverId }
 
 const CARDS: readonly Card[] = [
     {
@@ -29,14 +29,14 @@ const CARDS: readonly Card[] = [
         art: "aboutBench",
     },
     {
-        name: "Document intelligence",
-        stage: "Next",
+        name: "Kagaj - documents",
+        stage: "Later",
         line: "Read images and PDFs in Nepali, English or both - a scanned bill or a notice becomes text, or fields as JSON.",
         facts: ["Being tested on 39 public government notices", "Printed, scanned and photographed pages", "Open models only"],
         art: "bill",
     },
     {
-        name: "Speech",
+        name: "Swar - speech",
         stage: "Later",
         line: "Talk in Nepali and get text back; hear answers read aloud in a Nepali voice.",
         facts: ["Speech to text", "Text to speech", "Open models only"],
@@ -46,8 +46,8 @@ const CARDS: readonly Card[] = [
 
 const ROADMAP: readonly { stage: string; title: string; line: string; now?: boolean }[] = [
     { stage: "Now", title: "Chat", line: `${KURA.name} and the chat completions API on ${BOLI_CHAT.id}, an open model that reads Romanized Nepali.`, now: true },
-    { stage: "Next", title: "Document intelligence", line: "Read images and PDFs in Nepali, English or both - a scanned bill becomes text, or fields as JSON." },
-    { stage: "Later", title: "Speech", line: "Talk in Nepali and get text back; hear answers read aloud in a Nepali voice." },
+    { stage: "Later", title: "Kagaj - documents", line: "Read images and PDFs in Nepali, English or both - a scanned bill becomes text, or fields as JSON." },
+    { stage: "Later", title: "Swar - speech", line: "Talk in Nepali and get text back; hear answers read aloud in a Nepali voice." },
     { stage: "Later", title: "Fine-tuning and hosting", line: "Your data, an open model tuned on it, and Boli running it for you." },
 ]
 
@@ -57,7 +57,7 @@ export default function ModelsPage() {
         <>
             <JsonLd
                 data={[
-                    // Only models with a page (live ones); "Next" and "Later" are roadmap, not offerings.
+                    // Only models with a page (live ones); "Later" cards are roadmap, not offerings.
                     collectionPageSchema({
                         name: "Boli models",
                         description: DESCRIPTION,
@@ -94,7 +94,7 @@ export default function ModelsPage() {
                                         <h2 className={cn("min-w-0 truncate text-[26px] leading-tight text-boli-ink", c.stage === "Live" && "font-mono text-[22px]")} style={c.stage === "Live" ? undefined : DISPLAY.card}>
                                             {c.name}
                                         </h2>
-                                        <QuietBadge tone={c.stage === "Live" ? "live" : c.stage === "Next" ? "outline" : "neutral"}>{c.stage}</QuietBadge>
+                                        <QuietBadge tone={c.stage === "Live" ? "live" : "neutral"}>{c.stage}</QuietBadge>
                                     </div>
                                     <p className="mt-3 text-sm leading-6 text-boli-text">{c.line}</p>
                                     <ul className="mt-5 space-y-1.5 border-t border-boli-line pt-4 text-sm text-boli-muted">

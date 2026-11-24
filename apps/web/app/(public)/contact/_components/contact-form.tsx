@@ -18,6 +18,7 @@ type Errors = Partial<Record<"name" | "email" | "topic" | "message" | "form", st
 /** One line under each topic, so people pick the right one. */
 const TOPIC_HINT: Record<ContactTopic, string> = {
     API: "Keys, errors, models",
+    Jawaf: "Join the pilot for your business",
     Billing: "Credits, eSewa, Khalti",
     Enterprise: "Volumes, invoices",
     Partnership: "Build something together",

@@ -5,7 +5,9 @@ import { DHAKA } from "@repo/brand/art/dhaka/pattern"
 import type { Grid } from "@repo/brand/art/pixel/grid"
 import { VALLEY } from "@repo/brand/art/valley/palette"
 import { VIGNETTES, type VignetteId } from "@repo/brand/art/vignettes/scenes"
-import type { CoverName } from "./content-shared"
+
+/** Any story cover or 96 x 60 vignette (a content piece may only name a CoverName; a site page may use any scene). */
+type OgCover = CoverSceneId | VignetteId
 
 /**
  * The shared 1200 x 630 Open Graph card (learned from gurukulhq's lib/og.tsx), rendered with ImageResponse (Satori):
@@ -30,7 +32,7 @@ const CRIMSON = "#c8102e"
 
 type Layer = { grid: Grid; x: number; y: number; half?: boolean }
 
-function layersOf(name: CoverName): { w: number; h: number; layers: Layer[]; palette: Record<string, string> } {
+function layersOf(name: OgCover): { w: number; h: number; layers: Layer[]; palette: Record<string, string> } {
     const dhaka = { dhakaBg: DHAKA.classic.bg ?? "", dhakaC1: DHAKA.classic.c1 ?? "", dhakaC2: DHAKA.classic.c2 ?? "", dhakaC3: DHAKA.classic.c3 ?? "", dhakaC4: DHAKA.classic.c4 ?? "" }
     if (name in COVERS) {
         const c = COVERS[name as CoverSceneId]
@@ -57,7 +59,7 @@ function layersOf(name: CoverName): { w: number; h: number; layers: Layer[]; pal
 }
 
 /** The cover as an SVG data URI (crisp edges), for an <img> inside the card. */
-export function coverDataUri(name: CoverName): string {
+export function coverDataUri(name: OgCover): string {
     const { w, h, layers, palette } = layersOf(name)
     const body = layers
         .map((l) => {
@@ -74,7 +76,7 @@ export function coverDataUri(name: CoverName): string {
 
 const DOMAIN = SITE.url.replace(/^https?:\/\//, "")
 
-export function ogImage({ title, kicker, footer, cover }: { title: string; kicker?: string; footer?: string; cover: CoverName }): ImageResponse {
+export function ogImage({ title, kicker, footer, cover }: { title: string; kicker?: string; footer?: string; cover: OgCover }): ImageResponse {
     const size = title.length > 70 ? 46 : title.length > 44 ? 54 : 62
     return new ImageResponse(
         (

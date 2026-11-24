@@ -13,6 +13,16 @@ export const ROUTES = {
     terms: "/terms",
     privacy: "/privacy",
     pricing: "/#pricing",
+    /** The products index, and each product's own page at the top level (owner, 2026-11-25: bolihq.com/jawaf, /kura). */
+    products: "/products",
+    kura: "/kura",
+    jawaf: "/jawaf",
+    /** Jawaf's section on the landing page. */
+    jawafSection: "/#jawaf",
+    /** The contact form with the Jawaf pilot topic picked. */
+    jawafPilot: "/contact?topic=Jawaf",
+    /** The roadmap on About (Kagaj, Swar and what comes after). */
+    aboutRoadmap: "/about#roadmap",
     faq: "/#faq",
     blog: "/blog",
     post: (slug: string) => `/blog/${slug}`,

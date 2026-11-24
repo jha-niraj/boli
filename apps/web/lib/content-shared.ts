@@ -16,7 +16,7 @@ export const BLOG_CATEGORIES = ["Launch", "Product", "Research", "Company"] as c
 export type BlogCategory = (typeof BLOG_CATEGORIES)[number]
 
 /** Changelog tags (what part of Boli changed). */
-export const CHANGELOG_TAGS = ["API", "Kura", "Billing", "Docs", "Site", "Models", "Account"] as const
+export const CHANGELOG_TAGS = ["API", "Kura", "Billing", "Docs", "Site", "Models", "Account", "Jawaf"] as const
 export type ChangelogTag = (typeof CHANGELOG_TAGS)[number]
 
 /**

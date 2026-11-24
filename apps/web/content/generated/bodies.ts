@@ -3,6 +3,7 @@ import type { MDXContent } from "mdx/types"
 
 /** One lazy import per file, keyed "<kind>/<slug>": the .jsx compiled from its MDX by this script. */
 export const BODIES: Readonly<Record<string, () => Promise<{ default: MDXContent }>>> = {
+    "changelog/workspaces-and-jawaf-pilot": () => import("./mdx/changelog/workspaces-and-jawaf-pilot.jsx"),
     "changelog/api-and-keys": () => import("./mdx/changelog/api-and-keys.jsx"),
     "changelog/api-fixes": () => import("./mdx/changelog/api-fixes.jsx"),
     "changelog/credit-packs": () => import("./mdx/changelog/credit-packs.jsx"),

@@ -4,6 +4,26 @@ import type { ContentEntry } from "../../lib/content-shared"
 export const ENTRIES: readonly ContentEntry[] = [
     {
         "kind": "changelog",
+        "slug": "workspaces-and-jawaf-pilot",
+        "title": "Workspaces, a product rail and Jawaf in pilot",
+        "date": "2026-11-25",
+        "summary": "Every account is now a workspace you can share with your team, the app has a product rail, and Jawaf - answers for a business's customers - starts its pilot.",
+        "author": "boli-team",
+        "draft": true,
+        "tags": [
+            "Account",
+            "Kura",
+            "Jawaf"
+        ],
+        "topics": [],
+        "takeaways": [],
+        "faqs": [],
+        "words": 168,
+        "readingMinutes": 1,
+        "toc": []
+    },
+    {
+        "kind": "changelog",
         "slug": "api-and-keys",
         "title": "OpenAI-compatible API and API keys",
         "date": "2026-11-24",

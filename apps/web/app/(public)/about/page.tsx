@@ -70,15 +70,16 @@ const CHECKS: readonly { name: string; boli: Mark }[] = [
     { name: "SDKs, or an OpenAI-compatible API", boli: "today" },
     { name: "A model that reads Nepali", boli: "today" },
     { name: "Published rate limits", boli: "today" },
-    { name: "Document reading (OCR)", boli: "next" },
+    { name: "Document reading (OCR)", boli: "later" },
     { name: "Speech to text with streaming", boli: "later" },
     { name: "Text to speech with voices", boli: "later" },
     { name: "Translation and transliteration", boli: "no" },
-    { name: "Higher-level products (agents, dubbing)", boli: "no" },
+    { name: "Higher-level products (agents, dubbing)", boli: "next" },
     { name: "A startup programme", boli: "no" },
 ]
 
-const MARK_LABEL: Record<Mark, string> = { today: "Boli today", next: "Next", later: "Later", no: "Not yet" }
+/** "next" = in pilot now (Jawaf, a business answer product, counts as the first higher-level product). */
+const MARK_LABEL: Record<Mark, string> = { today: "Boli today", next: "In pilot", later: "Later", no: "Not yet" }
 
 const DECISIONS = [
     {
@@ -103,10 +104,13 @@ const DECISIONS = [
     },
 ] as const
 
+/** Product order from plan/main/jawaf/jawaf-v1.md (2026-11-25): chat and the API live, Jawaf in pilot, then the rest. */
 const ROADMAP: readonly { stage: string; title: string; line: string; now?: boolean }[] = [
-    { stage: "Now", title: "Chat", line: `${KURA.name} and the chat completions API on ${BOLI_CHAT.id}, an open model that reads Romanized Nepali.`, now: true },
-    { stage: "Next", title: "Document intelligence", line: "Read images and PDFs in Nepali, English or both - a scanned bill becomes text, or fields as JSON." },
-    { stage: "Later", title: "Speech", line: "Talk in Nepali and get text back; hear answers read aloud in a Nepali voice." },
+    { stage: "Live", title: "Chat", line: `${KURA.name}: chat with ${BOLI_CHAT.id}, an open model that reads Romanized Nepali, the way you already type.`, now: true },
+    { stage: "Live", title: "API", line: "The same model from your own code - OpenAI-compatible, priced per token in rupees.", now: true },
+    { stage: "Pilot", title: "Jawaf", line: "Answers a business's customers from its own website, files and facts - and says so when it does not know." },
+    { stage: "Later", title: "Kagaj - documents", line: "Read images and PDFs in Nepali, English or both - a scanned bill becomes text, or fields as JSON." },
+    { stage: "Later", title: "Swar - speech", line: "Talk in Nepali and get text back; hear answers read aloud in a Nepali voice." },
     { stage: "Later", title: "Fine-tuning and hosting", line: "Your data, an open model tuned on it, and Boli running it for you." },
 ]
 
@@ -275,6 +279,10 @@ export default function AboutPage() {
                             model, keep it up and price it in rupees.
                         </p>
                         <p>
+                            Next is Jawaf, in pilot with a small group of businesses: it answers their customers from their own website, files and
+                            facts, and takes a phone number when it does not know. An account is now a workspace, so a team can share its credits and keys.
+                        </p>
+                        <p>
                             The model is small and makes mistakes: Hindi words slip in, grammar wobbles, and it can state things that are not true. We would
                             rather say that up front than make a big claim.
                         </p>
@@ -300,9 +308,9 @@ export default function AboutPage() {
             <Band id="roadmap" tone="white" labelledBy="roadmap-title">
                 <Kicker>Roadmap</Kicker>
                 <SectionTitle>
-                    <span id="roadmap-title">Chat first, then the rest of how Nepal talks</span>
+                    <span id="roadmap-title">Chat first, then answers for businesses</span>
                 </SectionTitle>
-                <ol className="mt-12 grid gap-0 sm:mt-14 lg:grid-cols-4">
+                <ol className="mt-12 grid gap-0 sm:mt-14 lg:grid-cols-3 lg:gap-y-12">
                     {ROADMAP.map((r, i) => (
                         <li
                             key={r.title}
@@ -357,7 +365,7 @@ export default function AboutPage() {
                         <h2 id="write-title" className="text-[32px] leading-[1.05] text-boli-ink sm:text-[40px]" style={DISPLAY.h2}>
                             Building something in Nepal?
                         </h2>
-                        <p className="mt-2 max-w-xl text-[15px] leading-7 text-boli-text">Tell us what you need - the API, Enterprise volumes, a partnership or an idea. We read every message.</p>
+                        <p className="mt-2 max-w-xl text-[15px] leading-7 text-boli-text">Tell us what you need - the API, the Jawaf pilot, Enterprise volumes, a partnership or an idea. We read every message.</p>
                     </div>
                     <PillButton asChild size="lg" className="shrink-0">
                         <AppLink href={ROUTES.contact}>

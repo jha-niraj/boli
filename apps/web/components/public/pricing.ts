@@ -1,4 +1,5 @@
 import { BOLI_CHAT, costMicro, formatRupees, MICRO_PER_CREDIT, WELCOME_CREDITS, type BoliModel } from "@repo/boli"
+import { JAWAF_PRICES } from "@repo/boli/jawaf"
 
 /**
  * Worked pricing numbers for the landing page and Docs, computed from lib/boli.ts so copy never drifts from the price.
@@ -32,3 +33,15 @@ export function formatRupeesPrecise(micro: number): string {
 export function formatRupeesPreciseFromTokens(input: number, output: number, model: BoliModel = BOLI_CHAT): string {
     return formatRupeesPrecise(costMicro(model, input, output))
 }
+
+/**
+ * Jawaf's planned price, from @repo/boli/jawaf (plan/main/jawaf/jawaf-v1.md: reviewed after the pilots): free answers a
+ * month per workspace, then a price per answer from the same credits. "Rs 0.50" and 100 today.
+ */
+export const JAWAF_PRICE = {
+    perAnswer: formatRupees(JAWAF_PRICES.answerMicro),
+    freeAnswers: JAWAF_PRICES.freeAnswersPerMonth,
+} as const
+
+/** One line for Jawaf's price: "100 free answers a month, then Rs 0.50 an answer". */
+export const JAWAF_PRICE_LINE = `${JAWAF_PRICE.freeAnswers} free answers a month, then ${JAWAF_PRICE.perAnswer} an answer`

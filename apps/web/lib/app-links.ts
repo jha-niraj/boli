@@ -14,6 +14,9 @@ function appOrigin(): string {
 
 export const APP_URL = appOrigin()
 
+/** The app's host for display in copy ("app.bolihq.com"), from the same env value - never typed. */
+export const APP_HOST = APP_URL.replace(/^https?:\/\//, "")
+
 /** Absolute URL to a path on the app: `appUrl("/signin")` -> `https://app.bolihq.com/signin`. */
 export const appUrl = (path = "/") => `${APP_URL}${path.startsWith("/") ? path : `/${path}`}`
 

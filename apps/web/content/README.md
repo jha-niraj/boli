@@ -20,7 +20,7 @@ summary: One or two sentences.         # the description, the card line, the met
 author: boli-team                      # blog and guides: an id from content/authors.ts
 cover: keyboard                        # blog and guides: launch | keyboard | bill | dhaka | docsDesk | contactPasal | legalElder | aboutScorecard | aboutBench
 draft: true                            # true = development only (with a Draft badge); never built, listed, indexed or fed in production
-tags: [Kura, Romanized Nepali]         # optional; changelog tags: API | Kura | Billing | Docs | Site | Models | Account
+tags: [Kura, Romanized Nepali]         # optional; changelog tags: API | Kura | Billing | Docs | Site | Models | Account | Jawaf
 topics: [romanized-nepali, kura]       # blog and guides, at least one: ids from content/topics.ts (the /blog/topics hubs)
 takeaways:                             # optional, 3 to 5 lines under 200 characters: the "Key takeaways" box at the top
   - "Small open models often answer Romanized Nepali in Devanagari."

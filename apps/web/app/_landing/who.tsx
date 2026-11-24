@@ -41,7 +41,7 @@ const WHO: readonly { id: VignetteId; title: string; quote: string; gloss: strin
         title: "Shops and teams",
         quote: "Customer le jasari lekhchha, tei bhashama jawaf.",
         gloss: "We answer in the language the customer wrote in.",
-        line: "Answer customers in the language they wrote in - Romanized, Devanagari or mixed.",
+        line: "Jawaf answers customers in the language they wrote in - Romanized, Devanagari or mixed. In pilot now.",
     },
 ]
 

@@ -15,6 +15,8 @@ import { DOCS_PAGES, ROUTES } from "@/lib/routes"
  * listed only once something on it is published (lib/content.ts publishedTopics). Feeds (rss.xml) are not pages.
  */
 const STATIC_LAST_MODIFIED = "2026-11-24"
+/** The product pages (/products, /kura, /jawaf), first written on this date. Bump only on a real revision. */
+const PRODUCTS_LAST_MODIFIED = "2026-11-25"
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const url = (path: string) => (path === "/" ? SITE.url : `${SITE.url}${path}`)
@@ -32,6 +34,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     return [
         page(ROUTES.landing, 1, "weekly"),
+        page(ROUTES.products, 0.9, "monthly", PRODUCTS_LAST_MODIFIED),
+        page(ROUTES.kura, 0.9, "monthly", PRODUCTS_LAST_MODIFIED),
+        page(ROUTES.jawaf, 0.9, "monthly", PRODUCTS_LAST_MODIFIED),
         page(ROUTES.models, 0.9, "monthly"),
         page(ROUTES.model(BOLI_CHAT.id), 0.9, "monthly"),
         page(ROUTES.docs, 0.8, "weekly"),

@@ -7,12 +7,17 @@ import { ADD_CREDITS_MIN, API_PATHS, BOLI_CHAT, KURA, MICRO_PER_CREDIT, RATE_LIM
 import { ROUTES } from "@/lib/routes"
 import { Kicker } from "./section"
 import { SKY_DECORATION } from "./tokens"
+import { JAWAF_PRICE_LINE } from "./pricing"
 
 /** FAQ2 (approved 2026-11-24): the landing questions plus credits expiry, eSewa/Khalti, rate limits and data. */
 export const FAQ: FaqItem[] = [
     {
         q: "What is Boli?",
-        a: `Boli runs open AI models for Nepal. You can chat in ${KURA.name} or call the same model from your own code through an OpenAI-compatible API. You pay per token, in rupees.`,
+        a: `Boli runs open AI models for Nepal. You can chat in ${KURA.name} or call the same model from your own code through an OpenAI-compatible API. You pay per token, in rupees. Jawaf, which answers a business's customers, is in pilot.`,
+    },
+    {
+        q: "What is Jawaf?",
+        a: `Jawaf answers a business's customers from its own website, files, facts and common questions, in Nepali, Romanized Nepali or English. Customers reach it through a link and QR poster, a chat bubble on the website, or the API. If it does not know, it says so and asks for a phone number instead of guessing. It is in pilot with a small group of businesses; the planned price is ${JAWAF_PRICE_LINE}, from the same credits.`,
     },
     {
         q: "Which model does it run?",
@@ -50,25 +55,38 @@ export const FAQ: FaqItem[] = [
 
 /**
  * The left column (title, one line, a contact link) stays pinned below the 64px nav while the questions scroll on the
- * right. Below lg it stacks and nothing is sticky.
+ * right. Below lg it stacks and nothing is sticky. The landing passes nothing; a product page passes its own questions,
+ * line and contact link (the same list feeds its FAQPage JSON-LD).
  */
-export function FaqSection({ className }: { className?: string }) {
+export function FaqSection({
+    className,
+    items = FAQ,
+    title = "Questions, answered",
+    line = "What people ask before their first call - credits, payments, limits and what we keep.",
+    contact = { label: "Still stuck? Write to us", href: ROUTES.contact },
+}: {
+    className?: string
+    items?: FaqItem[]
+    title?: string
+    line?: string
+    contact?: { label: string; href: string }
+}) {
     return (
         <div className={cn("grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,8fr)] lg:gap-16", className)}>
             <div className="self-start lg:sticky lg:top-28">
                 <Kicker>FAQ</Kicker>
                 <h2 id="faq-title" className="mt-3 text-[40px] leading-[1.04] text-boli-ink sm:text-[48px] sm:leading-[1.02]" style={DISPLAY.h2}>
-                    Questions, answered
+                    {title}
                 </h2>
-                <p className="mt-4 max-w-sm font-sans text-[15px] leading-7 text-boli-text">What people ask before their first call - credits, payments, limits and what we keep.</p>
+                <p className="mt-4 max-w-sm font-sans text-[15px] leading-7 text-boli-text">{line}</p>
                 <AppLink
-                    href={ROUTES.contact}
+                    href={contact.href}
                     className={cn("mt-6 inline-flex cursor-pointer items-center gap-1.5 font-sans text-sm font-[450] text-boli-ink underline decoration-1 underline-offset-4", SKY_DECORATION)}
                 >
-                    Still stuck? Write to us <ArrowRight aria-hidden strokeWidth={1.75} className="size-3.5" />
+                    {contact.label} <ArrowRight aria-hidden strokeWidth={1.75} className="size-3.5" />
                 </AppLink>
             </div>
-            <EditorialFaq items={FAQ} defaultOpen="01" questionStyle={DISPLAY.h3} className="font-sans" />
+            <EditorialFaq items={items} defaultOpen="01" questionStyle={DISPLAY.h3} className="font-sans" />
         </div>
     )
 }

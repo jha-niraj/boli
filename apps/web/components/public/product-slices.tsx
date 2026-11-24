@@ -160,7 +160,7 @@ const BILL_JSON = [
     `}`,
 ] as const
 
-/** Document intelligence (next): a scanned bill in Nepali and English turning into JSON fields. */
+/** Document AI (soon): a scanned bill in Nepali and English turning into JSON fields. */
 export function DocSlice() {
     const reduce = useReducedMotion()
     return (
@@ -207,6 +207,49 @@ export function DocSlice() {
                     </motion.p>
                 ))}
             </div>
+        </div>
+    )
+}
+
+function JawafAsk({ text }: { text: string }) {
+    return (
+        <div className="flex justify-end">
+            <p className="max-w-[80%] rounded-2xl rounded-br-md bg-white px-3.5 py-2 text-[13px] leading-5 text-boli-ink shadow-[0_1px_2px_rgba(20,20,20,0.06)]">{text}</p>
+        </div>
+    )
+}
+
+/** Jawaf (pilot): one answer with its source, then a question it cannot answer - it says so and asks for a number. */
+export function JawafSlice({ compact = false }: { compact?: boolean }) {
+    const reduce = useReducedMotion()
+    return (
+        <div className="grid gap-2.5 font-sans">
+            <JawafAsk text="Saturday khulla huncha?" />
+            <motion.div
+                className="grid gap-1.5 pl-1"
+                initial={reduce ? false : { opacity: 0, y: 6 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.45, delay: 0.2, ease: [0.32, 0.72, 0, 1] }}
+            >
+                <p className="text-[13px] leading-5 text-boli-ink">Huncha - Saturday bihana 10 baje dekhi 4 baje samma.</p>
+                <span className="inline-flex h-6 w-fit items-center rounded-full bg-white px-2.5 text-xs text-boli-muted shadow-[0_1px_2px_rgba(20,20,20,0.06)]">
+                    From: Opening hours
+                </span>
+            </motion.div>
+            {compact ? null : <JawafAsk text="parking cha?" />}
+            {compact ? null : (
+                <motion.div
+                    className="grid gap-1.5 pl-1"
+                    initial={reduce ? false : { opacity: 0, y: 6 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ duration: 0.45, delay: 0.6, ease: [0.32, 0.72, 0, 1] }}
+                >
+                    <p className="text-[13px] leading-5 text-boli-ink">Yo kura malai thaha chaina. Number chodnus - hami call garchhau.</p>
+                    <span className={cn("inline-flex h-7 w-fit items-center rounded-full px-3 text-xs", SKY_SOFT_BG, SKY_TEXT)}>Leave your number</span>
+                </motion.div>
+            )}
         </div>
     )
 }

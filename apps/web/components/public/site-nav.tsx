@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import { ArrowRight } from "lucide-react"
 import { AppLink } from "@repo/ui/components/app-link"
 import { cn } from "@repo/ui/lib/utils"
 import { ArtRoot } from "@repo/brand/art/art-root"
@@ -11,7 +12,7 @@ import { ROUTES } from "@/lib/routes"
 import { entryHref, formatContentDate, latestPost } from "@/lib/content"
 import { SIGNIN_URL, SIGNUP_URL } from "@/lib/app-links"
 import { SiteLink } from "@/components/site-link"
-import { NAV_GROUPS, type NavGroup, type NavGroupId } from "./links"
+import { NAV_GROUPS, navBadgeTone, type NavGroup, type NavGroupId } from "./links"
 import { MegaMenu } from "./mega-menu"
 import { MobileMenu } from "./mobile-menu"
 
@@ -82,7 +83,7 @@ function Panel({ group, card }: { group: NavGroup; card: Card }) {
                                     <span className="flex flex-wrap items-center gap-2 text-sm font-[450] text-boli-ink">
                                         {it.label}
                                         {it.badge ? (
-                                            <QuietBadge tone={it.badge === "Next" ? "outline" : "neutral"} className="h-5 px-2">
+                                            <QuietBadge tone={navBadgeTone(it.badge)} className="h-5 px-2">
                                                 {it.badge}
                                             </QuietBadge>
                                         ) : null}
@@ -105,6 +106,15 @@ function Panel({ group, card }: { group: NavGroup; card: Card }) {
                         )
                     })}
                 </ul>
+                {group.more ? (
+                    <SiteLink
+                        href={group.more.href}
+                        className="mt-2 inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-[450] text-boli-ink underline decoration-boli-sky-ink/50 decoration-1 underline-offset-4 transition-colors hover:bg-boli-ground"
+                    >
+                        {group.more.label}
+                        <ArrowRight aria-hidden strokeWidth={1.75} className="size-3.5" />
+                    </SiteLink>
+                ) : null}
             </div>
             <SiteLink
                 href={card.href}

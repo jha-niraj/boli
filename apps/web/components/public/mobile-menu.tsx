@@ -1,13 +1,13 @@
 "use client"
 
 import { Fragment, useState } from "react"
-import { Menu, X } from "lucide-react"
+import { ArrowRight, Menu, X } from "lucide-react"
 import { Button } from "@repo/ui/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@repo/ui/components/ui/dropdown-menu"
 import { ScrollArea } from "@repo/ui/components/ui/scroll-area"
 import { PillButton } from "@repo/brand/pill-button"
 import { QuietBadge } from "@repo/brand/quiet-badge"
-import { NAV_GROUPS } from "./links"
+import { NAV_GROUPS, navBadgeTone } from "./links"
 import { SIGNIN_URL, SIGNUP_URL } from "@/lib/app-links"
 import { SiteLink } from "@/components/site-link"
 
@@ -39,7 +39,7 @@ export function MobileMenu() {
                                             <Icon className="h-4 w-4 shrink-0 text-boli-muted" strokeWidth={1.75} aria-hidden />
                                             <span className="min-w-0 flex-1">{it.label}</span>
                                             {it.badge ? (
-                                                <QuietBadge tone={it.badge === "Next" ? "outline" : "neutral"} className="h-5 px-2">
+                                                <QuietBadge tone={navBadgeTone(it.badge)} className="h-5 px-2">
                                                     {it.badge}
                                                 </QuietBadge>
                                             ) : null}
@@ -55,6 +55,14 @@ export function MobileMenu() {
                                         </DropdownMenuItem>
                                     )
                                 })}
+                                {g.more ? (
+                                    <DropdownMenuItem asChild className="cursor-pointer gap-3 rounded-xl px-3 py-2.5 text-[15px] text-boli-ink">
+                                        <SiteLink href={g.more.href}>
+                                            <ArrowRight className="h-4 w-4 shrink-0 text-boli-muted" strokeWidth={1.75} aria-hidden />
+                                            <span className="min-w-0 flex-1">{g.more.label}</span>
+                                        </SiteLink>
+                                    </DropdownMenuItem>
+                                ) : null}
                             </Fragment>
                         ))}
                         <DropdownMenuSeparator className="my-1.5 bg-boli-line" />

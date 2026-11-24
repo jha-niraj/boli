@@ -6,6 +6,7 @@ import { CtaBand } from "./_landing/cta-band"
 import { Faq } from "./_landing/faq"
 import { Hero } from "./_landing/hero"
 import { HowItWorks } from "./_landing/how-it-works"
+import { Jawaf } from "./_landing/jawaf"
 import { Pricing } from "./_landing/pricing"
 import { Products } from "./_landing/products"
 import { Story } from "./_landing/story"
@@ -17,8 +18,9 @@ import { pageMeta } from "@/lib/seo"
 
 /**
  * The landing page in the approved story order (WF1, owner 2026-11-24): full-screen hero with the day valley -> PS1
- * story panels (why Boli) -> PC3 products -> code in five languages -> who it's for -> PS2 (how it works for a
- * developer) -> pricing packs -> FAQ2 -> CTA band -> the F5 footer. Light only. Server Components except the art
+ * story panels (why Boli) -> PC3 products -> code in five languages -> who it's for -> Jawaf (in pilot, 2026-11-25) -> PS2
+ * (how it works for a developer) -> pricing packs -> FAQ2 -> CTA band -> the F5 footer. Bands alternate ground / white;
+ * Jawaf took a ground slot after "Who", so How it works, Pricing and FAQ each flipped once. Light only. Server Components except the art
  * reveals, the product slices' motion, the custom amount, the FAQ accordion and the code tabs.
  */
 export const metadata: Metadata = pageMeta({ title: `${BRAND.name} - ${BRAND.tagline}`, absoluteTitle: true, description: BRAND.description, path: "/" })
@@ -32,6 +34,7 @@ export default function LandingPage() {
             <Products />
             <CodeSection />
             <Who />
+            <Jawaf />
             <HowItWorks />
             <Pricing />
             <Faq />

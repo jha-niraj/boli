@@ -97,7 +97,7 @@ export function apiServiceSchema(): JsonLdNode {
     }
 }
 
-/** Kura, the chat, as a Service. */
+/** Kura, the chat, as a Service (the landing and /kura). Jawaf gets none while it is a pilot: no offer to state. */
 export function kuraServiceSchema(): JsonLdNode {
     return {
         "@context": "https://schema.org",
@@ -105,7 +105,7 @@ export function kuraServiceSchema(): JsonLdNode {
         "@id": KURA_SERVICE_ID,
         name: KURA.name,
         serviceType: "AI chat assistant",
-        url: SITE.url,
+        url: absoluteUrl(ROUTES.kura),
         description: `${KURA.subtitle}. ${KURA.meaning}.`,
         provider: { "@id": ORG_ID },
         areaServed: AREA_SERVED,

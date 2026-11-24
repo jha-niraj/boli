@@ -3,6 +3,7 @@ import { API_PATHS, BOLI_CHAT, BRAND, CREDIT_PACKS, KURA, RATE_LIMIT_PER_MIN, WE
 import { entryHref, publishedEntries, publishedTopics, TOPICS } from "@/lib/content"
 import { DOCS_PAGES, ROUTES } from "@/lib/routes"
 import { APP_URL } from "@/lib/app-links"
+import { JAWAF_PRICE_LINE } from "@/components/public/pricing"
 
 /**
  * /llms.txt - a short markdown map of the site for AI crawlers (learned from gurukulhq). Built at build time (static);
@@ -31,7 +32,15 @@ ${u(ROUTES.llmsFull)} has the full published text of this site in one file.
 - Model: \`${BOLI_CHAT.id}\` (${BOLI_CHAT.label}; ${BOLI_CHAT.licence}, open weights). Context ${BOLI_CHAT.contextTokens} tokens. Languages: ${BOLI_CHAT.languages.join(", ")}.
 - Prices per 1M tokens: Rs ${p.input} input, Rs ${p.output} output (NPR). 1 credit = Rs 1. ${WELCOME_CREDITS} free credits on email verification. Packs: ${CREDIT_PACKS.map((c) => `Rs ${c.rupees} -> ${c.credits} credits`).join("; ")}.
 - Rate limit: ${RATE_LIMIT_PER_MIN} requests per minute per account.
+- Jawaf (in pilot, not generally available): answers a business's customers from its own website, files, facts and Q&A, in Nepali, Romanized Nepali and English. Reached through a no-login link and QR poster, a website chat bubble, or the API (\`model: "jawaf:<name>"\`). When it does not know, it says so and takes a phone number. Planned price: ${JAWAF_PRICE_LINE}, from the same credits. [How it works](${u(ROUTES.jawaf)}); [join the pilot](${u(ROUTES.jawafPilot)}).
+- Coming later: document intelligence (images and PDFs to text and JSON) and speech.
 - Boli runs only open models. API calls store metadata only, never prompts or answers.
+
+## Products
+
+- [All products](${u(ROUTES.products)})
+- [${KURA.name}](${u(ROUTES.kura)}): the chat, live. ${KURA.subtitle}.
+- [Jawaf](${u(ROUTES.jawaf)}): answers a business's customers from its own website, files and facts. In pilot.
 
 ## Docs
 
