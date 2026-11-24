@@ -10,7 +10,7 @@ export function HowItWorks() {
             <SectionTitle>
                 <span id="how-title">From sign-up to your first answer in a minute</span>
             </SectionTitle>
-            <Lead>Four steps for a developer. Hover or tap a number.</Lead>
+            <Lead>Four steps for a developer, from your email to your first answer and your first rupee.</Lead>
             <ArtRoot>
                 <StepsPanels className="mt-12 sm:mt-14" />
             </ArtRoot>

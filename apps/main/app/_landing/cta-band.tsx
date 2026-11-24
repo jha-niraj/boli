@@ -11,6 +11,7 @@ export function CtaBand() {
     return (
         <section aria-labelledby="cta-title" className="border-t border-boli-line bg-boli-ground px-4 py-20 sm:px-6 sm:py-24 lg:px-10">
             <div
+                data-reveal="0"
                 className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-8 rounded-[32px] px-6 py-12 sm:px-12 sm:py-16 lg:flex-row lg:items-center lg:gap-10 lg:px-14"
                 style={{ background: `linear-gradient(120deg, ${SKY.wash}, ${SKY.soft})` }}
             >
@@ -27,7 +28,7 @@ export function CtaBand() {
                         </AppLink>
                     </PillButton>
                     <PillButton asChild size="lg" variant="secondary">
-                        <AppLink href={`${ROUTES.about}#contact`}>Talk to us</AppLink>
+                        <AppLink href={ROUTES.contact}>Talk to us</AppLink>
                     </PillButton>
                 </div>
             </div>

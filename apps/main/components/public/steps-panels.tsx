@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, type ReactNode } from "react"
+import { useState, useSyncExternalStore, type ReactNode } from "react"
 import { cn } from "@repo/ui/lib/utils"
 import { KuraScene } from "@/components/art/kura/kura-scene"
+import { useOnView } from "@/components/art/story/on-view"
 import { PixelReveal } from "@/components/art/story/reveal"
 import { STORY_SCENES } from "@/components/art/story/scenes"
 import { VALLEY_DAY } from "@/components/art/valley/palette"
@@ -21,7 +22,7 @@ const PACK = CREDIT_PACKS.find((p) => p.credits > p.rupees) ?? CREDIT_PACKS[0]
 
 type Step = { n: string; title: string; text: string; moment: ReactNode; art: (open: boolean) => ReactNode }
 
-const ART = "block aspect-[96/60] w-full"
+const ART = "block aspect-[96/60] w-full lg:aspect-auto lg:h-full"
 
 const STEPS: readonly Step[] = [
     {
@@ -68,49 +69,101 @@ const STEPS: readonly Step[] = [
     },
 ]
 
+const LG = "(min-width: 1024px)"
+
+function subscribeLg(onChange: () => void) {
+    const mq = window.matchMedia(LG)
+    mq.addEventListener("change", onChange)
+    return () => mq.removeEventListener("change", onChange)
+}
+
+/** True from lg up (the expanding row); false on the server and below lg (the stacked list). */
+function useIsLg(): boolean {
+    return useSyncExternalStore(
+        subscribeLg,
+        () => window.matchMedia(LG).matches,
+        () => false,
+    )
+}
+
+/*
+ * Motion (owner, 2026-11-24, round 4): only the panel WIDTH animates. Inside, nothing is in the flow below the title,
+ * so nothing gets pushed: the number and title sit at the top and keep their size; the text and the picture are pinned
+ * to the bottom at a fixed width and a fixed height, and only fade (and the picture scales from 97%) in place. A
+ * collapsed panel shows its number and title. Below lg every panel is open in a plain stack, each scene revealing as it
+ * scrolls in. Reduced motion: no transitions at all.
+ */
+function Panel({ step, open, lg, onOpen }: { step: Step; open: boolean; lg: boolean; onOpen: () => void }) {
+    const [ref, seen] = useOnView<HTMLDivElement>()
+    // Visibility is CSS (lg: classes keyed on `open`), so the first paint before hydration is already right; only the
+    // scene's reveal and the interaction wait for JS.
+    const shown = open
+    const on = lg ? open : seen
+    return (
+        <div
+            ref={ref}
+            role={lg ? "button" : undefined}
+            tabIndex={lg ? 0 : undefined}
+            aria-expanded={lg ? open : undefined}
+            onMouseEnter={lg ? onOpen : undefined}
+            onFocus={lg ? onOpen : undefined}
+            onClick={lg ? onOpen : undefined}
+            onKeyDown={
+                lg
+                    ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault()
+                              onOpen()
+                          }
+                      }
+                    : undefined
+            }
+            className={cn(
+                "relative flex min-w-0 flex-col overflow-hidden bg-white p-5 outline-none sm:p-6 lg:basis-0 lg:cursor-pointer",
+                "lg:transition-[flex-grow,background-color] lg:duration-700 lg:ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+                "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-boli-ink/30",
+                open ? "lg:grow-[4]" : "lg:grow lg:hover:bg-boli-ground",
+            )}
+        >
+            <p className="font-mono text-xs text-boli-muted">{step.n}</p>
+            <h3 className="mt-3 text-2xl leading-tight text-boli-ink" style={DISPLAY.h3}>
+                {step.title}
+            </h3>
+            {/* Text and picture: in the flow below lg; pinned to the bottom, fixed width, from lg up. */}
+            <div
+                aria-hidden={lg && !open ? true : undefined}
+                className={cn(
+                    "mt-5 grid gap-5 lg:absolute lg:inset-x-6 lg:bottom-6 lg:mt-0 lg:w-[30rem] lg:max-w-none",
+                    "lg:transition-opacity lg:duration-500 motion-reduce:transition-none",
+                    shown ? "lg:opacity-100 lg:delay-150" : "lg:pointer-events-none lg:opacity-0 lg:delay-0",
+                )}
+            >
+                <p className="max-w-md font-sans text-sm leading-6 text-boli-text">{step.text}</p>
+                <div
+                    className={cn(
+                        "relative w-full overflow-hidden rounded-xl border border-boli-line lg:h-[18.75rem]",
+                        "origin-bottom-left lg:transition-transform lg:duration-500 lg:ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+                        shown ? "lg:scale-100" : "lg:scale-[0.97]",
+                    )}
+                >
+                    {step.art(on)}
+                    <p className="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] rounded-full bg-white/90 px-3 py-1 font-sans text-xs text-boli-ink shadow-[0_1px_2px_rgba(20,20,20,0.08)] backdrop-blur">
+                        {step.moment}
+                    </p>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 export function StepsPanels({ className }: { className?: string }) {
     const [active, setActive] = useState(0)
+    const lg = useIsLg()
     return (
         <div className={cn("flex flex-col gap-px overflow-hidden rounded-3xl border border-boli-line bg-boli-line lg:h-[36rem] lg:flex-row", className)}>
-            {STEPS.map((step, i) => {
-                const open = i === active
-                return (
-                    <div
-                        key={step.n}
-                        role="button"
-                        tabIndex={0}
-                        aria-expanded={open}
-                        onMouseEnter={() => setActive(i)}
-                        onFocus={() => setActive(i)}
-                        onClick={() => setActive(i)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault()
-                                setActive(i)
-                            }
-                        }}
-                        className={cn(
-                            "relative flex min-w-0 cursor-pointer flex-col overflow-hidden bg-white p-5 outline-none transition-[flex-grow,background-color] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-boli-ink/30 motion-reduce:transition-none sm:p-6",
-                            open ? "lg:grow-[4]" : "hover:bg-boli-ground lg:grow",
-                        )}
-                        style={{ flexBasis: 0 }}
-                    >
-                        <p className="font-mono text-xs text-boli-muted">{step.n}</p>
-                        <h3 className={cn("mt-3 leading-tight text-boli-ink", open ? "text-[26px] sm:text-[30px]" : "text-xl")} style={DISPLAY.h3}>
-                            {step.title}
-                        </h3>
-                        <div className={cn("flex min-h-0 flex-1 flex-col justify-end gap-4 pt-4", open ? "flex" : "hidden")}>
-                            <div className="relative mx-auto w-full max-w-xl overflow-hidden rounded-xl border border-boli-line">
-                                {step.art(open)}
-                                <p className="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] truncate rounded-full bg-white/90 px-3 py-1 font-sans text-xs text-boli-ink shadow-[0_1px_2px_rgba(20,20,20,0.08)] backdrop-blur">
-                                    {step.moment}
-                                </p>
-                            </div>
-                            <p className="max-w-md font-sans text-sm leading-6 text-boli-text">{step.text}</p>
-                        </div>
-                    </div>
-                )
-            })}
+            {STEPS.map((step, i) => (
+                <Panel key={step.n} step={step} open={i === active} lg={lg} onOpen={() => setActive(i)} />
+            ))}
         </div>
     )
 }

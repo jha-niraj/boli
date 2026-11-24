@@ -28,12 +28,15 @@ export function CodeTabs({
     samples,
     highlighted,
     className,
+    bodyViewportClassName,
     defaultLanguage = "curl",
 }: {
     samples: Record<SampleLanguage, string>
     /** Lines per language from `highlight()`; leave out to highlight in the browser. */
     highlighted?: Partial<Record<SampleLanguage, HlLine[] | null>>
     className?: string
+    /** A fixed height for the code (e.g. `h-[24rem]`): the block keeps its size for every language and scrolls both ways inside. */
+    bodyViewportClassName?: string
     defaultLanguage?: SampleLanguage
 }) {
     const [lang, setLang] = useState<SampleLanguage>(defaultLanguage)
@@ -92,7 +95,7 @@ export function CodeTabs({
                 <CopyButton text={samples[lang]} />
             </div>
             <div role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-tab-${lang}`} tabIndex={0} className="outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-boli-blue/30">
-                <CodeBody code={samples[lang]} lines={pre ?? lines} />
+                <CodeBody code={samples[lang]} lines={pre ?? lines} viewportClassName={bodyViewportClassName} />
             </div>
         </div>
     )
@@ -102,7 +105,20 @@ export function CodeTabs({
  * The code itself: warm off-white in light, near-black in dark, Geist Mono, scrolling sideways in its own ScrollArea.
  * Renders Shiki lines when given, else the plain text. Shared by CodeTabs and the docs' single CodeBlock.
  */
-export function CodeBody({ code, lines, wrap, className }: { code: string; lines?: HlLine[] | null; wrap?: boolean; className?: string }) {
+export function CodeBody({
+    code,
+    lines,
+    wrap,
+    className,
+    viewportClassName,
+}: {
+    code: string
+    lines?: HlLine[] | null
+    wrap?: boolean
+    className?: string
+    /** Bounds the scroller (a fixed height); with it the code scrolls vertically too. */
+    viewportClassName?: string
+}) {
     const pre = (
         <pre
             className={cn(
@@ -115,7 +131,11 @@ export function CodeBody({ code, lines, wrap, className }: { code: string; lines
     )
     if (wrap) return <div className={cn("min-w-0 bg-boli-ground/60 dark:bg-neutral-950", className)}>{pre}</div>
     return (
-        <ScrollArea orientation="horizontal" className={cn("min-w-0 bg-boli-ground/60 dark:bg-neutral-950", className)}>
+        <ScrollArea
+            orientation={viewportClassName ? "both" : "horizontal"}
+            viewportClassName={viewportClassName}
+            className={cn("min-w-0 bg-boli-ground/60 dark:bg-neutral-950", className)}
+        >
             {pre}
         </ScrollArea>
     )

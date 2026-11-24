@@ -10,6 +10,7 @@ import { CodeTabs } from "./code-tabs"
 export async function HighlightedCodeTabs(props: {
     samples: Record<SampleLanguage, string>
     className?: string
+    bodyViewportClassName?: string
     defaultLanguage?: SampleLanguage
 }) {
     const entries = await Promise.all(SAMPLE_LANGUAGES.map(async (l) => [l.id, await highlight(props.samples[l.id], l.grammar)] as const))

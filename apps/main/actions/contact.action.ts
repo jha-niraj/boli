@@ -1,7 +1,7 @@
 "use server"
 
 /**
- * The About page's contact form. Public on purpose (no session): anyone can write to us. Input is parsed with the
+ * The /contact form. Public on purpose (no session): anyone can write to us. Input is parsed with the
  * shared zod schema; a filled honeypot field is answered with a normal success and nothing is stored, so a bot learns
  * nothing. At most CONTACT_PER_HOUR messages an hour from one IP (owner, 2026-11-24); only a hash of the IP is kept.
  */

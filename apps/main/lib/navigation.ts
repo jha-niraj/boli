@@ -19,6 +19,9 @@ export const ROUTES = {
     docs: "/docs",
     doc: (slug: string) => `/docs/${slug}`,
     about: "/about",
+    contact: "/contact",
+    /** /contact with a topic picked (a CONTACT_TOPICS value, e.g. "Enterprise"). */
+    contactAbout: (topic: string) => `/contact?topic=${encodeURIComponent(topic)}`,
     terms: "/terms",
     privacy: "/privacy",
     landing: "/",

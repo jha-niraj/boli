@@ -181,9 +181,10 @@ export const BRAND = {
     announcement: "Gemma 4 for Nepali is live - 100 free credits.",
     /** Sender name for email until bolihq.com is verified in Resend. */
     emailFromName: "Boli",
-    /** Owner fills these in later (plan Q13). */
+    /** Owner fills this in later (plan Q13). */
     legalEntity: "[Company name]",
-    contactEmail: "[contact email]",
+    /** The one public inbox (owner, 2026-11-24): /contact, the legal pages and every "write to us". */
+    contactEmail: "hello@bolihq.com",
 } as const
 
 /** Onboarding (/welcome): every step offers choices plus "Other". */

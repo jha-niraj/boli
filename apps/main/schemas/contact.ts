@@ -1,10 +1,11 @@
 import { z } from 'zod'
 
 /**
- * The About page's contact form. Shared by the form and `actions/contact.action.ts`, so a limit is said once. Never
+ * The /contact form. Shared by the form and `actions/contact.action.ts`, so a limit is said once. Never
  * defined in the 'use server' file (a non-function export empties that module at build).
  */
-export const CONTACT_TOPICS = ['General', 'API and developers', 'Billing and credits', 'Partnerships', 'Press', 'Privacy request'] as const
+/** Topic choices on /contact (owner, 2026-11-24). Stored as plain text, so older rows keep their old labels. */
+export const CONTACT_TOPICS = ['API', 'Billing', 'Enterprise', 'Partnership', 'Press', 'Other'] as const
 export type ContactTopic = (typeof CONTACT_TOPICS)[number]
 
 export const CONTACT_NAME_MAX = 120

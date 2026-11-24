@@ -2,7 +2,7 @@
 
 Boli: open AI for Nepal. People sign up, get 100 free credits, chat with our own open model in **Kura** (`/kura`, where
 they land after sign-in) and call an OpenAI-compatible API (`/v1/chat/completions`) with their own API keys. Public
-pages: `/` (landing), `/about` (with contact), `/docs/*`, `/terms`, `/privacy`, the auth pages. Port 3100. The root
+pages: `/` (landing), `/about`, `/contact`, `/docs` (+ `/docs/*`), `/terms`, `/privacy`, the auth pages. Port 3100. The root
 `AGENTS.md` holds the general rules; this file is what is specific to this app, and **where the two differ for Boli,
 this file wins**. The build plan: `plan/main/platform/platform-v0.md`. The shared constants: `lib/boli.ts`.
 

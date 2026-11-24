@@ -12,7 +12,7 @@ export function DocsNav({ onNavigate }: { onNavigate?: () => void }) {
         <ul className="space-y-0.5">
             {DOCS_PAGES.map((p) => {
                 const href = ROUTES.doc(p.slug)
-                const active = pathname === href || (pathname === ROUTES.docs && p.slug === DOCS_PAGES[0].slug)
+                const active = pathname === href
                 return (
                     <li key={p.slug}>
                         <AppLink

@@ -11,7 +11,7 @@ import { Toaster } from "@repo/ui/components/ui/toast"
  * Public and auth pages are designed light-first and always render light (owner, 2026-11-24); the signed-in app follows
  * the person's theme.
  */
-const LIGHT_ONLY = ["/about", "/design", "/docs", "/terms", "/privacy", "/signin", "/signup", "/verifyemail", "/forgotpassword", "/resetpassword", "/welcome"]
+const LIGHT_ONLY = ["/about", "/contact", "/design", "/docs", "/terms", "/privacy", "/signin", "/signup", "/verifyemail", "/forgotpassword", "/resetpassword", "/welcome"]
 function isLightOnly(pathname: string): boolean {
     return pathname === "/" || LIGHT_ONLY.some((p) => pathname === p || pathname.startsWith(`${p}/`))
 }

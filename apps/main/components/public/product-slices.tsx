@@ -1,6 +1,7 @@
 "use client"
 
 import { motion, useReducedMotion } from "framer-motion"
+import { ArrowDown, ArrowRight } from "lucide-react"
 import { cn } from "@repo/ui/lib/utils"
 import { BoliLogo } from "@/components/brand/boli-logo"
 import { DISPLAY } from "@/components/brand/type"
@@ -93,8 +94,8 @@ export function ModelSlice() {
         <div className="rounded-xl bg-white p-3.5 font-sans shadow-[0_1px_2px_rgba(20,20,20,0.06)]">
             <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                    <p className="truncate font-mono text-sm text-boli-ink">{BOLI_CHAT.id}</p>
-                    <p className="truncate text-xs text-boli-muted">{BOLI_CHAT.label}</p>
+                    <p className="break-words font-mono text-sm text-boli-ink">{BOLI_CHAT.id}</p>
+                    <p className="text-xs text-boli-muted">{BOLI_CHAT.label}</p>
                 </div>
                 <span className={cn("inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full px-2 text-xs", SKY_SOFT_BG, SKY_TEXT)}>
                     <span aria-hidden className="size-1.5 rounded-full bg-emerald-600" />
@@ -116,7 +117,7 @@ export function ModelSlice() {
                     </div>
                 ))}
             </div>
-            <p className="mt-2.5 truncate text-xs text-boli-muted">
+            <p className="mt-2.5 text-xs text-boli-muted">
                 {BOLI_CHAT.contextTokens.toLocaleString("en-US")} context - {BOLI_CHAT.licence}
             </p>
         </div>
@@ -141,6 +142,71 @@ export function SpeechSlice() {
             <p className="text-[13px] leading-5 text-boli-ink">
                 Bholi bihana saat baje <span className="text-boli-muted">bhetaun hai...</span>
             </p>
+        </div>
+    )
+}
+
+const BILL = [
+    { name: "चामल 5 kg", amount: 650 },
+    { name: "dal 2 kg", amount: 400 },
+    { name: "chiya patti", amount: 200 },
+] as const
+const BILL_TOTAL = BILL.reduce((t, l) => t + l.amount, 0)
+const BILL_JSON = [
+    `{`,
+    `  "shop": "Namuna Pasal",`,
+    `  "items": [{ "name": "chamal", "qty": "5 kg", "npr": 650 }, ...],`,
+    `  "total_npr": ${BILL_TOTAL}`,
+    `}`,
+] as const
+
+/** Document intelligence (next): a scanned bill in Nepali and English turning into JSON fields. */
+export function DocSlice() {
+    const reduce = useReducedMotion()
+    return (
+        <div className="grid items-center gap-3 font-sans sm:grid-cols-[minmax(0,10rem)_auto_minmax(0,1fr)]">
+            {/* The bill: a slip of paper, a little crooked, as it would be photographed. */}
+            <div className="mx-auto w-full max-w-[11rem] -rotate-2 rounded-md bg-white px-3 pb-3 pt-2.5 shadow-[0_1px_2px_rgba(20,20,20,0.08),0_6px_14px_-8px_rgba(20,20,20,0.25)]" aria-hidden>
+                <p className="text-center text-xs text-boli-ink">नमुना पसल</p>
+                <p className="text-center text-xs text-boli-muted">Bill no. 24</p>
+                <div className="mt-2 grid gap-0.5 border-y border-dashed border-boli-line py-1.5">
+                    {BILL.map((l) => (
+                        <p key={l.name} className="flex justify-between gap-2 text-xs text-boli-text">
+                            <span className="min-w-0">{l.name}</span>
+                            <span className="tabular-nums">{l.amount}</span>
+                        </p>
+                    ))}
+                </div>
+                <p className="mt-1.5 flex justify-between text-xs text-boli-ink">
+                    <span>जम्मा</span>
+                    <span className="tabular-nums">Rs {BILL_TOTAL.toLocaleString("en-US")}</span>
+                </p>
+            </div>
+            <span aria-hidden className={cn("justify-self-center", SKY_TEXT)}>
+                <ArrowRight strokeWidth={1.75} className="hidden size-4 sm:block" />
+                <ArrowDown strokeWidth={1.75} className="size-4 sm:hidden" />
+            </span>
+            <div className="min-w-0 rounded-xl bg-white px-3 py-2.5 font-mono text-xs leading-5 text-boli-text shadow-[0_1px_2px_rgba(20,20,20,0.06)]">
+                {BILL_JSON.map((line, i) => (
+                    <motion.p
+                        key={line}
+                        className="whitespace-pre-wrap break-words"
+                        initial={reduce ? false : { opacity: 0, x: -4 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.3, delay: 0.25 + i * 0.22 }}
+                    >
+                        {line.includes(":") ? (
+                            <>
+                                <span className="text-boli-ink">{line.slice(0, line.indexOf(":") + 1)}</span>
+                                <span className={SKY_TEXT}>{line.slice(line.indexOf(":") + 1)}</span>
+                            </>
+                        ) : (
+                            line
+                        )}
+                    </motion.p>
+                ))}
+            </div>
         </div>
     )
 }

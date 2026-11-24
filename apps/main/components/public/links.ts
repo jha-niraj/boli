@@ -7,6 +7,7 @@ export const PUBLIC_NAV = [
     { label: "Pricing", href: "/#pricing" },
     { label: "Docs", href: ROUTES.docs },
     { label: "About", href: ROUTES.about },
+    { label: "Contact", href: ROUTES.contact },
 ] as const
 
 export const FOOTER_COLUMNS = [
@@ -32,7 +33,7 @@ export const FOOTER_COLUMNS = [
         title: "Company",
         links: [
             { label: "About", href: ROUTES.about },
-            { label: "Contact", href: `${ROUTES.about}#contact` },
+            { label: "Contact", href: ROUTES.contact },
             { label: "Terms", href: ROUTES.terms },
             { label: "Privacy", href: ROUTES.privacy },
         ],

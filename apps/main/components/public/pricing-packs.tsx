@@ -141,7 +141,7 @@ function Enterprise() {
             <p className="text-sm leading-6 text-boli-text">Large volumes, invoices in NPR and help moving an existing workload to an open model.</p>
             <div className="mt-auto pt-1">
                 <PillButton asChild variant="secondary">
-                    <AppLink href={`${ROUTES.about}#contact`}>
+                    <AppLink href={ROUTES.contactAbout("Enterprise")}>
                         Talk to us <ArrowRight aria-hidden />
                     </AppLink>
                 </PillButton>

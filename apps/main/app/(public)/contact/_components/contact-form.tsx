@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useTransition, type FormEvent, type ReactNode } from "react"
+import { useRef, useState, useTransition, type FormEvent, type KeyboardEvent, type ReactNode } from "react"
 import { CheckCircle2 } from "lucide-react"
+import { Button } from "@repo/ui/components/ui/button"
 import { Input } from "@repo/ui/components/ui/input"
 import { Label } from "@repo/ui/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/ui/select"
 import { Spinner } from "@repo/ui/components/ui/spinner"
+import { cn } from "@repo/ui/lib/utils"
 import { Textarea } from "@repo/ui/components/ui/textarea"
 import { PillButton } from "@/components/brand/pill-button"
 import { DISPLAY } from "@/components/brand/type"
@@ -14,9 +15,22 @@ import { CONTACT_MESSAGE_MAX, CONTACT_TOPICS, contactSchema, type ContactTopic }
 
 type Errors = Partial<Record<"name" | "email" | "topic" | "message" | "form", string>>
 
-/** The contact form: name, email, topic, message, plus a hidden honeypot. Checked here and again on the server. */
-export function ContactForm() {
-    const [topic, setTopic] = useState<ContactTopic | "">("")
+/** One line under each topic, so people pick the right one. */
+const TOPIC_HINT: Record<ContactTopic, string> = {
+    API: "Keys, errors, models",
+    Billing: "Credits, eSewa, Khalti",
+    Enterprise: "Volumes, invoices",
+    Partnership: "Build something together",
+    Press: "Stories and interviews",
+    Other: "Anything else",
+}
+
+/**
+ * The contact form (/contact): the topic first (pill choices), then name, email and message, plus a hidden honeypot.
+ * Checked here and again on the server (actions/contact.action.ts keeps the honeypot and the hourly limit).
+ */
+export function ContactForm({ initialTopic }: { initialTopic?: ContactTopic }) {
+    const [topic, setTopic] = useState<ContactTopic | "">(initialTopic ?? "")
     const [message, setMessage] = useState("")
     const [errors, setErrors] = useState<Errors>({})
     const [sent, setSent] = useState(false)
@@ -68,6 +82,7 @@ export function ContactForm() {
 
     return (
         <form onSubmit={onSubmit} noValidate className="relative space-y-5 rounded-3xl border border-boli-line bg-white p-5 font-sans sm:p-8">
+            <TopicChoices value={topic} onChange={setTopic} error={errors.topic} />
             <div className="grid gap-5 sm:grid-cols-2">
                 <Field id="contact-name" label="Name" error={errors.name}>
                     <Input id="contact-name" name="name" autoComplete="name" required aria-invalid={!!errors.name} aria-describedby={errors.name ? "contact-name-error" : undefined} />
@@ -76,20 +91,7 @@ export function ContactForm() {
                     <Input id="contact-email" name="email" type="email" autoComplete="email" required aria-invalid={!!errors.email} aria-describedby={errors.email ? "contact-email-error" : undefined} />
                 </Field>
             </div>
-            <Field id="contact-topic" label="Topic" error={errors.topic}>
-                <Select value={topic} onValueChange={(v) => setTopic(v as ContactTopic)}>
-                    <SelectTrigger id="contact-topic" aria-invalid={!!errors.topic} className="w-full">
-                        <SelectValue placeholder="What is it about?" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {CONTACT_TOPICS.map((t) => (
-                            <SelectItem key={t} value={t}>
-                                {t}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </Field>
+
             <Field id="contact-message" label="Message" error={errors.message} hint={`${message.length.toLocaleString()} / ${CONTACT_MESSAGE_MAX.toLocaleString()}`}>
                 <Textarea
                     id="contact-message"
@@ -121,6 +123,67 @@ export function ContactForm() {
                 </PillButton>
             </div>
         </form>
+    )
+}
+
+/** The topics as a radio group of pills: arrow keys move between them, the chosen one is ink. */
+function TopicChoices({ value, onChange, error }: { value: ContactTopic | ""; onChange: (t: ContactTopic) => void; error?: string }) {
+    const refs = useRef<Record<string, HTMLButtonElement | null>>({})
+    function onKey(e: KeyboardEvent<HTMLDivElement>) {
+        const keys = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"]
+        if (!keys.includes(e.key)) return
+        e.preventDefault()
+        const i = value ? CONTACT_TOPICS.indexOf(value) : -1
+        const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1
+        const next = CONTACT_TOPICS[(i + step + CONTACT_TOPICS.length) % CONTACT_TOPICS.length]
+        if (!next) return
+        onChange(next)
+        refs.current[next]?.focus()
+    }
+    return (
+        <fieldset className="space-y-2">
+            <legend id="contact-topic-label" className="text-sm text-boli-ink">
+                What is it about?
+            </legend>
+            <div
+                role="radiogroup"
+                aria-labelledby="contact-topic-label"
+                aria-invalid={!!error}
+                aria-describedby={error ? "contact-topic-error" : undefined}
+                onKeyDown={onKey}
+                className="grid grid-cols-2 gap-2 sm:grid-cols-3"
+            >
+                {CONTACT_TOPICS.map((t, i) => {
+                    const on = t === value
+                    return (
+                        <Button
+                            key={t}
+                            ref={(el) => {
+                                refs.current[t] = el
+                            }}
+                            type="button"
+                            role="radio"
+                            aria-checked={on}
+                            tabIndex={on || (!value && i === 0) ? 0 : -1}
+                            variant="ghost"
+                            onClick={() => onChange(t)}
+                            className={cn(
+                                "h-auto min-h-14 cursor-pointer flex-col items-start justify-center gap-0 border px-5 py-2 text-left font-normal whitespace-normal",
+                                on ? "border-boli-ink bg-boli-ink text-white hover:bg-boli-ink hover:text-white" : "border-boli-line bg-white text-boli-ink hover:bg-boli-ground",
+                            )}
+                        >
+                            <span className="text-sm font-[450]">{t}</span>
+                            <span className={cn("text-xs", on ? "text-white/70" : "text-boli-muted")}>{TOPIC_HINT[t]}</span>
+                        </Button>
+                    )
+                })}
+            </div>
+            {error ? (
+                <p id="contact-topic-error" className="text-xs text-boli-crimson-ink">
+                    {error}
+                </p>
+            ) : null}
+        </fieldset>
     )
 }
 

@@ -4,7 +4,7 @@ import * as React from "react"
 import { ArrowRight } from "lucide-react"
 import { AppLink } from "@repo/ui/components/app-link"
 import { Button } from "@repo/ui/components/ui/button"
-import { InlineLoader } from "@repo/ui/components/ui/inline-loader"
+import { InlineLoader } from "@/components/loaders/spinners"
 import { Input } from "@repo/ui/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/ui/popover"
 import { cn } from "@repo/ui/lib/utils"
@@ -247,7 +247,7 @@ function Enterprise() {
             </p>
             <div className="mt-auto pt-1">
                 <Button asChild variant="outline" size="sm" className={cn("gap-1.5 focus-visible:ring-2", SKY_RING)}>
-                    <AppLink href={`${ROUTES.about}#contact`}>
+                    <AppLink href={ROUTES.contactAbout("Enterprise")}>
                         Talk to us <ArrowRight className="h-3.5 w-3.5" />
                     </AppLink>
                 </Button>

@@ -16,6 +16,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     return [
         page(ROUTES.landing, 1, 'weekly'),
         page(ROUTES.about, 0.8, 'monthly'),
+        page(ROUTES.contact, 0.6, 'monthly'),
+        page(ROUTES.docs, 0.8, 'weekly'),
         ...DOCS_PAGES.map((d) => page(ROUTES.doc(d.slug), 0.8, 'weekly')),
         page(ROUTES.signUp, 0.7, 'monthly'),
         page(ROUTES.signIn, 0.5, 'monthly'),

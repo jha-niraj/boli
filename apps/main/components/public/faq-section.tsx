@@ -62,7 +62,7 @@ export function FaqSection({ className }: { className?: string }) {
                 </h2>
                 <p className="mt-4 max-w-sm font-sans text-[15px] leading-7 text-boli-text">What people ask before their first call - credits, payments, limits and what we keep.</p>
                 <AppLink
-                    href={`${ROUTES.about}#contact`}
+                    href={ROUTES.contact}
                     className={cn("mt-6 inline-flex cursor-pointer items-center gap-1.5 font-sans text-sm font-[450] text-boli-ink underline decoration-1 underline-offset-4", SKY_DECORATION)}
                 >
                     Still stuck? Write to us <ArrowRight aria-hidden strokeWidth={1.75} className="size-3.5" />
