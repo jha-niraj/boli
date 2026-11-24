@@ -4,15 +4,15 @@ import * as React from "react"
 import { ArrowRight } from "lucide-react"
 import { AppLink } from "@repo/ui/components/app-link"
 import { Button } from "@repo/ui/components/ui/button"
-import { InlineLoader } from "@/components/loaders/spinners"
+import { InlineLoader } from "@repo/brand/loaders/spinners"
 import { Input } from "@repo/ui/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/ui/popover"
 import { cn } from "@repo/ui/lib/utils"
 import { startAddCredits, startBuyPack } from "@/actions/billing.action"
 import { DashDhaka } from "@/components/platform/dhaka-band"
 import { SKY_RING, SKY_SOFT, SKY_TEXT } from "@/components/platform/sky"
-import { ADD_CREDITS_MAX, ADD_CREDITS_MIN, BOLI_CHAT, CREDIT_PACKS, type CreditPackId } from "@/lib/boli"
-import { ROUTES } from "@/lib/navigation"
+import { ADD_CREDITS_MAX, ADD_CREDITS_MIN, BOLI_CHAT, CREDIT_PACKS, type CreditPackId } from "@repo/boli"
+import { WEB } from "@/lib/web-links"
 import { PROVIDER_NAMES } from "@/lib/platform-display"
 import { launchCheckout } from "./launch-checkout"
 
@@ -247,7 +247,7 @@ function Enterprise() {
             </p>
             <div className="mt-auto pt-1">
                 <Button asChild variant="outline" size="sm" className={cn("gap-1.5 focus-visible:ring-2", SKY_RING)}>
-                    <AppLink href={ROUTES.contactAbout("Enterprise")}>
+                    <AppLink href={WEB.contactAbout("Enterprise")}>
                         Talk to us <ArrowRight className="h-3.5 w-3.5" />
                     </AppLink>
                 </Button>

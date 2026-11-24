@@ -1,4 +1,4 @@
-import { BoliAppLoader } from "@/components/loaders/full-page"
+import { BoliAppLoader } from "@repo/brand/loaders/full-page"
 
 /**
  * Fallback for a route without its own loading.tsx: F1, the thread drawing itself, beside the rail. Every functional

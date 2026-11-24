@@ -11,6 +11,7 @@ import { hideGetStarted } from "@/actions/usage.action"
 import { DashDhaka } from "@/components/platform/dhaka-band"
 import { SKY_FILL } from "@/components/platform/sky"
 import { ROUTES } from "@/lib/navigation"
+import { WEB } from "@/lib/web-links"
 import type { HomeData } from "@/types/platform"
 
 /*
@@ -23,7 +24,7 @@ type Step = { key: keyof HomeData["started"]; title: string; line: string; href:
 
 const STEPS: Step[] = [
     { key: "key", title: "Create an API key", line: "Keep it in your .env as BOLI_API_KEY.", href: `${ROUTES.keys}?create=1` },
-    { key: "apiCall", title: "Make your first API call", line: "Run the quickstart below with your key.", href: ROUTES.doc("quickstart") },
+    { key: "apiCall", title: "Make your first API call", line: "Run the quickstart below with your key.", href: WEB.doc("quickstart") },
     { key: "kura", title: "Try Kura", line: "Ask something in Romanized Nepali.", href: ROUTES.kura },
 ]
 

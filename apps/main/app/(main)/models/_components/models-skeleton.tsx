@@ -1,5 +1,5 @@
 import { Skeleton } from "@repo/ui/components/ui/skeleton"
-import { MODELS } from "@/lib/boli"
+import { MODELS } from "@repo/boli"
 
 export const MODELS_TITLE = "Models"
 export const MODELS_DESCRIPTION = "Open models you can chat with in Kura and call through the API."

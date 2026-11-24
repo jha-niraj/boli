@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { ROUTES } from "@/lib/navigation"
 import { getBillingSummary } from "@/lib/platform/usage"
 import { getSession } from "@/lib/session"
-import { ADD_CREDITS_MAX, ADD_CREDITS_MIN, CREDIT_PACKS } from "@/lib/boli"
+import { ADD_CREDITS_MAX, ADD_CREDITS_MIN, CREDIT_PACKS } from "@repo/boli"
 import type { BillingPreselect } from "./_components/plans-tab"
 import { BillingView } from "./_components/billing-view"
 

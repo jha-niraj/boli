@@ -11,10 +11,10 @@ import {
 import type { GoogleMode } from "@repo/auth/google"
 import { Button } from "@repo/ui/components/ui/button"
 import { Input } from "@repo/ui/components/ui/input"
-import { InlineLoader } from "@/components/loaders/spinners"
-import { HomeLoader } from "@/components/loaders/full-page"
+import { InlineLoader } from "@repo/brand/loaders/spinners"
+import { HomeLoader } from "@repo/brand/loaders/full-page"
 import { AUTH_ROUTES } from "@/lib/auth-routes"
-import { BRAND } from "@/lib/boli"
+import { BRAND } from "@repo/boli"
 
 export interface SignInNotice {
     tone: "neutral" | "error"

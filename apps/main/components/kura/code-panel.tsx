@@ -5,11 +5,12 @@ import { ArrowUpRight } from 'lucide-react'
 import { ScrollArea } from '@repo/ui/components/ui/scroll-area'
 import { AppLink } from '@repo/ui/components/app-link'
 import { SITE } from '@repo/core/site'
-import { KURA_SUGGESTIONS } from '@/lib/boli'
-import { buildSamples, type SampleMessage } from '@/lib/code-samples'
+import { KURA_SUGGESTIONS } from '@repo/boli'
+import { buildSamples, type SampleMessage } from '@repo/boli/code-samples'
 import { ROUTES } from '@/lib/navigation'
+import { WEB } from '@/lib/web-links'
 import type { ChatViewMessage } from '@/lib/ai/types'
-import { CodeTabs } from '@/components/brand/code-tabs'
+import { CodeTabs } from '@repo/brand/code-tabs'
 import { useKuraChat } from '@/stores/kura-chat.store'
 
 /** Turns of the current chat put into the sample (more makes a wall of JSON). */
@@ -58,7 +59,7 @@ export function CodePanel({ draft }: { draft: string }) {
                     <p>Set <code className="rounded bg-neutral-100 px-1 py-0.5 font-mono dark:bg-neutral-800">BOLI_API_KEY</code> to a key from your API keys first.</p>
                     <div className="flex flex-wrap gap-x-4 gap-y-1">
                         <AppLink href={ROUTES.keys} className="inline-flex items-center gap-1 underline underline-offset-2">Create an API key<ArrowUpRight className="h-3 w-3" /></AppLink>
-                        <AppLink href={ROUTES.doc('chatcompletions')} className="inline-flex items-center gap-1 underline underline-offset-2">Chat completions reference<ArrowUpRight className="h-3 w-3" /></AppLink>
+                        <AppLink href={WEB.doc('chatcompletions')} className="inline-flex items-center gap-1 underline underline-offset-2">Chat completions reference<ArrowUpRight className="h-3 w-3" /></AppLink>
                     </div>
                 </div>
             </div>

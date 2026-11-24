@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { KuraSettings } from '@/lib/boli'
+import type { KuraSettings } from '@repo/boli'
 import { saveConversationSettings } from '@/actions/ai/kura.action'
 import { useKuraChat } from '@/stores/kura-chat.store'
 

@@ -7,8 +7,9 @@ import { Page } from "@repo/ui/components/ui/page"
 import { cn } from "@repo/ui/lib/utils"
 import { DashDhaka } from "@/components/platform/dhaka-band"
 import { SKY_SOFT, SKY_TEXT } from "@/components/platform/sky"
-import { MODELS, RATE_LIMIT_PER_MIN, type BoliModel } from "@/lib/boli"
+import { MODELS, RATE_LIMIT_PER_MIN, type BoliModel } from "@repo/boli"
 import { ROUTES } from "@/lib/navigation"
+import { WEB } from "@/lib/web-links"
 import { MODELS_DESCRIPTION, MODELS_TITLE } from "./models-skeleton"
 
 function Fact({ label, value }: { label: string; value: string }) {
@@ -77,7 +78,7 @@ function ModelCard({ model }: { model: BoliModel }) {
                     <AppLink href={ROUTES.kura}><MessagesSquare className="h-3.5 w-3.5" /> Try in Kura</AppLink>
                 </Button>
                 <Button asChild variant="outline" size="sm" className="gap-1.5">
-                    <AppLink href={ROUTES.doc("chatcompletions")}><BookOpen className="h-3.5 w-3.5" /> API docs</AppLink>
+                    <AppLink href={WEB.doc("chatcompletions")}><BookOpen className="h-3.5 w-3.5" /> API docs</AppLink>
                 </Button>
             </div>
             </div>

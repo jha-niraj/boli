@@ -15,15 +15,16 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { StatBand, type StatBandItem } from "@repo/ui/components/ui/stat-band"
 import { cn } from "@repo/ui/lib/utils"
 import { getHomeData } from "@/actions/usage.action"
-import { CodeTabs, CopyButton } from "@/components/brand/code-tabs"
+import { CodeTabs, CopyButton } from "@repo/brand/code-tabs"
 import { BoliEmpty } from "@/components/empty/boli-empty"
 import { RequestDetailRows } from "@/components/platform/request-detail"
 import { SKY_LINK } from "@/components/platform/sky"
 import { SpendChart } from "@/components/platform/spend-chart"
-import { formatCredits, MAX_API_KEYS } from "@/lib/boli"
-import { buildSamples, codingAgentPrompt } from "@/lib/code-samples"
+import { formatCredits, MAX_API_KEYS } from "@repo/boli"
+import { buildSamples, codingAgentPrompt } from "@repo/boli/code-samples"
 import { formatTokens } from "@/lib/format"
 import { ROUTES } from "@/lib/navigation"
+import { WEB } from "@/lib/web-links"
 import { addTotals, formatFullDateTime, PLATFORM_KEYS, TIME_ZONE } from "@/lib/platform-display"
 import type { ActivityItem, HomeData } from "@/types/platform"
 import { GetStarted } from "./get-started"
@@ -136,7 +137,7 @@ export function HomeView({ initialData, startedHidden }: { initialData: HomeData
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
                             <Button asChild variant="outline" size="sm" className="gap-1.5">
-                                <AppLink href={ROUTES.doc("quickstart")}><BookOpen className="h-3.5 w-3.5" /> Docs</AppLink>
+                                <AppLink href={WEB.doc("quickstart")}><BookOpen className="h-3.5 w-3.5" /> Docs</AppLink>
                             </Button>
                             <Button asChild size="sm" className="gap-1.5">
                                 <AppLink href={`${ROUTES.keys}?create=1`}><Plus className="h-3.5 w-3.5" /> Create API key</AppLink>

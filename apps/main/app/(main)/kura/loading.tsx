@@ -1,4 +1,4 @@
-import { KURA } from '@/lib/boli'
+import { KURA } from '@repo/boli'
 import { KuraPageSkeleton } from '@/components/kura/kura-skeleton'
 
 /**

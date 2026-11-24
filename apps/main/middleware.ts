@@ -10,12 +10,18 @@ const HOME = '/kura'
 
 /** Signed-in visitors are sent on to HOME (or their returnTo). */
 const AUTH_ONLY = ['/signin', '/signup', '/forgotpassword', '/resetpassword']
-/** Open to everyone, signed in or not. `/verifyemail` stays reachable while signed in (the link lands there). */
-const PUBLIC = ['/', '/about', '/contact', '/docs', '/design', '/verifyemail', '/terms', '/privacy', '/opengraph-image']
+/**
+ * Open to everyone, signed in or not. `/verifyemail` stays reachable while signed in (the link lands there). The public
+ * site (landing, about, contact, docs, legal) lives in apps/web on its own origin.
+ */
+const PUBLIC = ['/verifyemail']
 
 export function middleware(request: NextRequest) {
     const { pathname, searchParams } = request.nextUrl
     const signedIn = isSignedIn(request)
+
+    // The app has no landing of its own (apps/web is the site): `/` goes to Kura, or to sign-in.
+    if (pathname === '/') return NextResponse.redirect(new URL(signedIn ? HOME : SIGN_IN, request.url))
 
     if (matchesRoute(pathname, AUTH_ONLY)) {
         if (!signedIn) return NextResponse.next()

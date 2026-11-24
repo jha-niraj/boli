@@ -1,7 +1,7 @@
 import "server-only"
 import { and, count, db, eq, gte, min } from "@repo/db"
 import { inferenceRequest } from "@repo/db/schema"
-import { RATE_LIMIT_PER_MIN } from "@/lib/boli"
+import { RATE_LIMIT_PER_MIN } from "@repo/boli"
 
 /** Requests per minute per account (every key and Kura share it). API_RATE_LIMIT_PER_MIN overrides the constant. */
 function limitPerMin(): number {

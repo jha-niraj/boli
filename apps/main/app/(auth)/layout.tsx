@@ -1,6 +1,7 @@
 import { AuthFrame } from '@repo/auth/ui'
-import { AUTH_PANEL_CLASS, AuthArtBand, AuthArtPanel, AuthDhaka, AuthTop } from '@/components/brand/auth-art'
+import { AUTH_PANEL_CLASS, AuthArtBand, AuthArtPanel, AuthDhaka, AuthTop } from '@repo/brand/auth-art'
 import { AUTH_ROUTES } from '@/lib/auth-routes'
+import { WEB_URL } from '@/lib/web-links'
 
 /**
  * One frame for every auth page (A1, approved 2026-11-24): from `lg` the golden-hour valley on the LEFT with one line
@@ -14,11 +15,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             panel={<AuthArtPanel />}
             panelClassName={AUTH_PANEL_CLASS}
             mobilePanel={<AuthArtBand />}
-            formTop={<AuthTop />}
+            formTop={<AuthTop homeHref={WEB_URL} />}
             formFooter={<AuthDhaka />}
             display="serif"
             align="start"
             className="bg-background"
+            homeHref={WEB_URL}
             legal={{ terms: AUTH_ROUTES.terms, privacy: AUTH_ROUTES.privacy }}
         >
             {children}

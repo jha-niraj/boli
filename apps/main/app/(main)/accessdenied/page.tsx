@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { ArrowLeft } from "lucide-react"
 import { AppLink } from "@repo/ui/components/app-link"
 import { Button } from "@repo/ui/components/ui/button"
-import { BoliStatus } from "@/components/status/status-screen"
+import { BoliStatus } from "@repo/brand/status/status-screen"
 import { SwitchAccountButton } from "@/components/status/switch-account-button"
 import { ROUTES } from "@/lib/navigation"
 

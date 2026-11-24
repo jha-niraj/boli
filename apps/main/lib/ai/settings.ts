@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { KURA_DEFAULTS, KURA_LIMITS, type KuraSettings } from '@/lib/boli'
+import { KURA_DEFAULTS, KURA_LIMITS, type KuraSettings } from '@repo/boli'
 
 /**
  * Kura settings per conversation (`ai_conversation.settings`). Pure - used by the route, the action and the page.

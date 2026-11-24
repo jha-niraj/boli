@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { KURA_LIMITS, MODELS } from "@/lib/boli"
+import { KURA_LIMITS, MODELS } from "@repo/boli"
 
 const API_MAX_TOKENS = { min: 1, max: KURA_LIMITS.maxTokens.max }
 

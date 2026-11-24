@@ -9,11 +9,11 @@ import { AppLink, markNavPending } from "@repo/ui/components/app-link"
 import { NotificationsPanel, type NotificationView } from "@repo/ui/components/ui/notifications-panel"
 import type { ShellUser } from "@repo/ui/lib/shell"
 import { getNotifications, getUnreadCount, markAllAsRead, markAsRead } from "@/actions/notification.action"
-import { BoliLogo } from "@/components/brand/boli-logo"
+import { BoliLogo } from "@repo/brand/boli-logo"
 import { BoliEmpty } from "@/components/empty/boli-empty"
 import { FeedbackButton } from "@/components/feedback/feedback-button"
 import { CreditsRow, useBalance } from "@/components/shell/credits-chip"
-import { BRAND, formatCredits } from "@/lib/boli"
+import { BRAND, formatCredits } from "@repo/boli"
 import { MAIN_NAV, MAIN_RAIL_COOKIE, ROUTES } from "@/lib/navigation"
 
 /**

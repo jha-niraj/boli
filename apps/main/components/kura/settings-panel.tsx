@@ -7,7 +7,7 @@ import { Label } from '@repo/ui/components/ui/label'
 import { ScrollArea } from '@repo/ui/components/ui/scroll-area'
 import { Textarea } from '@repo/ui/components/ui/textarea'
 import { cn } from '@repo/ui/lib/utils'
-import { BOLI_CHAT, DEFAULT_SYSTEM_PROMPT, KURA_DEFAULTS, KURA_LIMITS, type KuraSettings } from '@/lib/boli'
+import { BOLI_CHAT, DEFAULT_SYSTEM_PROMPT, KURA_DEFAULTS, KURA_LIMITS, type KuraSettings } from '@repo/boli'
 import { SYSTEM_PROMPT_MAX, sameSettings } from '@/lib/ai/settings'
 import { useKuraSettings, type SaveState } from './use-kura-settings'
 

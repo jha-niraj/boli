@@ -6,7 +6,7 @@ import { Button } from '@repo/ui/components/ui/button'
 import { Textarea } from '@repo/ui/components/ui/textarea'
 import { Kbd } from '@repo/ui/components/ui/kbd'
 import { cn } from '@repo/ui/lib/utils'
-import { BOLI_CHAT } from '@/lib/boli'
+import { BOLI_CHAT } from '@repo/boli'
 import { SKY_FILL, SKY_RING, SKY_SOFT, SKY_TEXT } from '@/components/platform/sky'
 import { CHAT_GUTTER } from './query-keys'
 

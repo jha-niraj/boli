@@ -1,0 +1,27 @@
+{
+	"name": "@repo/boli",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Boli's contract, shared by main and web: prices, credit packs, limits, brand copy, model info (the root export), API code samples, the Shiki highlighter and its themes",
+	"type": "module",
+	"exports": {
+		".": "./src/boli.ts",
+		"./code-samples": "./src/code-samples.ts",
+		"./highlight": "./src/highlight.ts",
+		"./highlight-theme": "./src/highlight-theme.ts"
+	},
+	"scripts": {
+		"lint": "eslint . --max-warnings 0",
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@shikijs/langs": "^4.6.0",
+		"shiki": "^4.6.0"
+	},
+	"devDependencies": {
+		"@repo/eslint-config": "workspace:*",
+		"@repo/typescript-config": "workspace:*",
+		"@types/node": "^22.15.3",
+		"typescript": "5.9.3"
+	}
+}

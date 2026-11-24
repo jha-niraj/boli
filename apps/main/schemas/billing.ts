@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { ADD_CREDITS_MAX, ADD_CREDITS_MIN, CREDIT_PACKS, type CreditPackId } from "@/lib/boli"
+import { ADD_CREDITS_MAX, ADD_CREDITS_MIN, CREDIT_PACKS, type CreditPackId } from "@repo/boli"
 
 const provider = z.enum(["esewa", "khalti"])
 

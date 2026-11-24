@@ -13,8 +13,8 @@ import { useUrlTab } from "@repo/ui/hooks/use-url-tab"
 import { getBilling } from "@/actions/billing.action"
 import { BoliEmpty } from "@/components/empty/boli-empty"
 import { SKY_LINK } from "@/components/platform/sky"
-import { BOLI_CHAT, formatCredits } from "@/lib/boli"
-import { ROUTES } from "@/lib/navigation"
+import { BOLI_CHAT, formatCredits } from "@repo/boli"
+import { WEB } from "@/lib/web-links"
 import { formatDateTime, formatDay, formatRupeesMinor, PAYMENT_STATUS_LABELS, PLATFORM_KEYS, PROVIDER_NAMES } from "@/lib/platform-display"
 import type { BillingData, BillingHistoryRow } from "@/types/platform"
 import { AddCreditsDialog } from "./add-credits-dialog"
@@ -141,7 +141,7 @@ export function BillingView({ initialData, initialTab, openAdd, preselect }: {
                                     {BOLI_CHAT.pricePerMillion.input} credits per 1M input tokens, {BOLI_CHAT.pricePerMillion.output} per 1M output.
                                 </p>
                                 <div className="mt-auto pt-4">
-                                    <AppLink href={ROUTES.doc("models")} className={cn("inline-flex items-center gap-1 text-sm", SKY_LINK)}>
+                                    <AppLink href={WEB.doc("models")} className={cn("inline-flex items-center gap-1 text-sm", SKY_LINK)}>
                                         View pricing <ArrowRight className="h-3.5 w-3.5" />
                                     </AppLink>
                                 </div>

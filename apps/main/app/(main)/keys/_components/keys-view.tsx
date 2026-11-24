@@ -15,10 +15,10 @@ import { toast } from "@repo/ui/components/ui/toast"
 import { cn } from "@repo/ui/lib/utils"
 import { SITE } from "@repo/core/site"
 import { getApiKeys, revokeKey } from "@/actions/keys.action"
-import { API_PATHS, maskKey, MAX_API_KEYS } from "@/lib/boli"
+import { API_PATHS, maskKey, MAX_API_KEYS } from "@repo/boli"
 import { BoliEmpty } from "@/components/empty/boli-empty"
 import { SKY_LINK } from "@/components/platform/sky"
-import { ROUTES } from "@/lib/navigation"
+import { WEB } from "@/lib/web-links"
 import { formatDay, PLATFORM_KEYS, TIME_ZONE } from "@/lib/platform-display"
 import type { ApiKeyRow } from "@/types/platform"
 import { CreateKeyDialog } from "./create-key-dialog"
@@ -94,7 +94,7 @@ export function KeysView({ initialData, openCreate }: { initialData: ApiKeyRow[]
                         Send the key as <code className="rounded bg-neutral-100 px-1 py-0.5 font-mono text-xs dark:bg-neutral-800">Authorization: Bearer &lt;key&gt;</code> to{" "}
                         <code className="break-all rounded bg-neutral-100 px-1 py-0.5 font-mono text-xs dark:bg-neutral-800">{SITE.url}{API_PATHS.chatCompletions}</code>
                     </p>
-                    <AppLink href={ROUTES.doc("quickstart")} className={cn("inline-flex shrink-0 cursor-pointer items-center gap-1 text-sm font-medium", SKY_LINK)}>
+                    <AppLink href={WEB.doc("quickstart")} className={cn("inline-flex shrink-0 cursor-pointer items-center gap-1 text-sm font-medium", SKY_LINK)}>
                         Quickstart <ArrowRight className="h-3.5 w-3.5" />
                     </AppLink>
                 </section>

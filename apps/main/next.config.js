@@ -67,7 +67,8 @@ const nextConfig = {
             // The chat moved from /ai to /kura (Boli, 2026-11-24).
             { source: '/ai', destination: '/kura', permanent: true },
             { source: '/ai/:id', destination: '/kura/:id', permanent: true },
-            { source: '/help', destination: '/docs', permanent: false },
+            // Docs live on the public site (apps/web, NEXT_PUBLIC_WEB_URL); localhost only when the key is unset locally.
+            { source: '/help', destination: `${(process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3102').replace(/\/+$/, '')}/docs`, permanent: false },
         ];
     },
 };

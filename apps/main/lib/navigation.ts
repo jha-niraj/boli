@@ -1,8 +1,10 @@
 import { BookOpen, ChartNoAxesColumn, KeyRound, LayoutDashboard, MessagesSquare, Boxes, Wallet } from "lucide-react"
 import type { ShellNavSection } from "@repo/ui/lib/shell"
+import { WEB } from "./web-links"
 
 /**
- * Route constants (every link is built from these, never a guessed URL) and the rail. App URLs carry no hyphens.
+ * Route constants (every link is built from these, never a guessed URL) and the rail. Links to the public site (docs,
+ * legal, about, contact) live in ./web-links.ts - that site is apps/web on its own origin. App URLs carry no hyphens.
  * Profile and Notifications are reached from the account row and the bell at the foot of the rail, so they are not
  * rail items. Boli (plan/main/platform/platform-v0.md): signed-in people land on Kura.
  */
@@ -16,15 +18,6 @@ export const ROUTES = {
     usage: "/usage",
     billing: "/billing",
     models: "/models",
-    docs: "/docs",
-    doc: (slug: string) => `/docs/${slug}`,
-    about: "/about",
-    contact: "/contact",
-    /** /contact with a topic picked (a CONTACT_TOPICS value, e.g. "Enterprise"). */
-    contactAbout: (topic: string) => `/contact?topic=${encodeURIComponent(topic)}`,
-    terms: "/terms",
-    privacy: "/privacy",
-    landing: "/",
     profile: "/profile",
     notifications: "/notifications",
     settings: "/settings",
@@ -36,14 +29,6 @@ export const ROUTES = {
     signUp: "/signup",
     accessDenied: "/accessdenied",
 } as const
-
-/** Docs pages (public, own module now, own domain later). Slugs carry no hyphens. */
-export const DOCS_PAGES = [
-    { slug: "quickstart", title: "Quickstart" },
-    { slug: "authentication", title: "Authentication and errors" },
-    { slug: "chatcompletions", title: "Chat completions" },
-    { slug: "models", title: "Models, pricing and limits" },
-] as const
 
 /** The rail pin cookie ("1" = unpinned). Each app has its own name: localhost cookies ignore the port. */
 export const MAIN_RAIL_COOKIE = "boli_rail_hidden"
@@ -90,7 +75,7 @@ export const MAIN_NAV: ShellNavSection[] = [
         id: "learn",
         label: "Learn",
         items: [
-            { name: "Docs", href: ROUTES.docs, icon: BookOpen },
+            { name: "Docs", href: WEB.docs, icon: BookOpen },
         ],
     },
     // Settings live in the account menu at the bottom of the rail; Help is replaced by Docs (owner, 2026-11-24).

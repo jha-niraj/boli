@@ -6,7 +6,7 @@ import { AppLink } from "@repo/ui/components/app-link"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/components/ui/tooltip"
 import { cn } from "@repo/ui/lib/utils"
 import { getMyBalance } from "@/actions/balance.action"
-import { formatCredits } from "@/lib/boli"
+import { formatCredits } from "@repo/boli"
 import { ROUTES } from "@/lib/navigation"
 
 /** One query key for the balance, so Billing and Kura can invalidate it after a top-up or a reply. */

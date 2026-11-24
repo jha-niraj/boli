@@ -4,13 +4,13 @@ import { ArrowUpRight, Code2 } from 'lucide-react'
 import { AppLink } from '@repo/ui/components/app-link'
 import { Button } from '@repo/ui/components/ui/button'
 import { cn } from '@repo/ui/lib/utils'
-import { ArtRoot } from '@/components/art/art-root'
-import { KuraScene } from '@/components/art/kura/kura-scene'
-import { BoliAvatar } from '@/components/brand/boli-mark'
+import { ArtRoot } from '@repo/brand/art/art-root'
+import { KuraScene } from '@repo/brand/art/kura/kura-scene'
+import { BoliAvatar } from '@repo/brand/boli-mark'
 import { DashDhaka } from '@/components/platform/dhaka-band'
 import { SKY_LINK, SKY_TEXT } from '@/components/platform/sky'
-import { KURA, KURA_SUGGESTIONS } from '@/lib/boli'
-import { ROUTES } from '@/lib/navigation'
+import { KURA, KURA_SUGGESTIONS } from '@repo/boli'
+import { WEB } from '@/lib/web-links'
 import { CHAT_GUTTER } from './query-keys'
 
 /**
@@ -74,7 +74,7 @@ export function KuraWelcome({ busy, onPrompt, onSeed }: { busy: boolean; onPromp
             </div>
 
             <div className="mt-5 flex justify-center">
-                <AppLink href={ROUTES.doc('quickstart')} className={cn('inline-flex items-center gap-1.5 text-xs', SKY_LINK)}>
+                <AppLink href={WEB.doc('quickstart')} className={cn('inline-flex items-center gap-1.5 text-xs', SKY_LINK)}>
                     <Code2 className="h-3.5 w-3.5" /> Use this from code <ArrowUpRight className="h-3 w-3" />
                 </AppLink>
             </div>

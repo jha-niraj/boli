@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { KURA_DEFAULTS, type KuraSettings } from '@/lib/boli'
+import { KURA_DEFAULTS, type KuraSettings } from '@repo/boli'
 import type { KuraErrorCode, KuraUsage } from '@/lib/ai/protocol'
 import type { ChatViewMessage, ConversationView } from '@/lib/ai/types'
 

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { AuthFrame } from "@repo/auth/ui"
-import { AUTH_PANEL_CLASS, AuthArtBand, AuthArtPanel, AuthDhaka, AuthLogo } from "@/components/brand/auth-art"
+import { AUTH_PANEL_CLASS, AuthArtBand, AuthArtPanel, AuthDhaka, AuthLogo } from "@repo/brand/auth-art"
 import { getSession } from "@/lib/session"
 import { ROUTES } from "@/lib/navigation"
 

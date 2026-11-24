@@ -1,5 +1,5 @@
 // Types shared by Kura's server code and its client components. Pure - no imports that pull in server code.
-import type { KuraSettings } from '@/lib/boli'
+import type { KuraSettings } from '@repo/boli'
 import type { KuraPart } from './protocol'
 
 export interface ChatViewMessage {

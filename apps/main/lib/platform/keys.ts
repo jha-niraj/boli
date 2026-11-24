@@ -3,7 +3,7 @@ import { and, count, db, desc, eq, isNull, lt, or, sql } from "@repo/db"
 import { apiKey, user } from "@repo/db/schema"
 import { sha256Hex } from "@repo/crypto"
 import { AppError } from "@repo/errors"
-import { API_KEY_DISPLAY_LENGTH, API_KEY_PREFIX, API_KEY_RANDOM_LENGTH, MAX_API_KEYS } from "@/lib/boli"
+import { API_KEY_DISPLAY_LENGTH, API_KEY_PREFIX, API_KEY_RANDOM_LENGTH, MAX_API_KEYS } from "@repo/boli"
 
 /**
  * API keys. The secret is shown ONCE (the return of createApiKey) and never stored: only its SHA-256 hex (unique,

@@ -1,4 +1,4 @@
-import { API_ERRORS, BOLI_CHAT, KURA_DEFAULTS, KURA_LIMITS, MODELS, type ApiErrorCode } from "@/lib/boli"
+import { API_ERRORS, BOLI_CHAT, KURA_DEFAULTS, KURA_LIMITS, MODELS, type ApiErrorCode } from "@repo/boli"
 import { authenticateKey } from "@/lib/platform/keys"
 import { chargeInference, hasBalance } from "@/lib/platform/credits"
 import { checkRateLimit } from "@/lib/platform/ratelimit"

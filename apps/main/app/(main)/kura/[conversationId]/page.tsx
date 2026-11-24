@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { KURA } from '@/lib/boli'
+import { KURA } from '@repo/boli'
 import { KuraRoute } from '../_components/kura-route'
 
 export const metadata: Metadata = { title: KURA.name }

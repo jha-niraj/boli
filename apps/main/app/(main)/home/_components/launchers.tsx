@@ -4,10 +4,11 @@ import { AppLink } from "@repo/ui/components/app-link"
 import { ScrollArea } from "@repo/ui/components/ui/scroll-area"
 import { Skeleton } from "@repo/ui/components/ui/skeleton"
 import { cn } from "@repo/ui/lib/utils"
-import { BoliMark } from "@/components/brand/boli-mark"
+import { BoliMark } from "@repo/brand/boli-mark"
 import { SKY_SOFT, SKY_TEXT } from "@/components/platform/sky"
-import { API_KEY_PREFIX, BOLI_CHAT } from "@/lib/boli"
+import { API_KEY_PREFIX, BOLI_CHAT } from "@repo/boli"
 import { ROUTES } from "@/lib/navigation"
+import { WEB } from "@/lib/web-links"
 
 /*
  * H1 launchers (owner, 2026-11-24): Sarvam-style product cards in the PC3 "product moment" style - a small real slice
@@ -24,7 +25,7 @@ const LAUNCHERS: Launcher[] = [
     { id: "kura", title: "Kura", line: "Chat in Nepali, English or both", href: ROUTES.kura },
     { id: "keys", title: "API keys", line: "Create and revoke keys", href: ROUTES.keys },
     { id: "models", title: "Models", line: "Prices per 1M tokens", href: ROUTES.models },
-    { id: "docs", title: "Docs", line: "Quickstart in 5 languages", href: ROUTES.doc("quickstart") },
+    { id: "docs", title: "Docs", line: "Quickstart in 5 languages", href: WEB.doc("quickstart") },
     { id: "speech", title: "Speech", line: "Speech to text", next: true },
 ]
 

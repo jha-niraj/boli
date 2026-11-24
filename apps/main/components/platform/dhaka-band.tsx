@@ -1,5 +1,5 @@
 import { cn } from "@repo/ui/lib/utils"
-import { DhakaBand } from "@/components/art/dhaka/pattern"
+import { DhakaBand } from "@repo/brand/art/dhaka/pattern"
 import { SKY } from "./sky"
 
 /*

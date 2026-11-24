@@ -9,7 +9,7 @@ import { aiConversations } from '@repo/db/schema'
 import { getSession } from '@/lib/session'
 import { listConversationsFor, loadConversationView, needsYouFor } from '@/lib/ai/conversations'
 import { kuraSettingsSchema } from '@/lib/ai/settings'
-import type { KuraSettings } from '@/lib/boli'
+import type { KuraSettings } from '@repo/boli'
 import type { ConversationRow, ConversationView, NeedsYouList } from '@/lib/ai/types'
 
 const idSchema = z.string().min(1).max(100)

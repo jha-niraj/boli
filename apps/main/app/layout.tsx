@@ -1,16 +1,21 @@
 import type { Metadata, Viewport } from "next"
 import "./boli.css"
-import "@/components/art/art.css"
+import "@repo/brand/art/art.css"
 import { SITE } from "@repo/core/site"
 import { fraunces, geistMono, instrumentSans } from "./fonts"
 import { Providers } from "./providers"
 
+/**
+ * The app (app.bolihq.com). SITE.url is THIS app's origin (NEXT_PUBLIC_SITE_URL); the public site with its canonical URLs,
+ * sitemap and JSON-LD is apps/web (NEXT_PUBLIC_WEB_URL, `lib/web-links.ts`). No root canonical here: `/` redirects, and
+ * a canonical of "/" on every page would point search engines at a redirect. robots.ts lets only sign-in and sign-up be
+ * indexed.
+ */
 export const metadata: Metadata = {
     metadataBase: new URL(SITE.url),
     title: { default: SITE.name, template: `%s | ${SITE.name}` },
     description: SITE.description,
     applicationName: SITE.name,
-    alternates: { canonical: "/" },
     openGraph: {
         type: "website",
         locale: "en_US",

@@ -1,8 +1,9 @@
 "use client"
 
 import "./boli.css"
-import "@/components/art/art.css"
-import { BoliErrorView } from "@/components/status/error-view"
+import "@repo/brand/art/art.css"
+import { BoliErrorView } from "@repo/brand/status/error-view"
+import { ROUTES } from "@/lib/navigation"
 import { fraunces, geistMono, instrumentSans } from "./fonts"
 
 /**
@@ -13,7 +14,7 @@ export default function GlobalError(props: { error: Error & { digest?: string };
     return (
         <html lang="en" className={`${instrumentSans.variable} ${fraunces.variable} ${geistMono.variable}`}>
             <body className="bg-background font-sans text-foreground antialiased">
-                <BoliErrorView {...props} fullScreen />
+                <BoliErrorView {...props} fullScreen homeHref={ROUTES.home} />
             </body>
         </html>
     )

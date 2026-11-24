@@ -4,7 +4,7 @@ import { and, db, eq, inArray } from "@repo/db"
 import { user, userSetting } from "@repo/db/schema"
 import { getSession } from "@/lib/session"
 import { ROUTES } from "@/lib/navigation"
-import { ONBOARDING } from "@/lib/boli"
+import { ONBOARDING } from "@repo/boli"
 import { SETTING_KEYS, readOnboardingPicks } from "@/lib/settings-values"
 import { WelcomeFlow, type WelcomeData } from "./welcome-flow"
 

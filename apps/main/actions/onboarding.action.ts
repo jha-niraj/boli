@@ -11,7 +11,7 @@ import { db, eq } from "@repo/db"
 import { user, userSetting } from "@repo/db/schema"
 import { fail, failWith, ok, type ActionResult } from "@repo/errors"
 import { needsAcceptance, recordCurrentAcceptances } from "@repo/legal"
-import { ONBOARDING } from "@/lib/boli"
+import { ONBOARDING } from "@repo/boli"
 import { ONBOARDING_OTHER_MAX, SETTING_KEYS, type OnboardingPicks } from "@/lib/settings-values"
 
 type AnswerKind = "build" | "languages" | "role" | "teamSize"

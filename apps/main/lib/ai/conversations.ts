@@ -1,7 +1,7 @@
 import 'server-only'
 import { db, and, eq, asc, desc, isNull, count } from '@repo/db'
 import { aiConversations, aiMessages, apiKey } from '@repo/db/schema'
-import { BOLI_CHAT, MICRO_PER_CREDIT, formatCredits } from '@/lib/boli'
+import { BOLI_CHAT, MICRO_PER_CREDIT, formatCredits } from '@repo/boli'
 import { ROUTES } from '@/lib/navigation'
 import { getBalanceMicro } from '@/lib/platform/credits'
 import { asParts } from './parts'

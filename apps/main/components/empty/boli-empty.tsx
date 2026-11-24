@@ -1,8 +1,8 @@
 import type { ReactNode } from "react"
 import { cn } from "@repo/ui/lib/utils"
-import type { Grid, Palette } from "@/components/art/pixel/grid"
-import { Pixels, PixelSvg } from "@/components/art/pixel/pixels"
-import { DHAKA_ICON_KEYS, DHAKA_ICON_KEYS_DARK, DARK_BUBBLE, DAY, EMPTY_BUBBLE, ICON_BELL, ICON_CLAPPER, ICON_COINS, ICON_KEY, ICON_SEARCH, ICON_SPROUT } from "@/components/art/status/pixel"
+import type { Grid, Palette } from "@repo/brand/art/pixel/grid"
+import { Pixels, PixelSvg } from "@repo/brand/art/pixel/pixels"
+import { DHAKA_ICON_KEYS, DHAKA_ICON_KEYS_DARK, DARK_BUBBLE, DAY, EMPTY_BUBBLE, ICON_BELL, ICON_CLAPPER, ICON_COINS, ICON_KEY, ICON_SEARCH, ICON_SPROUT } from "@repo/brand/art/status/pixel"
 import { DashDhaka } from "@/components/platform/dhaka-band"
 
 /*
