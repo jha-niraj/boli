@@ -2,12 +2,14 @@
 
 import * as React from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { SITE } from "@repo/core/site"
+import { BRAND } from "@repo/boli"
 import { AppShell } from "@repo/ui/components/shell/app-shell"
 import { NotificationsPanel, type NotificationView } from "@repo/ui/components/ui/notifications-panel"
 import {
     getShellNotifications, getShellUnreadCount, markAllShellNotificationsRead, markShellNotificationRead, stampShellSignIn,
 } from "@/actions/shell.action"
+import { AdminLockup } from "@/components/brand/admin-lockup"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import { AdminAccessProvider } from "@/context/admin-access-context"
 import { ADMIN_RAIL_COOKIE, adminNavFor, ROUTES, type AdminPermissions } from "@/lib/navigation"
 
@@ -75,7 +77,7 @@ export function AdminShell({ admin, initialPinned, initialRailWidth, children }:
     return (
         <AdminAccessProvider role={admin.role} permissions={admin.permissions}>
             <AppShell
-                brand={{ name: `${SITE.name} admin`, href: ROUTES.home }}
+                brand={{ name: `${BRAND.name} Admin`, href: ROUTES.home, lockup: <AdminLockup size={19} /> }}
                 nav={nav}
                 account={{
                     user: { name: admin.name || admin.email, email: admin.email, image: admin.image },
@@ -106,6 +108,13 @@ export function AdminShell({ admin, initialPinned, initialRailWidth, children }:
                     await refresh()
                 }}
                 subtitle="Alerts about the platform and your team."
+                renderEmpty={(tab) => (
+                    <BoliEmpty
+                        kind="notifications"
+                        title={tab === "unread" ? "You are all caught up" : "Nothing read yet"}
+                        description={tab === "unread" ? "Alerts about the platform and your team show here." : "Notifications you have read show here."}
+                    />
+                )}
             />
         </AdminAccessProvider>
     )

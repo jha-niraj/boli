@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Lock, ShieldCheck, ShieldOff, Users } from "lucide-react"
-import { EmptyState } from "@repo/ui/components/ui/empty-state"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import { Page } from "@repo/ui/components/ui/page"
 import { ScrollArea } from "@repo/ui/components/ui/scroll-area"
 import { StatBand } from "@repo/ui/components/ui/stat-band"
@@ -53,7 +53,7 @@ export function AccessClient({ initialTeam }: { initialTeam?: AdminUser[] }) {
                 ]}
             />
             {admins.length === 0 ? (
-                <EmptyState title="No admins yet" description="Invite admins from the Admins page." />
+                <BoliEmpty kind="keys" framed title="No admins yet" description="Invite admins from the Admins page." />
             ) : (
                 <ScrollArea orientation="both" className="rounded-xl ring-1 ring-neutral-200 dark:ring-neutral-800" viewportClassName="max-h-[40rem]">
                     <div className="min-w-[56rem]">

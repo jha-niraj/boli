@@ -2,11 +2,11 @@
 
 import * as React from "react"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
-import { BadgeCent, CalendarClock, Coins, Receipt, RefreshCw, Repeat } from "lucide-react"
+import { BadgeCent, CalendarClock, Coins, Receipt, RefreshCw } from "lucide-react"
 import type { AdminBillingStats, AdminPaymentRow, AdminSubscriptionRow, Paged } from "@repo/billing"
 import { formatMicroCredits, formatMoney, PLANS } from "@repo/billing/plans"
 import { Button } from "@repo/ui/components/ui/button"
-import { EmptyState } from "@repo/ui/components/ui/empty-state"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import { Input } from "@repo/ui/components/ui/input"
 import { ListPagination } from "@repo/ui/components/ui/list-pagination"
 import { Page } from "@repo/ui/components/ui/page"
@@ -146,7 +146,7 @@ export function BillingClient({ initialTab, initialStats, initialPayments, initi
                         </Select>
                     </div>
                     {(payments.data?.items.length ?? 0) === 0 && !payments.isFetching ? (
-                        <EmptyState icon={<Receipt className="h-6 w-6" />} title="No payments" description={isFirst ? "Payments people make show here." : "Change the search or a filter."} />
+                        <BoliEmpty kind={isFirst ? "payments" : "search"} framed title="No payments" description={isFirst ? "Payments people make show here." : "Change the search or a filter."} />
                     ) : (
                         <div data-sheet-keep-open="" className={cn("min-w-0 transition-opacity", payments.isPlaceholderData && "opacity-60")}>
                             <ScrollArea orientation="both" viewportClassName="max-h-[40rem]" className="rounded-xl ring-1 ring-neutral-200 dark:ring-neutral-800">
@@ -194,7 +194,7 @@ export function BillingClient({ initialTab, initialStats, initialPayments, initi
             ) : (
                 <div className="flex min-w-0 flex-col gap-3">
                     {(subs.data?.items.length ?? 0) === 0 && !subs.isFetching ? (
-                        <EmptyState icon={<Repeat className="h-6 w-6" />} title="No subscriptions" description="Paid plans show here once someone buys one." />
+                        <BoliEmpty kind="payments" framed title="No subscriptions" description="Paid plans show here once someone buys one." />
                     ) : (
                         <div data-sheet-keep-open="" className={cn("min-w-0 transition-opacity", subs.isPlaceholderData && "opacity-60")}>
                             <ScrollArea orientation="both" viewportClassName="max-h-[40rem]" className="rounded-xl ring-1 ring-neutral-200 dark:ring-neutral-800">

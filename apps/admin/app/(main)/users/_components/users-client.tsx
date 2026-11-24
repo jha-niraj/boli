@@ -3,7 +3,7 @@
 import * as React from "react"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { useTable, type ColumnDef } from "@tanstack/react-table"
-import { Columns3, ListFilter, MailCheck, Search, UserCheck, UserPlus, Users, UserX } from "lucide-react"
+import { Columns3, ListFilter, MailCheck, Search, UserCheck, UserPlus, Users } from "lucide-react"
 import {
     DataGrid, DataGridContainer, dataGridFeatures, type DataGridFeatures,
 } from "@repo/ui/components/reui/data-grid/data-grid"
@@ -15,7 +15,7 @@ import { Filters } from "@repo/ui/components/reui/filters/filters"
 import { countFilterRules } from "@repo/ui/components/reui/filters/filters-query"
 import type { FilterQuery } from "@repo/ui/components/reui/filters/filters-types"
 import { Button } from "@repo/ui/components/ui/button"
-import { EmptyState } from "@repo/ui/components/ui/empty-state"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import { Input } from "@repo/ui/components/ui/input"
 import { ListPagination } from "@repo/ui/components/ui/list-pagination"
 import { Page } from "@repo/ui/components/ui/page"
@@ -242,8 +242,9 @@ export function UsersClient({ initialList, initialStats }: { initialList?: UserL
                     </div>
 
                     {rows.length === 0 && !list.isFetching ? (
-                        <EmptyState
-                            icon={filtering ? <UserX className="h-6 w-6" /> : undefined}
+                        <BoliEmpty
+                            kind={filtering ? "search" : "usage"}
+                            framed
                             title={filtering ? "No users match" : "No users yet"}
                             description={filtering ? "Change the search or remove a filter." : "People who sign up show here."}
                         />

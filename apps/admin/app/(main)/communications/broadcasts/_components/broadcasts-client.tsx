@@ -24,6 +24,7 @@ import { DetailRow, SideSheet } from "@/components/side-sheet"
 import { fmtDateTime, fmtNumber } from "@/components/admin-format"
 import { useAdminAccess } from "@/context/admin-access-context"
 import { BROADCAST_TONES, type BroadcastInput, type BroadcastStatus, type PlatformBroadcast } from "@/types/communications"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 
 type Data = { broadcasts: PlatformBroadcast[]; total: number }
 const KEY = ["communications", "broadcasts"] as const
@@ -153,8 +154,13 @@ export function BroadcastsClient({ initial, initialTab, initialOpen }: { initial
                             <TableBody>
                                 {rows.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="py-12 text-center text-sm text-neutral-600 dark:text-neutral-400">
-                                            {search ? "No broadcast matches that search." : data.broadcasts.length === 0 ? "No broadcasts yet." : "None in this tab."}
+                                        <TableCell colSpan={5} className="whitespace-normal">
+                                            <BoliEmpty
+                                                kind={search ? "search" : "notifications"}
+                                                compact
+                                                title={search ? "No broadcast matches that search" : data.broadcasts.length === 0 ? "No broadcasts yet" : "None in this tab"}
+                                                description={search ? "Change the search or pick another tab." : "Broadcasts you write show here."}
+                                            />
                                         </TableCell>
                                     </TableRow>
                                 ) : rows.map((b) => (

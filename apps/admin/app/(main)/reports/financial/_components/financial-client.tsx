@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
-import { AlertTriangle, ArrowRight, Bot, CreditCard, Receipt, Wallet } from "lucide-react"
+import { AlertTriangle, ArrowRight, Bot, CreditCard, Wallet } from "lucide-react"
 import { ChartPanel, TrendLineChart } from "@repo/ui/components/charts/panel-charts"
 import { Badge } from "@repo/ui/components/ui/badge"
 import { Button } from "@repo/ui/components/ui/button"
@@ -15,6 +15,7 @@ import { SURFACE } from "@repo/ui/lib/surfaces"
 import { getFinancialReport, type FinancialReport, type PaymentRow } from "@/actions/analytics.action"
 import { dayLabel, fmtDateTime, fmtMicroUsd, fmtMoneyMinor, fmtNumber, humanize } from "@/components/admin-format"
 import { DetailRow, SideSheet } from "@/components/side-sheet"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 
 const STATUS_TONE: Record<string, string> = {
     processed: "text-neutral-900 dark:text-white",
@@ -101,9 +102,8 @@ export function FinancialClient({ initial }: { initial: FinancialReport }) {
                                 <TableBody>
                                     {data.recentPayments.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={6} className="py-10 text-center text-sm text-neutral-600 dark:text-neutral-400">
-                                                <Receipt className="mx-auto mb-2 h-5 w-5 text-neutral-400" />
-                                                No payment events yet. They arrive once the payment provider's webhook is set up.
+                                            <TableCell colSpan={6} className="whitespace-normal">
+                                                <BoliEmpty kind="payments" compact title="No payment events yet" description="They arrive once the payment provider's webhook is set up." />
                                             </TableCell>
                                         </TableRow>
                                     ) : data.recentPayments.map((p) => (

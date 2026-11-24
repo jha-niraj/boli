@@ -9,6 +9,7 @@ import { SectionPanel } from "@repo/ui/components/ui/section-panel"
 import { StatBand } from "@repo/ui/components/ui/stat-band"
 import { getCommunicationsOverview, type CommunicationsOverview } from "@/actions/communications.action"
 import { fmtNumber, humanize } from "@/components/admin-format"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import { ROUTES } from "@/lib/navigation"
 
 export function OverviewClient({ initial }: { initial: CommunicationsOverview }) {
@@ -44,7 +45,7 @@ export function OverviewClient({ initial }: { initial: CommunicationsOverview })
             />
             <SectionPanel title="Latest" description="The newest announcements and broadcasts">
                 {data.latest.length === 0 ? (
-                    <p className="py-6 text-center text-sm text-neutral-600 dark:text-neutral-400">Nothing written yet. Start with an announcement.</p>
+                    <BoliEmpty kind="notifications" compact title="Nothing written yet" description="Start with an announcement." />
                 ) : (
                     <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
                         {data.latest.map((item) => {

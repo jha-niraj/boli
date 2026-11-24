@@ -5,7 +5,7 @@ import { JoinForm } from './_components/join-form'
 
 export const metadata: Metadata = {
     title: 'Accept invitation',
-    description: 'Set your password to join the admin console.',
+    description: 'Set your password to join Boli Admin.',
     robots: { index: false, follow: false },
 }
 
@@ -19,7 +19,7 @@ export default async function JoinPage({ searchParams }: { searchParams: SearchP
     const invite = token ? await getInvitationByToken(token) : null
 
     return (
-        <AdminAuthFrame panelTitle="You were invited to the admin console." panelLine="Set a password and you are in.">
+        <AdminAuthFrame>
             <JoinForm
                 token={token}
                 invitation={invite?.success && invite.data ? invite.data : null}

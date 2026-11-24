@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Copy, MailPlus, Shield, ShieldCheck, Timer, Trash2, UserPlus, Users } from "lucide-react"
 import { Button } from "@repo/ui/components/ui/button"
 import { ConfirmPopover } from "@repo/ui/components/ui/confirm-popover"
-import { EmptyState } from "@repo/ui/components/ui/empty-state"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import { Page, type PageAction } from "@repo/ui/components/ui/page"
 import { ScrollArea } from "@repo/ui/components/ui/scroll-area"
 import { StatBand } from "@repo/ui/components/ui/stat-band"
@@ -113,7 +113,7 @@ export function TeamClient({ initialTeam, initialInvitations, initialTab }: {
 
             {tab === "team" ? (
                 admins.length === 0 ? (
-                    <EmptyState title="No admins yet" description="Invite someone to help run the console." />
+                    <BoliEmpty kind="keys" framed title="No admins yet" description="Invite someone to help run the console." />
                 ) : (
                     <ScrollArea orientation="both" className="rounded-xl ring-1 ring-neutral-200 dark:ring-neutral-800" viewportClassName="max-h-[40rem]">
                         <div className="min-w-[44rem]">
@@ -162,7 +162,7 @@ export function TeamClient({ initialTeam, initialInvitations, initialTab }: {
                     </ScrollArea>
                 )
             ) : pending.length === 0 ? (
-                <EmptyState title="No pending invitations" description="Invitations you send show here until they are used." />
+                <BoliEmpty kind="notifications" framed title="No pending invitations" description="Invitations you send show here until they are used." />
             ) : (
                 <ScrollArea orientation="both" className="rounded-xl ring-1 ring-neutral-200 dark:ring-neutral-800" viewportClassName="max-h-[40rem]">
                     <div className="min-w-[44rem]">

@@ -5,8 +5,8 @@ import { AdminAuthFrame } from './_components/admin-auth-frame'
 import { AdminSignIn, type AdminNotice } from './_components/admin-signin'
 
 export const metadata: Metadata = {
-    title: 'Admin sign in',
-    description: 'Sign in to the admin console.',
+    title: 'Sign in',
+    description: 'Sign in to Boli Admin, the console for the Boli team.',
     robots: { index: false, follow: false },
 }
 
@@ -18,7 +18,7 @@ function param(sp: Record<string, string | string[] | undefined>, key: string): 
     return s ? s : null
 }
 
-/** The admin landing IS the sign-in: the frame's right panel says what this is, the left signs in. */
+/** The admin landing IS the sign-in: one page, the valley on the left, the form on the right. */
 export default async function AdminLandingPage({ searchParams }: { searchParams: SearchParams }) {
     const sp = await searchParams
     const error = param(sp, 'error')
@@ -28,7 +28,7 @@ export default async function AdminLandingPage({ searchParams }: { searchParams:
     else if (param(sp, 'denied')) notice = { tone: 'error', text: 'This account has no admin access. Ask a super admin for an invitation.' }
 
     return (
-        <AdminAuthFrame panelTitle="Run the platform from one place." panelLine="Team, access, users, audit and system settings - for people with admin access only.">
+        <AdminAuthFrame>
             <AdminSignIn returnTo={safeReturnTo(param(sp, 'returnTo') ?? param(sp, 'callbackUrl'), '/home')} notice={notice} />
         </AdminAuthFrame>
     )

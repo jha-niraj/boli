@@ -77,7 +77,7 @@ export function AdminSignIn({ returnTo, notice }: { returnTo: string; notice: Ad
 
     return (
         <div>
-            <AuthTitle title="Sign in to admin" sub="For team members with admin access." />
+            <AuthTitle title="Boli Admin" sub="For the Boli team. Sign in with the account you were invited with." />
             {notice && !error && <Notice tone={notice.tone}>{notice.text}</Notice>}
             {error && <Notice tone="error">{error}</Notice>}
 

@@ -11,6 +11,7 @@ import { getAnalyticsData, type AnalyticsData } from "@/actions/analytics.action
 import { getAuditLogsFiltered, type AuditLogWithAdmin } from "@/actions/admin.action"
 import { useAdminAccess } from "@/context/admin-access-context"
 import { fmtNumber, humanize } from "@/components/admin-format"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import { ROUTES, type AdminPermission } from "@/lib/navigation"
 
 export interface HomeOverview {
@@ -77,7 +78,7 @@ export function HomeClient({ initial, canAnalytics, canAudit, firstName }: {
                         )}
                     >
                         {data.recent.length === 0 ? (
-                            <p className="py-6 text-center text-sm text-neutral-600 dark:text-neutral-400">Nothing recorded yet.</p>
+                            <BoliEmpty kind="usage" compact title="Nothing recorded yet" description="Changes admins make show here as they happen." />
                         ) : (
                             <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
                                 {data.recent.map((log) => (

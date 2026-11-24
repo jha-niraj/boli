@@ -26,6 +26,7 @@ import { RichTextEditor } from "@/components/rich-text-editor"
 import { DetailRow, SideSheet } from "@/components/side-sheet"
 import { fmtDateTime, fmtNumber } from "@/components/admin-format"
 import { useAdminAccess } from "@/context/admin-access-context"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import {
     ANNOUNCEMENT_PRIORITIES, ANNOUNCEMENT_TYPES,
     type AnnouncementInput, type AnnouncementStatus, type PlatformAnnouncement,
@@ -167,8 +168,13 @@ export function AnnouncementsClient({ initial, initialTab, initialOpen }: { init
                             <TableBody>
                                 {rows.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="py-12 text-center text-sm text-neutral-600 dark:text-neutral-400">
-                                            {search ? "No announcement matches that search." : data.announcements.length === 0 ? "No announcements yet." : "None in this tab."}
+                                        <TableCell colSpan={5} className="whitespace-normal">
+                                            <BoliEmpty
+                                                kind={search ? "search" : "notifications"}
+                                                compact
+                                                title={search ? "No announcement matches that search" : data.announcements.length === 0 ? "No announcements yet" : "None in this tab"}
+                                                description={search ? "Change the search or pick another tab." : "Announcements you write show here."}
+                                            />
                                         </TableCell>
                                     </TableRow>
                                 ) : rows.map((a) => (

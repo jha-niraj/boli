@@ -1,0 +1,6 @@
+/*
+ * Boli's design layer lives in @repo/brand (packages/brand/src/styles/boli.css), shared with apps/main and apps/web so
+ * the console cannot drift from the product. Change tokens there. It imports the shared @repo/ui globals itself.
+ * Tailwind scans this app's folder by itself; the package lists its own sources.
+ */
+@import "@repo/brand/styles/boli.css";

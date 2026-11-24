@@ -6,7 +6,7 @@ import type { AdminPermission, PermissionLevel } from "@/lib/permissions"
 import { ROUTES } from "@/lib/navigation"
 import { AppLink } from "@repo/ui/components/app-link"
 import { Button } from "@repo/ui/components/ui/button"
-import { StatusView } from "@repo/ui/components/ui/status-view"
+import { BoliStatus } from "@repo/brand/status/status-screen"
 
 interface PermissionGateProps {
     module: AdminPermission
@@ -25,15 +25,14 @@ export function PermissionGate({ module, level = "read", children, fallback }: P
     return <>{fallback ?? null}</>
 }
 
-/** The 403 screen inside the shell. */
+/** The 403 screen inside the shell: Boli's pasal with its shutter down. */
 export function AccessDeniedView() {
     return (
-        <StatusView
+        <BoliStatus
             kind="forbidden"
-            fullScreen={false}
             description="This part of the console needs a permission you don't have. Ask a super admin for access."
             actions={(
-                <Button asChild variant="outline" className="h-10 cursor-pointer gap-2 rounded-xl">
+                <Button asChild variant="outline" className="h-10 cursor-pointer gap-2 px-5">
                     <AppLink href={ROUTES.home}><Home className="h-4 w-4" /> Back to home</AppLink>
                 </Button>
             )}
