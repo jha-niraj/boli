@@ -222,7 +222,7 @@ export function AppShell({
                 onMore={() => setMoreOpen(true)}
                 moreActive={moreOpen}
                 linkAs={AppLink}
-                className={cn("border-t-0 bg-white/95 dark:bg-[#161718]/95", SHELL_SHADOW_TOP)}
+                className={cn("border-t-0 bg-white/95 dark:bg-[#121314]/95", SHELL_SHADOW_TOP)}
             />
             <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
                 <SheetContent side="left" resizable={false} className="flex w-[280px] flex-col gap-0 border-r-0 p-0 sm:max-w-[280px]">
@@ -234,7 +234,7 @@ export function AppShell({
                         notifications={notifications ? { ...notifications, onOpen: () => { setMoreOpen(false); notifications.onOpen() } } : undefined}
                         onNavigate={() => setMoreOpen(false)}
                         footerExtra={railFooterExtra}
-                    footerTop={railFooterTop}
+                        footerTop={railFooterTop}
                         assistant={assistant ? { ...assistant, onClick: assistant.onClick ? () => { setMoreOpen(false); assistant.onClick?.() } : undefined } : undefined}
                     />
                 </SheetContent>

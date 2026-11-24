@@ -27,6 +27,8 @@ const nextConfig = {
     // A second dev server on the same app needs its own build directory (two `next dev` sharing `.next` overwrite each
     // other's manifests): `NEXT_DIST_DIR=.next-3100 next dev --webpack --port 3100`.
     distDir: process.env.NEXT_DIST_DIR || '.next',
+    // The dev "N" badge sat on the rail's account avatar at bottom-left; the right corner is free. Dev only.
+    devIndicators: { position: 'bottom-right' },
     // Types are checked by `check-types`, not inside `next build`.
     typescript: { ignoreBuildErrors: true },
     // Next leaves the production SERVER build at webpack's defaults, so a module shared by many routes is copied into each

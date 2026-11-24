@@ -8,7 +8,6 @@ import { AppShell } from "@repo/ui/components/shell/app-shell"
 import { AppLink, markNavPending } from "@repo/ui/components/app-link"
 import { NotificationsPanel, type NotificationView } from "@repo/ui/components/ui/notifications-panel"
 import type { ShellUser } from "@repo/ui/lib/shell"
-import { cn } from "@repo/ui/lib/utils"
 import { getNotifications, getUnreadCount, markAllAsRead, markAsRead } from "@/actions/notification.action"
 import { BoliLogo } from "@/components/brand/boli-logo"
 import { FeedbackButton } from "@/components/feedback/feedback-button"
@@ -20,13 +19,11 @@ import { MAIN_NAV, MAIN_RAIL_COOKIE, ROUTES } from "@/lib/navigation"
  * The signed-in shell: the shared AppShell (flush rail, pin / peek, phone tab bar) with Boli's rail (MAIN_NAV), the
  * Boli mark at the top, and in the footer the account chip, the credits chip (-> Billing), Feedback and the
  * notifications bell (the latest 10 in a sheet, "See all" -> /notifications). Docs is in the rail, so the account
- * menu has no Help row. The active rail item carries a thin crimson marker (RAIL_ACCENT).
+ * menu has no Help row. The active rail item is neutral (a subtle fill, full ink) - no crimson in the rail (owner,
+ * 2026-11-24: crimson is for the logo).
  */
 const BELL_LIMIT = 10
 
-/** The active rail item: a 2px crimson bar on its left edge and a crimson icon (Boli rules - the accent, sparingly). */
-const RAIL_ACCENT =
-    "[&_nav[aria-label=Main]_a[aria-current=page]]:shadow-[inset_2px_0_0_var(--color-boli-crimson)] [&_nav[aria-label=Main]_a[aria-current=page]_svg]:text-boli-crimson"
 const KEYS = {
     unread: ["notifications", "unread"] as const,
     list: ["notifications", "list"] as const,
@@ -77,31 +74,28 @@ export function MainShell({ user, initialPinned, initialRailWidth, children }: {
 
     return (
         <>
-            {/* `contents`: no box of its own, so the shell lays out exactly as before; it only scopes RAIL_ACCENT. */}
-            <div className={cn("contents", RAIL_ACCENT)}>
-                <AppShell
-                    brand={{ name: BRAND.name, href: ROUTES.home, mark: <BoliLogo wordmark={false} className="text-base" /> }}
-                    nav={MAIN_NAV}
-                    account={{
-                        user, profileHref: ROUTES.profile, signInPath: ROUTES.signIn, queryClient,
-                        settingsHref: ROUTES.settings,
-                        credits: {
-                            label: "Credits",
-                            value: balance.data !== undefined ? `${formatCredits(balance.data)} credits` : undefined,
-                            secondary: { label: "Usage", href: ROUTES.usage },
-                            primary: { label: "Add credits", href: ROUTES.billing },
-                        },
-                    }}
-                    railFooterTop={<CreditsRow />}
-                    railFooterExtra={<FeedbackButton />}
-                    notifications={{ unread: unread.data ?? 0, onOpen: () => setPanelOpen(true) }}
-                    initialPinned={initialPinned}
-                    initialRailWidth={initialRailWidth}
-                    cookieName={MAIN_RAIL_COOKIE}
-                >
-                    {children}
-                </AppShell>
-            </div>
+            <AppShell
+                brand={{ name: BRAND.name, href: ROUTES.home, lockup: <BoliLogo size={19} /> }}
+                nav={MAIN_NAV}
+                account={{
+                    user, profileHref: ROUTES.profile, signInPath: ROUTES.signIn, queryClient,
+                    settingsHref: ROUTES.settings,
+                    credits: {
+                        label: "Credits",
+                        value: balance.data !== undefined ? `${formatCredits(balance.data)} credits` : undefined,
+                        secondary: { label: "Usage", href: ROUTES.usage },
+                        primary: { label: "Add credits", href: ROUTES.billing },
+                    },
+                }}
+                railFooterTop={<CreditsRow />}
+                railFooterExtra={<FeedbackButton align="start" />}
+                notifications={{ unread: unread.data ?? 0, onOpen: () => setPanelOpen(true) }}
+                initialPinned={initialPinned}
+                initialRailWidth={initialRailWidth}
+                cookieName={MAIN_RAIL_COOKIE}
+            >
+                {children}
+            </AppShell>
             <NotificationsPanel
                 open={panelOpen}
                 onOpenChange={setPanelOpen}

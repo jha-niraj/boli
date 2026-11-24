@@ -6,17 +6,22 @@
  * (owner, 2026-11-23: "the hairline was not looking good").
  */
 
-/** The rail and any full-height right column: white / a step above the dark page ground, no border. */
-export const SHELL_SURFACE = "bg-white dark:bg-[#161718]"
+/**
+ * The rail and any full-height right column: the SAME ground as the page in both themes (owner, 2026-11-24: a rail one
+ * step lighter than the page read as two blacks with a seam). Only the soft shadow below separates them - no border.
+ * Dark mode: a black edge + dense shadow read as a dark stripe (owner, 2026-11-24), so dark uses a barely-there light
+ * edge and a wide, faint shadow instead.
+ */
+export const SHELL_SURFACE = "bg-white dark:bg-[#121314]"
 
 /** The soft shadow a left rail casts onto the page (to its right). */
-export const SHELL_SHADOW_LEFT = "shadow-[1px_0_0_rgba(0,0,0,0.03),6px_0_24px_-12px_rgba(0,0,0,0.12)] dark:shadow-[1px_0_0_rgba(0,0,0,0.4),6px_0_24px_-10px_rgba(0,0,0,0.6)]"
+export const SHELL_SHADOW_LEFT = "shadow-[1px_0_0_rgba(0,0,0,0.03),6px_0_24px_-12px_rgba(0,0,0,0.12)] dark:shadow-[1px_0_0_rgba(255,255,255,0.035),12px_0_36px_-18px_rgba(0,0,0,0.5)]"
 
 /** The soft shadow a right column casts onto the page (to its left). */
-export const SHELL_SHADOW_RIGHT = "shadow-[-1px_0_0_rgba(0,0,0,0.03),-6px_0_24px_-12px_rgba(0,0,0,0.12)] dark:shadow-[-1px_0_0_rgba(0,0,0,0.4),-6px_0_24px_-10px_rgba(0,0,0,0.6)]"
+export const SHELL_SHADOW_RIGHT = "shadow-[-1px_0_0_rgba(0,0,0,0.03),-6px_0_24px_-12px_rgba(0,0,0,0.12)] dark:shadow-[-1px_0_0_rgba(255,255,255,0.035),-12px_0_36px_-18px_rgba(0,0,0,0.5)]"
 
 /** The phone bottom bar's shadow, cast upwards. */
-export const SHELL_SHADOW_TOP = "shadow-[0_-1px_0_rgba(0,0,0,0.04),0_-6px_20px_-12px_rgba(0,0,0,0.14)] dark:shadow-[0_-1px_0_rgba(0,0,0,0.4),0_-6px_20px_-10px_rgba(0,0,0,0.6)]"
+export const SHELL_SHADOW_TOP = "shadow-[0_-1px_0_rgba(0,0,0,0.04),0_-6px_20px_-12px_rgba(0,0,0,0.14)] dark:shadow-[0_-1px_0_rgba(255,255,255,0.035),0_-12px_32px_-18px_rgba(0,0,0,0.5)]"
 
 /** The page canvas behind every page. */
 export const PAGE_GROUND = "bg-white dark:bg-[#121314]"

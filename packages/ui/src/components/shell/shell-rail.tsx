@@ -27,6 +27,8 @@ export interface ShellBrand {
     href: string
     /** A small mark left of the name (an svg, an img). Defaults to the name's first letter in a square tile. */
     mark?: React.ReactNode
+    /** A full lockup (mark + set name) drawn by the app. Replaces both the mark and the plain name when given. */
+    lockup?: React.ReactNode
 }
 
 export interface ShellNotifications {
@@ -100,12 +102,16 @@ export function ShellRail({ brand, nav, account, notifications, pin, onNavigate,
                     onClick={onNavigate}
                     className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-lg px-1.5 py-1 outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
                 >
-                    {brand.mark ?? (
-                        <span aria-hidden className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-xs font-semibold text-white dark:bg-white dark:text-neutral-900">
-                            {brand.name.slice(0, 1).toUpperCase()}
-                        </span>
+                    {brand.lockup ?? (
+                        <>
+                            {brand.mark ?? (
+                                <span aria-hidden className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-xs font-semibold text-white dark:bg-white dark:text-neutral-900">
+                                    {brand.name.slice(0, 1).toUpperCase()}
+                                </span>
+                            )}
+                            <span className="truncate text-sm font-semibold text-neutral-900 dark:text-white">{brand.name}</span>
+                        </>
                     )}
-                    <span className="truncate text-sm font-semibold text-neutral-900 dark:text-white">{brand.name}</span>
                 </AppLink>
                 {pin && (
                     <Tooltip delayDuration={400}>
@@ -128,11 +134,13 @@ export function ShellRail({ brand, nav, account, notifications, pin, onNavigate,
             </div>
 
             <ScrollArea orientation="vertical" className="min-h-0 flex-1">
-                <nav aria-label="Main" className="flex flex-col gap-4 px-3 pb-3 pt-1">
+                <nav aria-label="Main" className="flex flex-col gap-5 px-3 pb-3 pt-1">
                     {nav.map((section) => (
                         <div key={section.id} className="flex flex-col gap-0.5">
+                            {/* A group label (Playground, Build...): small, muted, sentence case - a heading for the
+                                eye, not a control. */}
                             {section.label && (
-                                <p className="px-2.5 pb-1 text-xs font-medium text-neutral-500 dark:text-neutral-400">{section.label}</p>
+                                <p className="truncate px-2.5 pb-1 text-xs font-medium text-neutral-500 dark:text-neutral-500">{section.label}</p>
                             )}
                             {section.items.map((item) => {
                                 const on = active === item.href
@@ -145,9 +153,11 @@ export function ShellRail({ brand, nav, account, notifications, pin, onNavigate,
                                         aria-current={on ? "page" : undefined}
                                         className={cn(
                                             "flex h-9 min-w-0 cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-neutral-400",
+                                            // Active is neutral (owner, 2026-11-24: no colour in the rail): a subtle fill
+                                            // and full ink for the label AND the icon, no bar.
                                             on
-                                                ? "bg-neutral-100 font-medium text-neutral-900 dark:bg-neutral-800 dark:text-white"
-                                                : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800/60 dark:hover:text-white",
+                                                ? "bg-neutral-950/[0.05] font-medium text-neutral-900 dark:bg-white/[0.07] dark:text-white"
+                                                : "text-neutral-600 hover:bg-neutral-950/[0.03] hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/[0.04] dark:hover:text-white",
                                         )}
                                     >
                                         <Icon className="h-4 w-4 shrink-0" />
