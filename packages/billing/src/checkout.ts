@@ -13,6 +13,7 @@ import {
     type PaymentState, type ProviderId, type ReturnHint, type VerifiedPayment, type WebhookNotice,
 } from '@repo/payments'
 import { accountForUser, addCredits, creditsToMicro } from './ledger'
+import { accountForWorkspace } from './workspace'
 import {
     ADD_CREDITS_MAX, ADD_CREDITS_MIN, findPack, isBillingCurrency, isPurchasableCredits, isTermMonths, PAISA_PER_CREDIT, PLANS, planPrice,
     recurringPlanKey, type BillingCurrency, type PlanCode, type TermMonths,
@@ -43,6 +44,8 @@ export interface StartCheckoutInput {
     request: CheckoutRequest
     /** The app origin the gateway returns to (defaults to MAIN_APP_URL). */
     appUrl?: string
+    /** The workspace whose account is credited (the caller checked the person may pay for it); default: their personal one. */
+    workspaceId?: string
 }
 
 export interface StartedCheckout {
@@ -89,7 +92,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<StartedC
             : 'That payment method is not available for this currency.')
     }
     const price = priceOf(req, input.currency)
-    const account = await accountForUser(input.user.id)
+    const account = input.workspaceId ? await accountForWorkspace(input.workspaceId) : await accountForUser(input.user.id)
     const paymentId = crypto.randomUUID()
     await db.insert(payment).values({
         id: paymentId,
@@ -151,6 +154,8 @@ export interface CreditPurchaseInput {
      * `/api/payments/<provider>/return/<paymentId>`, which shows `/checkout/<paymentId>` (the result page links on).
      */
     returnUrl?: string
+    /** The workspace to credit (the caller checked the person is its owner); default: their personal workspace. */
+    workspaceId?: string
 }
 
 /**
@@ -172,6 +177,7 @@ export async function startCreditPurchase(input: CreditPurchaseInput): Promise<S
     }
     return startCheckout({
         user: buyer,
+        workspaceId: input.workspaceId,
         provider: input.provider,
         currency: 'NPR',
         request: input.purchase.kind === 'pack'

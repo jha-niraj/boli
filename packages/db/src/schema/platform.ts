@@ -1,9 +1,10 @@
 // Boli platform tables: API keys, one row per model call, feedback and the About page's contact messages.
-// Every per-user row carries `userId`, every query filters by it, and each table is listed in
+// Every per-user row carries `userId`; keys and requests also carry `workspaceId` (the account they belong to and charge), and each table is listed in
 // packages/erasure/src/user.ts. Plan: plan/main/platform/platform-v0.md.
 import { bigint, index, integer, pgTable, smallint, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 import { user } from './core'
 import { aiConversations } from './ai'
+import { workspace } from './workspace'
 
 /**
  * An API key. The secret (`boli_sk_` + 32 random characters) is shown ONCE at creation and never stored: only its
@@ -14,7 +15,10 @@ export const apiKey = pgTable(
     'api_key',
     {
         id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+        /** Who created it (kept for history; the key belongs to the workspace). */
         userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+        /** The workspace the key belongs to and charges. Nullable only until scripts/backfill-workspaces.mjs has run. */
+        workspaceId: text('workspace_id').references(() => workspace.id, { onDelete: 'cascade' }),
         name: text('name').notNull(),
         /** What the list shows before the mask: the first 16 characters (`boli_sk_` + 8). */
         prefix: text('prefix').notNull(),
@@ -23,7 +27,11 @@ export const apiKey = pgTable(
         lastUsedAt: timestamp('last_used_at'),
         revokedAt: timestamp('revoked_at'),
     },
-    (t) => [uniqueIndex('api_key_hash_uq').on(t.keyHash), index('api_key_user_created_idx').on(t.userId, t.createdAt)],
+    (t) => [
+        uniqueIndex('api_key_hash_uq').on(t.keyHash),
+        index('api_key_user_created_idx').on(t.userId, t.createdAt),
+        index('api_key_workspace_created_idx').on(t.workspaceId, t.createdAt),
+    ],
 )
 
 export const INFERENCE_SOURCES = ['kura', 'api'] as const
@@ -42,6 +50,8 @@ export const inferenceRequest = pgTable(
     {
         id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
         userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+        /** The workspace charged. Nullable only until scripts/backfill-workspaces.mjs has run. */
+        workspaceId: text('workspace_id').references(() => workspace.id, { onDelete: 'cascade' }),
         apiKeyId: text('api_key_id').references(() => apiKey.id, { onDelete: 'set null' }),
         source: text('source').$type<InferenceSource>().notNull(),
         /** The public model id (`boli-chat`). */
@@ -64,6 +74,7 @@ export const inferenceRequest = pgTable(
     (t) => [
         index('inference_request_user_created_idx').on(t.userId, t.createdAt),
         index('inference_request_key_created_idx').on(t.apiKeyId, t.createdAt),
+        index('inference_request_workspace_created_idx').on(t.workspaceId, t.createdAt),
     ],
 )
 

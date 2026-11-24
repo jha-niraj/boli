@@ -111,3 +111,118 @@ export async function firecrawlMap(
     )
     return (res.links ?? []).map((l) => (typeof l === 'string' ? { url: l } : l)).filter((l) => Boolean(l.url))
 }
+
+// ─── map + scrape (copied from synchq packages/firecrawl, adapted to this package's helpers) ─────────────────────
+
+/**
+ * How many pages `firecrawlScrapeSite` fetches at once. Capped: Firecrawl's plans allow 10-500 scrapes a minute, so an
+ * uncapped fan-out rate-limits itself and every retried 429 is latency we chose to take.
+ */
+const DEFAULT_CONCURRENCY = 3
+
+export interface FirecrawlScrapeSiteOptions extends FirecrawlScrapeOptions {
+    /** Hard ceiling on pages fetched - this is what bounds the spend. */
+    maxPages: number
+    /**
+     * Path words to rank first (`['about', 'pricing', 'fees']`). Each term runs its own `map` with `search` (a plain
+     * map returns the site's own order - mostly blog posts - and sorting cannot promote a page that never came back).
+     * Hits are merged ROUND-ROBIN so each term contributes its best page before any term contributes a second.
+     */
+    prefer?: string[]
+    concurrency?: number
+}
+
+export interface FirecrawlScrapeSiteResult {
+    pages: FirecrawlScrapeResult[]
+    /** Every candidate discovery surfaced, before `maxPages`. */
+    discovered: FirecrawlMapLink[]
+    failedUrls: string[]
+    /** At least one page failed but others came back. */
+    degraded: boolean
+}
+
+async function discover(url: string, prefer: string[], maxPages: number, opts: { apiKey?: string }): Promise<FirecrawlMapLink[]> {
+    if (prefer.length === 0) return firecrawlMap(url, { limit: Math.max(maxPages * 5, 50), apiKey: opts.apiKey })
+    const perTerm = await Promise.all(
+        prefer.map((term) => firecrawlMap(url, { search: term, limit: 5, apiKey: opts.apiKey }).catch(() => [] as FirecrawlMapLink[])),
+    )
+    // The entry URL first: the homepage is the single most useful page for saying what a business does.
+    const merged: FirecrawlMapLink[] = [{ url }]
+    const seen = new Set([url.replace(/\/$/, '')])
+    const depth = Math.max(0, ...perTerm.map((l) => l.length))
+    for (let i = 0; i < depth; i++) {
+        for (const links of perTerm) {
+            const l = links[i]
+            if (!l) continue
+            const k = l.url.replace(/\/$/, '')
+            if (seen.has(k)) continue
+            seen.add(k)
+            merged.push(l)
+        }
+    }
+    return merged
+}
+
+/**
+ * Read a site: map it, choose the most useful pages, scrape them (1 credit to map, or 1 per `prefer` term, plus 1 per
+ * page). Every page failing THROWS (the first error); a partial failure returns what came back with `degraded` set.
+ * Runs as long as the pages take - call it from a long job, never inline in a request.
+ */
+export async function firecrawlScrapeSite(url: string, opts: FirecrawlScrapeSiteOptions): Promise<FirecrawlScrapeSiteResult> {
+    const { maxPages, prefer, concurrency, ...scrapeOpts } = opts
+    const discovered = await discover(url, prefer ?? [], maxPages, scrapeOpts)
+    const candidates = discovered.length ? discovered.map((l) => l.url) : [url]
+    const targets = candidates.slice(0, Math.max(1, maxPages))
+
+    const failedUrls: string[] = []
+    let firstError: unknown
+    const results = new Array<FirecrawlScrapeResult | undefined>(targets.length)
+    let cursor = 0
+    async function worker(): Promise<void> {
+        for (;;) {
+            const i = cursor++
+            if (i >= targets.length) return
+            const target = targets[i]!
+            try {
+                results[i] = await firecrawlScrape(target, scrapeOpts)
+            } catch (err) {
+                failedUrls.push(target)
+                if (firstError === undefined) firstError = err
+            }
+        }
+    }
+    const limit = Math.max(1, concurrency ?? DEFAULT_CONCURRENCY)
+    await Promise.all(Array.from({ length: Math.min(limit, targets.length) }, worker))
+    const pages = results.filter((r): r is FirecrawlScrapeResult => Boolean(r))
+    if (pages.length === 0) {
+        throw firstError instanceof Error ? firstError : new AppError('network', `Could not read any page of ${url}.`)
+    }
+    return { pages, discovered, failedUrls, degraded: failedUrls.length > 0 }
+}
+
+// ─── account ─────────────────────────────────────────────────────────────────────────────────────────────────────
+
+export interface FirecrawlCreditUsage {
+    remainingCredits: number
+    planCredits: number
+    billingPeriodStart?: string
+    billingPeriodEnd?: string
+}
+
+/**
+ * Remaining credits on the Firecrawl account. EVENTUALLY CONSISTENT (measured 10-30 s behind a finished call): fine for
+ * an admin dashboard, never a gate on a request.
+ */
+export async function firecrawlCreditUsage(opts: { apiKey?: string; timeoutMs?: number } = {}): Promise<FirecrawlCreditUsage> {
+    const apiKey = key(opts)
+    const res = await fetch(`${BASE}/team/credit-usage`, {
+        headers: { authorization: `Bearer ${apiKey}` },
+        signal: AbortSignal.timeout(opts.timeoutMs ?? 15_000),
+    }).catch((err: unknown) => {
+        throw new AppError('network', 'Could not reach the web fetching service.', { cause: err })
+    })
+    if (!res.ok) throw new AppError(res.status === 429 ? 'ratelimit' : 'unknown', `Web page fetching rejected the request (${res.status}).`)
+    const json = (await res.json()) as { data?: FirecrawlCreditUsage }
+    if (!json.data) throw new AppError('unknown', 'Could not read the Firecrawl credit balance.')
+    return json.data
+}

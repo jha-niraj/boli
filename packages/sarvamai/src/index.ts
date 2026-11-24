@@ -29,6 +29,6 @@ export {
     type TranslateInput, type TranslateResult, type DetectLanguageResult,
 } from './translate'
 export {
-    digitiseDocument, sniffDocKind, docHtmlToText, DOC_MAX_PAGES, DOC_MAX_BYTES,
-    type DigitiseInput, type DigitiseResult, type DigitiseFile, type DocKind, type DocOutputFormat, type DocContentType,
+    digitiseDocument, submitDigitise, digitiseStatus, digitiseOutput, docxToText, sniffDocKind, docHtmlToText, DOC_MAX_PAGES, DOC_MAX_BYTES,
+    type DigitiseInput, type DigitiseSubmitInput, type DigitiseJobStatus, type DigitiseResult, type DigitiseFile, type DocKind, type DocOutputFormat, type DocContentType,
 } from './documents'

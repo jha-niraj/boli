@@ -9,9 +9,12 @@
  *
  *   const results = await exaSearch('latest Next.js release', { numResults: 5, includeDomains: ['nextjs.org'] })
  *   const page = await firecrawlScrape('https://example.com/pricing')
+ *   const rules = await fetchRobots('https://example.com'); robotsAllows(rules, '/fees')
  */
 export { exaSearch, isExaConfigured, domainOf, type ExaSearchOptions, type ExaResult } from './exa'
 export {
-    firecrawlScrape, firecrawlMap, isFirecrawlConfigured,
-    type FirecrawlScrapeOptions, type FirecrawlScrapeResult, type FirecrawlMapLink,
+    firecrawlScrape, firecrawlMap, firecrawlScrapeSite, firecrawlCreditUsage, isFirecrawlConfigured,
+    type FirecrawlScrapeOptions, type FirecrawlScrapeResult, type FirecrawlMapLink, type FirecrawlScrapeSiteOptions,
+    type FirecrawlScrapeSiteResult, type FirecrawlCreditUsage,
 } from './firecrawl'
+export { fetchRobots, parseRobots, robotsAllows, type RobotsRules } from './robots'

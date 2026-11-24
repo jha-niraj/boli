@@ -6,6 +6,7 @@ import { billingAccount, creditLedger, payment, subscription, user, type Payment
 import { providersFor, summarize, type ProviderSummary } from '@repo/payments'
 import { accountForUser, addCredits, creditsSpentThisMonth, creditsToMicro, startOfUtcMonth } from './ledger'
 import { effectivePlan } from './checkout'
+import { accountForWorkspace, findAccountForUser } from './workspace'
 import { BILLING_CURRENCIES, type BillingCurrency, type PlanCode } from './plans'
 
 export interface PaymentView {
@@ -65,9 +66,9 @@ function subscriptionView(s: typeof subscription.$inferSelect): SubscriptionView
     }
 }
 
-/** Everything the person's billing page shows, in parallel reads. */
-export async function billingOverview(userId: string): Promise<BillingOverview> {
-    const account = await accountForUser(userId)
+/** Everything the billing page shows, in parallel reads: the given workspace's account, else the person's personal one. */
+export async function billingOverview(userId: string, opts?: { workspaceId?: string }): Promise<BillingOverview> {
+    const account = opts?.workspaceId ? await accountForWorkspace(opts.workspaceId) : await accountForUser(userId)
     const [plan, spent, rows] = await Promise.all([
         effectivePlan(account.id),
         creditsSpentThisMonth(account.id),
@@ -86,9 +87,9 @@ export async function billingOverview(userId: string): Promise<BillingOverview> 
     }
 }
 
-/** Remember the currency the person chose (shown first next time). */
-export async function setPreferredCurrency(userId: string, currency: BillingCurrency): Promise<void> {
-    const account = await accountForUser(userId)
+/** Remember the currency the person chose (shown first next time), on the workspace's account when one is given. */
+export async function setPreferredCurrency(userId: string, currency: BillingCurrency, opts?: { workspaceId?: string }): Promise<void> {
+    const account = opts?.workspaceId ? await accountForWorkspace(opts.workspaceId) : await accountForUser(userId)
     await db.update(billingAccount).set({ currency, updatedAt: new Date() }).where(eq(billingAccount.id, account.id))
 }
 
@@ -133,7 +134,7 @@ export async function adminListPayments(filters: AdminPaymentFilters, page = 1, 
     const cond = and(...where)
     const offset = (Math.max(1, page) - 1) * limit
     const [rows, [{ n } = { n: 0 }]] = await Promise.all([
-        db.select({ p: payment, name: user.name, email: user.email, ownerUserId: billingAccount.ownerId }).from(payment)
+        db.select({ p: payment, name: user.name, email: user.email, ownerUserId: billingAccount.contactUserId }).from(payment)
             .innerJoin(billingAccount, eq(billingAccount.id, payment.accountId))
             .leftJoin(user, eq(user.id, billingAccount.contactUserId))
             .where(cond).orderBy(desc(payment.createdAt)).limit(limit).offset(offset),
@@ -171,7 +172,7 @@ export interface AdminSubscriptionRow extends SubscriptionView {
 export async function adminListSubscriptions(page = 1, limit = 25): Promise<Paged<AdminSubscriptionRow>> {
     const offset = (Math.max(1, page) - 1) * limit
     const [rows, [{ n } = { n: 0 }]] = await Promise.all([
-        db.select({ s: subscription, name: user.name, email: user.email, ownerId: billingAccount.ownerId, balance: billingAccount.balanceMicro })
+        db.select({ s: subscription, name: user.name, email: user.email, ownerId: billingAccount.contactUserId, balance: billingAccount.balanceMicro })
             .from(subscription)
             .innerJoin(billingAccount, eq(billingAccount.id, subscription.accountId))
             .leftJoin(user, eq(user.id, billingAccount.contactUserId))
@@ -179,7 +180,8 @@ export async function adminListSubscriptions(page = 1, limit = 25): Promise<Page
         db.select({ n: count() }).from(subscription),
     ])
     return {
-        items: rows.map((r) => ({ ...subscriptionView(r.s), id: r.s.id, userId: r.ownerId, userName: r.name, userEmail: r.email, balanceMicro: r.balance })),
+        // The account's contact user (the person, for a personal workspace) - ownerId is a workspace id since workspaces.
+        items: rows.map((r) => ({ ...subscriptionView(r.s), id: r.s.id, userId: r.ownerId ?? '', userName: r.name, userEmail: r.email, balanceMicro: r.balance })),
         total: Number(n),
         page,
         pages: Math.max(1, Math.ceil(Number(n) / limit)),
@@ -253,9 +255,9 @@ export interface AdminLedgerRow {
 
 /** One user's balance and latest ledger rows (the admin grant sheet). */
 export async function adminUserCredits(userId: string): Promise<{ balanceMicro: number; entries: AdminLedgerRow[] }> {
-    // A read: an account that does not exist yet is a zero balance, not a new row.
-    const [account] = await db.select().from(billingAccount)
-        .where(and(eq(billingAccount.ownerType, 'user'), eq(billingAccount.ownerId, userId))).limit(1)
+    // A read: an account that does not exist yet is a zero balance, not a new row. The user's PERSONAL workspace account
+    // (or their pre-workspace one until the backfill has run).
+    const account = await findAccountForUser(userId)
     if (!account) return { balanceMicro: 0, entries: [] }
     const rows = await db.select().from(creditLedger).where(eq(creditLedger.accountId, account.id)).orderBy(desc(creditLedger.createdAt)).limit(30)
     return {

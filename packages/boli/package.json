@@ -8,7 +8,9 @@
 		".": "./src/boli.ts",
 		"./code-samples": "./src/code-samples.ts",
 		"./highlight": "./src/highlight.ts",
-		"./highlight-theme": "./src/highlight-theme.ts"
+		"./highlight-theme": "./src/highlight-theme.ts",
+		"./workspace-access": "./src/workspace-access.ts",
+		"./jawaf": "./src/jawaf.ts"
 	},
 	"scripts": {
 		"lint": "eslint . --max-warnings 0",

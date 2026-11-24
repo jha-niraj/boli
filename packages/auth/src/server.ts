@@ -23,6 +23,7 @@ import { db, eq } from '@repo/db'
 import { user as userTable, session as sessionTable, account as accountTable, verification as verificationTable } from '@repo/db/schema'
 import { hashPassword, verifyPassword } from '@repo/crypto/password'
 import { grantWelcome } from '@repo/billing/ledger'
+import { ensurePersonalWorkspace } from '@repo/billing/workspace'
 import {
     sendEmail,
     verifyEmail,
@@ -196,6 +197,13 @@ export const auth = betterAuth({
                 // Google (and any path that creates a verified user) gets the welcome at once; email + password users
                 // get it after they confirm their email (afterEmailVerification).
                 after: async (u) => {
+                    // Every new person gets their personal workspace at once (idempotent; the welcome grant below and
+                    // every credits path would create it too). INLINE: the app's first page reads it.
+                    try {
+                        await ensurePersonalWorkspace(u.id, u.name)
+                    } catch (err) {
+                        console.error('[auth] personal workspace failed:', err instanceof Error ? err.message : err)
+                    }
                     if (!u.emailVerified) return
                     await grantWelcomeCredits(u.id)
                     await inBackground(() => sendEmail({ kind: 'transactional', to: u.email, ...welcomeEmail({ name: u.name, appUrl: appUrl() }) }))

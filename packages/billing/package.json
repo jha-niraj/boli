@@ -9,7 +9,8 @@
 	"exports": {
 		".": "./src/index.ts",
 		"./plans": "./src/plans.ts",
-		"./ledger": "./src/ledger.ts"
+		"./ledger": "./src/ledger.ts",
+		"./workspace": "./src/workspace.ts"
 	},
 	"scripts": {
 		"check-types": "tsc --noEmit"

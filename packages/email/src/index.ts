@@ -17,5 +17,6 @@ export {
     passwordChangedEmail,
     signInCodeEmail,
     adminInvitationEmail,
+    workspaceInvitationEmail,
 } from './templates'
 export type { EmailContent, CodePurpose } from './templates'

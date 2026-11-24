@@ -1,12 +1,14 @@
 // @repo/billing - the billing account and the credit ledger (server only).
 //
 // Units: integer MICRO-credits everywhere (Boli: 1 credit = Rs 1 = 1,000,000 micro-credits).
-// The account is per USER today (`ownerType 'user'`, `ownerId = user.id`); a workspace owner is a new ownerType, not a
-// new table. The ledger is append-only; the balance is its sum, cached on billing_account and moved in the SAME SQL
+// The account belongs to a WORKSPACE (`ownerType 'workspace'`, `ownerId = workspace.id`, see ./workspace.ts); the
+// `...ForUser` helpers resolve the person's PERSONAL workspace. ('user', user.id) rows are pre-workspace accounts,
+// moved in place by scripts/backfill-workspaces.mjs or on first use. The ledger is append-only; the balance is its sum, cached on billing_account and moved in the SAME SQL
 // statement as the ledger insert (a CTE), so a retry (same idempotency key) inserts nothing and moves nothing.
 import { and, db, desc, eq, gte, sql, type SQL } from '@repo/db'
 import { billingAccount, creditLedger, type BillingOwnerType, type CreditEntryKind } from '@repo/db/schema'
 import { MICRO_PER_CREDIT, WELCOME_CREDITS } from './plans'
+import { accountForWorkspace, balanceMicroForWorkspace, ensurePersonalWorkspace, findAccountForUser } from './workspace'
 
 export type BillingAccountRow = typeof billingAccount.$inferSelect
 
@@ -26,9 +28,13 @@ export async function getOrCreateAccount(owner: { type: BillingOwnerType; id: st
     return row
 }
 
-/** The signed-in user's own account (the only owner type in use today). */
-export function accountForUser(userId: string): Promise<BillingAccountRow> {
-    return getOrCreateAccount({ type: 'user', id: userId, contactUserId: userId })
+/**
+ * The person's own account: their PERSONAL workspace's (the workspace and its owner membership are created on first
+ * use). Code acting in a chosen workspace uses `accountForWorkspace(workspaceId)` instead.
+ */
+export async function accountForUser(userId: string): Promise<BillingAccountRow> {
+    const ws = await ensurePersonalWorkspace(userId)
+    return accountForWorkspace(ws.id)
 }
 
 export interface LedgerEntryInput {
@@ -129,17 +135,21 @@ export function creditsEnforced(): boolean {
     return v === '1' || v === 'true'
 }
 
-/** The person's balance in micro-credits; an account that does not exist yet is 0 (a read never creates one). */
+/** The person's PERSONAL balance in micro-credits; an account that does not exist yet is 0 (a read never creates one). */
 export async function balanceMicroForUser(userId: string): Promise<number> {
-    const [acct] = await db.select({ balance: billingAccount.balanceMicro }).from(billingAccount)
-        .where(and(eq(billingAccount.ownerType, 'user'), eq(billingAccount.ownerId, userId))).limit(1)
-    return acct?.balance ?? 0
+    return (await findAccountForUser(userId))?.balanceMicro ?? 0
 }
 
-/** Whether the person may start a model call: always true when credits are not enforced, else balance > 0. */
+/** Whether the person may start a model call on their personal account: always true when credits are not enforced. */
 export async function hasCredits(userId: string): Promise<boolean> {
     if (!creditsEnforced()) return true
     return (await balanceMicroForUser(userId)) > 0
+}
+
+/** Whether a call may START on a workspace's account: always true when credits are not enforced, else balance > 0. */
+export async function workspaceHasCredits(workspaceId: string): Promise<boolean> {
+    if (!creditsEnforced()) return true
+    return (await balanceMicroForWorkspace(workspaceId)) > 0
 }
 
 /**

@@ -15,7 +15,8 @@
 		"db:studio": "dotenv -e ../../apps/main/.env.local -- drizzle-kit studio",
 		"db:seed": "dotenv -e ../../apps/main/.env.local -- tsx src/seed.ts",
 		"check-types": "tsc --noEmit",
-		"sql": "dotenv -e ../../apps/main/.env.local -- node scripts/run-sql.mjs"
+		"sql": "dotenv -e ../../apps/main/.env.local -- node scripts/run-sql.mjs",
+		"backfill:workspaces": "dotenv -e ../../apps/main/.env.local -- node scripts/backfill-workspaces.mjs"
 	},
 	"dependencies": {
 		"@neondatabase/serverless": "^1.2.1",

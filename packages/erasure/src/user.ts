@@ -101,7 +101,10 @@ export async function eraseUserAs(userId: string, requestedBy: string): Promise<
         }
         // The user's billing account goes too: balance, ledger and subscription cascade with it; payment rows stay with
         // account_id set to NULL (kept de-identified for accounting; owner, 2026-11-24).
-        const b = await db.execute(sql`DELETE FROM "billing_account" WHERE "owner_type" = 'user' AND "owner_id" = ${userId} RETURNING 1`)
+        // Since workspaces (plan/main/jawaf/jawaf-v1.md) the account belongs to the person's PERSONAL workspace; that
+        // workspace itself (with its members, invitations, keys and chats) cascades from the user row in step 3.
+        const b = await db.execute(sql`DELETE FROM "billing_account" WHERE ("owner_type" = 'user' AND "owner_id" = ${userId})
+            OR ("owner_type" = 'workspace' AND "owner_id" IN (SELECT "id" FROM "workspace" WHERE "personal_owner_id" = ${userId})) RETURNING 1`)
         if (b.rows.length) counts.billing_account = b.rows.length
         const v = await db.execute(sql`DELETE FROM "verification" WHERE "identifier" = ${person.email} RETURNING 1`)
         if (v.rows.length) counts.verification = v.rows.length

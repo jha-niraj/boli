@@ -4,8 +4,9 @@
 //   a per-person daily cost cap from AI_DAILY_USD_CAP_PER_USER (blank = off).
 // - Plans (code, not DB - `@repo/billing/plans`, browser-safe): Free / Pro, NPR / INR / USD, 1 / 3 / 12 months prepaid
 //   with a discount, or auto-renew monthly where the gateway supports it (Stripe, Razorpay, Cashfree).
-// - The billing account is per user today (ownerType/ownerId - a workspace owner drops in later). Credits are an
-//   append-only ledger; the cached balance moves in the same statement as each ledger row.
+// - The billing account belongs to a workspace (ownerType 'workspace'; ./workspace.ts creates a person's personal
+//   workspace on first use). Credits are an append-only ledger; the cached balance moves in the same statement as each
+//   ledger row.
 // - startCheckout -> the gateway (@repo/payments) -> confirmPayment (return) / applyWebhookNotices (webhook): whichever
 //   arrives first applies the purchase, the other changes nothing.
 // - Credits are integer MICRO-credits (1 credit = Rs 1 = 1,000,000). The welcome grant (`grantWelcome`) runs on email
@@ -17,9 +18,13 @@ export { logAiUsage, spentTodayMicroUsd, dailyCapMicroUsd, checkDailyCap, startO
 export * from './plans'
 export {
     getOrCreateAccount, accountForUser, addCredits, ledgerEntrySql, appliedBalance, creditsToMicro, grantWelcome, recomputeBalance,
-    creditsEnforced, balanceMicroForUser, hasCredits, spendCredits, startOfUtcMonth, creditsSpentThisMonth, recentLedger, dailySpend,
+    creditsEnforced, balanceMicroForUser, hasCredits, workspaceHasCredits, spendCredits, startOfUtcMonth, creditsSpentThisMonth, recentLedger, dailySpend,
     type BillingAccountRow, type LedgerEntryInput, type LedgerRow, type DailySpend,
 } from './ledger'
+export {
+    ensurePersonalWorkspace, findPersonalWorkspace, accountForWorkspace, findWorkspaceAccount, findAccountForUser, balanceMicroForWorkspace,
+    type PersonalWorkspace,
+} from './workspace'
 export {
     appBaseUrl, startCheckout, startCreditPurchase, confirmPayment, applyVerified, applyWebhookNotices, markCancelled, getPayment, effectivePlan,
     cancelAutoRenew, type CheckoutRequest, type CreditPurchaseInput, type StartCheckoutInput, type StartedCheckout, type ConfirmOutcome, type PaymentRow,

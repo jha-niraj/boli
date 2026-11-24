@@ -2,12 +2,15 @@
 // and every query filters by it.
 import { pgTable, text, timestamp, jsonb, index, smallint } from 'drizzle-orm/pg-core'
 import { user } from './core'
+import { workspace } from './workspace'
 
 export const aiConversations = pgTable(
     'ai_conversation',
     {
         id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
         userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+        /** The workspace it was started in (its turns charge that workspace). Nullable until the backfill has run. */
+        workspaceId: text('workspace_id').references(() => workspace.id, { onDelete: 'cascade' }),
         title: text('title').notNull().default('New chat'),
         /**
          * Kura settings for this conversation: { systemPrompt, temperature, maxTokens, topP, topK, think }. Null = the
@@ -17,7 +20,10 @@ export const aiConversations = pgTable(
         createdAt: timestamp('created_at').notNull().defaultNow(),
         updatedAt: timestamp('updated_at').notNull().defaultNow(),
     },
-    (t) => [index('ai_conversation_user_updated_idx').on(t.userId, t.updatedAt)],
+    (t) => [
+        index('ai_conversation_user_updated_idx').on(t.userId, t.updatedAt),
+        index('ai_conversation_ws_user_updated_idx').on(t.workspaceId, t.userId, t.updatedAt),
+    ],
 )
 
 export const aiMessages = pgTable(

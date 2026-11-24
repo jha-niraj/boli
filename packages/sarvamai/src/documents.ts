@@ -94,21 +94,40 @@ function classify(name: string): DigitiseFile['kind'] {
     return 'other'
 }
 
+export interface DigitiseSubmitInput extends SarvamAuth {
+    bytes: Uint8Array
+    /** BCP-47 document language, e.g. "hi-IN", "en-IN". Default "en-IN". */
+    language?: string
+    outputFormat?: DocOutputFormat
+    contentType?: DocContentType
+    autoOrient?: boolean
+    fileName?: string
+}
+
+export interface DigitiseJobStatus {
+    jobId: string
+    /** Sarvam's state (pending / running / completed / partially_completed / failed / rejected). */
+    state: string
+    /** True once the state is terminal. */
+    finished: boolean
+    /** True when finished with output to download. */
+    succeeded: boolean
+    pagesProcessed: number
+    pagesTotal: number
+}
+
 /**
- * Run one OCR job end to end: submit, poll until done, download and unzip the output. Throws AppError (validation for
- * an unsupported / too large file, network / ratelimit / quota from Sarvam, network on a failed or timed-out job).
+ * Step 1 of a resumable OCR job: validate and submit (one multipart request, retried on 429 / 5xx). Returns the Sarvam
+ * job id - store it and poll with `digitiseStatus` from later slices of a long job (no waiting here).
  */
-export async function digitiseDocument(input: DigitiseInput): Promise<DigitiseResult> {
+export async function submitDigitise(input: DigitiseSubmitInput): Promise<{ jobId: string; kind: DocKind }> {
     const apiKey = sarvamKey(input)
-    const log = input.log ?? (() => undefined)
     const kind = sniffDocKind(input.bytes)
     if (!kind) throw new AppError('validation', 'Unsupported file type - upload a PDF, PNG or JPG.')
     if (input.bytes.byteLength > DOC_MAX_BYTES) throw new AppError('validation', 'The file is larger than 50 MB.')
     const outputFormat = input.outputFormat ?? 'md'
     const fileName = input.fileName ?? `document.${kind}`
-
-    // Submit. FormData is rebuilt per attempt: a sent body is consumed and cannot be replayed.
-    let jobId = ''
+    // FormData is rebuilt per attempt: a sent body is consumed and cannot be replayed.
     for (let attempt = 0; ; attempt++) {
         const form = new FormData()
         form.append('file', new Blob([input.bytes.slice().buffer as ArrayBuffer], { type: MIME[kind] }), fileName)
@@ -117,39 +136,38 @@ export async function digitiseDocument(input: DigitiseInput): Promise<DigitiseRe
         form.append('content_type', input.contentType ?? 'printed')
         form.append('auto_orient', input.autoOrient === false ? 'false' : 'true')
         const res = await fetch(`${BASE}/job/digitise`, { method: 'POST', headers: { 'api-subscription-key': apiKey }, body: form })
-        if (res.ok) {
-            jobId = ((await res.json()) as { job_id: string }).job_id
-            break
-        }
+        if (res.ok) return { jobId: ((await res.json()) as { job_id: string }).job_id, kind }
         if ((res.status === 429 || res.status >= 500) && attempt < MAX_RETRIES) {
             await sleep(backoffMs(res, attempt))
             continue
         }
         throw await sarvamHttpError(res, 'document reading')
     }
-    log(`[sarvam] job ${jobId.slice(0, 8)} submitted (${Math.round(input.bytes.byteLength / 1024)} KB)`)
+}
 
-    // Poll.
+/** Step 2: one status read (no waiting). */
+export async function digitiseStatus(jobId: string, auth: SarvamAuth = {}): Promise<DigitiseJobStatus> {
+    const apiKey = sarvamKey(auth)
     type Status = { status: string; usage?: { pages_processed?: number; pages_total?: number } }
-    const deadline = Date.now() + (input.pollTimeoutMs ?? DEFAULT_POLL_TIMEOUT_MS)
-    let status: Status
-    for (;;) {
-        status = await getJson<Status>(`/job/${jobId}/status`, apiKey, 'document reading')
-        if (TERMINAL.has(status.status)) break
-        if (Date.now() > deadline) throw new AppError('network', 'Reading the document took too long - try again.')
-        await sleep(POLL_INTERVAL_MS)
+    const status = await getJson<Status>(`/job/${jobId}/status`, apiKey, 'document reading')
+    const finished = TERMINAL.has(status.status)
+    return {
+        jobId,
+        state: status.status,
+        finished,
+        succeeded: status.status === 'completed' || status.status === 'partially_completed',
+        pagesProcessed: status.usage?.pages_processed ?? 0,
+        pagesTotal: status.usage?.pages_total ?? 0,
     }
-    log(`[sarvam] job ${jobId.slice(0, 8)} ${status.status}`)
-    if (status.status === 'failed' || status.status === 'rejected') {
-        throw new AppError('network', 'The document could not be read.', { cause: new Error(`Sarvam job ${jobId} ${status.status}`) })
-    }
+}
 
-    // Download.
+/** Step 3: download and unzip a finished job's output. `text` joins every file of `outputFormat`. */
+export async function digitiseOutput(jobId: string, outputFormat: DocOutputFormat = 'md', auth: SarvamAuth = {}): Promise<{ files: DigitiseFile[]; text: string }> {
+    const apiKey = sarvamKey(auth)
     const link = await getJson<{ url: string; headers?: Record<string, string> }>(`/job/${jobId}/download-url`, apiKey, 'document reading')
     const dl = await fetch(link.url, { headers: link.headers ?? {} })
     if (!dl.ok) throw new AppError('network', 'The read document could not be downloaded.', { cause: new Error(`HTTP ${dl.status}`) })
     const raw = new Uint8Array(await dl.arrayBuffer())
-
     const files: DigitiseFile[] = []
     const decoder = new TextDecoder()
     if (sniffDocKind(raw) === 'zip') {
@@ -160,15 +178,65 @@ export async function digitiseDocument(input: DigitiseInput): Promise<DigitiseRe
         files.push({ name: `document.${outputFormat}`, kind: outputFormat, text: decoder.decode(raw) })
     }
     files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+    return { files, text: files.filter((f) => f.kind === outputFormat).map((f) => f.text).join('\n\n') }
+}
 
-    return {
-        jobId,
-        state: status.status,
-        pagesProcessed: status.usage?.pages_processed ?? 0,
-        pagesTotal: status.usage?.pages_total ?? 0,
-        files,
-        text: files.filter((f) => f.kind === outputFormat).map((f) => f.text).join('\n\n'),
+/**
+ * Run one OCR job end to end: submit, poll until done, download and unzip the output. Throws AppError (validation for
+ * an unsupported / too large file, network / ratelimit / quota from Sarvam, network on a failed or timed-out job).
+ * Blocks for up to `pollTimeoutMs`: a job runner that works in short slices uses submitDigitise / digitiseStatus /
+ * digitiseOutput instead.
+ */
+export async function digitiseDocument(input: DigitiseInput): Promise<DigitiseResult> {
+    const log = input.log ?? (() => undefined)
+    const outputFormat = input.outputFormat ?? 'md'
+    const { jobId } = await submitDigitise(input)
+    log(`[sarvam] job ${jobId.slice(0, 8)} submitted (${Math.round(input.bytes.byteLength / 1024)} KB)`)
+    const deadline = Date.now() + (input.pollTimeoutMs ?? DEFAULT_POLL_TIMEOUT_MS)
+    let status: DigitiseJobStatus
+    for (;;) {
+        status = await digitiseStatus(jobId, input)
+        if (status.finished) break
+        if (Date.now() > deadline) throw new AppError('network', 'Reading the document took too long - try again.')
+        await sleep(POLL_INTERVAL_MS)
     }
+    log(`[sarvam] job ${jobId.slice(0, 8)} ${status.state}`)
+    if (!status.succeeded) {
+        throw new AppError('network', 'The document could not be read.', { cause: new Error(`Sarvam job ${jobId} ${status.state}`) })
+    }
+    const out = await digitiseOutput(jobId, outputFormat, input)
+    return { jobId, state: status.state, pagesProcessed: status.pagesProcessed, pagesTotal: status.pagesTotal, files: out.files, text: out.text }
+}
+
+/**
+ * Text of a Word (.docx) file: paragraphs from word/document.xml, one per line (no formatting, tables as tab-separated
+ * cells). Not Sarvam - a plain unzip - but it lives beside the OCR reader so "read a document" is one package.
+ * Throws AppError('validation') for a file that is not a .docx.
+ */
+export function docxToText(bytes: Uint8Array): string {
+    let xml: string
+    try {
+        const files = unzipSync(bytes, { filter: (f) => f.name === 'word/document.xml' })
+        const doc = files['word/document.xml']
+        if (!doc) throw new Error('no word/document.xml')
+        xml = new TextDecoder().decode(doc)
+    } catch {
+        throw new AppError('validation', 'That Word file could not be opened - save it as .docx or PDF and try again.')
+    }
+    return xml
+        .replace(/<w:tab\/>/g, '\t')
+        .replace(/<w:br[^>]*\/>/g, '\n')
+        .replace(/<\/w:tc>/g, '\t')
+        .replace(/<\/w:p>/g, '\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'")
+        .replace(/&amp;/g, '&')
+        .replace(/[ \t]+\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
 }
 
 /** Sarvam HTML output -> plain text (block tags become newlines). */

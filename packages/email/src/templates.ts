@@ -138,3 +138,34 @@ export function adminInvitationEmail({
         text: `Hi ${hi},\n\nYou were invited${by} to the ${SITE.name} admin console as ${roleLabel}.\nAccept and set your password (works for ${days} days):\n${url}`,
     }
 }
+
+export function workspaceInvitationEmail({
+    workspaceName,
+    invitedBy,
+    products,
+    url,
+    days = 7,
+}: {
+    workspaceName: string
+    invitedBy?: string | null
+    /** What they get, in words ("Kura, API"). */
+    products: string
+    url: string
+    days?: number
+}): EmailContent {
+    const by = invitedBy ? `${invitedBy} invited you` : 'You were invited'
+    return {
+        subject: `Join ${workspaceName} on ${SITE.name}`,
+        html: layout({
+            preheader: `${by} to ${workspaceName} on ${SITE.name}.`,
+            body:
+                heading(`Join ${workspaceName}`) +
+                paragraph(`${esc(by)} to the workspace <strong>${esc(workspaceName)}</strong> on ${esc(SITE.name)}. You get access to: ${esc(products)}.`) +
+                paragraph(`Sign in or create an account with this email address, then accept. The link works for ${days} days.`) +
+                button('Accept invitation', url) +
+                fallbackLink(url),
+            footnote: "If you didn't expect this invitation, ignore this email - nothing happens.",
+        }),
+        text: `${by} to the workspace ${workspaceName} on ${SITE.name}.\nYou get access to: ${products}.\n\nAccept (works for ${days} days, sign in or create an account with this email first):\n${url}\n\nIf you didn't expect this, ignore this email.`,
+    }
+}
