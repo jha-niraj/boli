@@ -6,7 +6,7 @@
  * The plain text is written by hand (not derived), so the dev console log of a skipped mail reads cleanly.
  */
 import { SITE } from '@repo/core/site'
-import { button, codeBlock, esc, fallbackLink, heading, layout, paragraph } from './layout'
+import { button, codeBlock, esc, escUrl, fallbackLink, heading, layout, paragraph } from './layout'
 
 export interface EmailContent {
     subject: string
@@ -167,5 +167,77 @@ export function workspaceInvitationEmail({
             footnote: "If you didn't expect this invitation, ignore this email - nothing happens.",
         }),
         text: `${by} to the workspace ${workspaceName} on ${SITE.name}.\nYou get access to: ${products}.\n\nAccept (works for ${days} days, sign in or create an account with this email first):\n${url}\n\nIf you didn't expect this, ignore this email.`,
+    }
+}
+
+/**
+ * A demo Jawaf bot's claim link (admin Jawaf > Demos > Send claim email). Nepali first, then English - the business
+ * reads whichever they prefer. Sent only when an admin presses Send; reply-to is the owning admin.
+ */
+export function jawafClaimEmail({
+    businessName,
+    contactName,
+    botName,
+    botUrl,
+    claimUrl,
+    days = 30,
+    senderName,
+}: {
+    businessName: string
+    contactName?: string | null
+    botName: string
+    /** The demo's public page (app.bolihq.com/j/<slug>). */
+    botUrl: string
+    claimUrl: string
+    days?: number
+    /** The admin who built it ("Niraj from Boli"). */
+    senderName?: string | null
+}): EmailContent {
+    const hi = (contactName ?? '').trim() || businessName
+    const from = senderName ? `${senderName}, ${SITE.name}` : `The ${SITE.name} team`
+    return {
+        subject: `${businessName}: your Jawaf answer assistant is ready / तपाईंको Jawaf तयार छ`,
+        html: layout({
+            preheader: `We built ${botName} for ${businessName}. Try it, then claim it for free.`,
+            body:
+                heading(`${businessName} को लागि Jawaf`) +
+                paragraph(`नमस्ते ${esc(hi)}, हामीले ${esc(businessName)} को वेबसाइटबाट <strong>${esc(botName)}</strong> बनाएका छौं - ग्राहकका प्रश्नहरूको जवाफ नेपाली, रोमन नेपाली र अंग्रेजीमा तुरुन्तै दिन्छ।`) +
+                paragraph(`यहाँ प्रयोग गरेर हेर्नुहोस्: <a href="${escUrl(botUrl)}" style="color:#1d64a3">${esc(botUrl)}</a>`) +
+                paragraph(`मन परे, तलको बटन थिचेर आफ्नो खातामा लिनुहोस्। लिंक ${days} दिनसम्म, एक पटक मात्र चल्छ।`) +
+                button('Claim it / आफ्नो बनाउनुहोस्', claimUrl) +
+                `<hr style="border:none;border-top:1px solid #e5e5e5;margin:20px 0" />` +
+                paragraph(`Hi ${esc(hi)}, we built <strong>${esc(botName)}</strong> from ${esc(businessName)}'s website. It answers your customers' questions at once, in Nepali, Romanized Nepali and English.`) +
+                paragraph(`Try it here: <a href="${escUrl(botUrl)}" style="color:#1d64a3">${esc(botUrl)}</a>`) +
+                paragraph(`If you like it, press the button above to move it into your own ${esc(SITE.name)} account, with everything it knows. The link works for ${days} days, once.`) +
+                fallbackLink(claimUrl) +
+                paragraph(`- ${esc(from)}`),
+            footnote: 'Reply to this email with any question. If this is not your business, ignore it - nothing happens.',
+        }),
+        text:
+            `नमस्ते ${hi},\n\nहामीले ${businessName} को वेबसाइटबाट ${botName} बनाएका छौं। प्रयोग गर्नुहोस्: ${botUrl}\n` +
+            `आफ्नो खातामा लिन (लिंक ${days} दिन, एक पटक): ${claimUrl}\n\n---\n\n` +
+            `Hi ${hi},\n\nWe built ${botName} from ${businessName}'s website. Try it: ${botUrl}\n` +
+            `Claim it into your own ${SITE.name} account (works for ${days} days, once): ${claimUrl}\n\n- ${from}`,
+    }
+}
+
+/** A bot's public page was paused (or resumed) by the Boli team - to the workspace owner. */
+export function jawafBotPausedEmail({ botName, paused, reason, appUrl }: { botName: string; paused: boolean; reason?: string | null; appUrl: string }): EmailContent {
+    const title = paused ? `${botName} is paused` : `${botName} is answering again`
+    const line = paused
+        ? `The ${SITE.name} team paused the public page and widget of ${botName}. Visitors see "This assistant is paused" until it is resumed.`
+        : `The ${SITE.name} team resumed ${botName}. Its public page and widget answer visitors again.`
+    return {
+        subject: title,
+        html: layout({
+            preheader: line,
+            body:
+                heading(title) +
+                paragraph(esc(line)) +
+                (paused && reason ? paragraph(`Why: ${esc(reason)}`) : '') +
+                button('Open Jawaf', appUrl),
+            footnote: 'Reply to this email if you have a question about it.',
+        }),
+        text: `${title}\n\n${line}${paused && reason ? `\nWhy: ${reason}` : ''}\n\nOpen Jawaf: ${appUrl}`,
     }
 }

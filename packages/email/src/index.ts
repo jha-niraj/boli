@@ -18,5 +18,7 @@ export {
     signInCodeEmail,
     adminInvitationEmail,
     workspaceInvitationEmail,
+    jawafClaimEmail,
+    jawafBotPausedEmail,
 } from './templates'
 export type { EmailContent, CodePurpose } from './templates'

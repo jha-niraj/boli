@@ -1,7 +1,7 @@
 // Boli platform tables: API keys, one row per model call, feedback and the About page's contact messages.
 // Every per-user row carries `userId`; keys and requests also carry `workspaceId` (the account they belong to and charge), and each table is listed in
 // packages/erasure/src/user.ts. Plan: plan/main/platform/platform-v0.md.
-import { bigint, index, integer, pgTable, smallint, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
+import { bigint, index, integer, jsonb, pgTable, smallint, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 import { user } from './core'
 import { aiConversations } from './ai'
 import { workspace } from './workspace'
@@ -89,12 +89,20 @@ export const feedback = pgTable(
         rating: smallint('rating'),
         /** The page it was sent from (a route, no query string). */
         page: text('page'),
+        /** When an admin marked it handled (admin Inbox); NULL = still open. */
+        handledAt: timestamp('handled_at'),
+        /** The admin_access id that marked it handled (no FK: the row outlives the admin). */
+        handledBy: text('handled_by'),
         createdAt: timestamp('created_at').notNull().defaultNow(),
     },
     (t) => [index('feedback_created_idx').on(t.createdAt)],
 )
 
-/** The About page's contact form (public; no account needed). */
+/**
+ * The site's /contact form (public; no account needed). `details` holds the topic's extra fields - for the Jawaf
+ * pilot `{ kind: "jawaf_pilot", businessName, businessWebsite?, businessType, city, phone? }` - and is narrowed by the
+ * reader (apps/admin/schemas/inbox.ts). Script: packages/db/scripts/contact-details.sql.
+ */
 export const contactMessage = pgTable(
     'contact_message',
     {
@@ -103,8 +111,14 @@ export const contactMessage = pgTable(
         email: text('email').notNull(),
         topic: text('topic'),
         message: text('message').notNull(),
+        /** The topic's extra fields (see above); NULL for topics without any. */
+        details: jsonb('details'),
         /** SHA-256 of the sender's IP: only for the 5-per-hour limit, never shown. */
         ipHash: text('ip_hash'),
+        /** When an admin marked it handled (admin Inbox); NULL = still open. */
+        handledAt: timestamp('handled_at'),
+        /** The admin_access id that marked it handled (no FK: the row outlives the admin). */
+        handledBy: text('handled_by'),
         createdAt: timestamp('created_at').notNull().defaultNow(),
     },
     (t) => [index('contact_message_created_idx').on(t.createdAt), index('contact_message_ip_created_idx').on(t.ipHash, t.createdAt)],

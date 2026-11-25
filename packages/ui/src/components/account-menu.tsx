@@ -171,7 +171,9 @@ export function AccountMenu({
                 side={collapsed ? "right" : "top"}
                 align={collapsed ? "end" : "start"}
                 sideOffset={8}
-                className="w-72"
+                // Opening ABOVE the row it is exactly the row's width, so it lines up with the sidebar (owner,
+                // 2026-11-25); beside a collapsed rail it keeps its own width.
+                className={collapsed ? "w-72" : "w-[var(--radix-dropdown-menu-trigger-width)] min-w-60"}
                 {...hover}
             >
                 <div className="flex items-center gap-3 px-2.5 pb-2 pt-1.5">

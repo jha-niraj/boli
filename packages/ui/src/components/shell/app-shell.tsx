@@ -40,7 +40,7 @@ import { ProductShell } from "./product-shell"
  * - PRODUCT RAIL (opt-in, `productRail`): a 56px icon rail of products that widens OVER the page on hover, and beside
  *   it a sidebar with only the open product's pages (`nav`). The sidebar is EXPANDED or COLLAPSED (Sarvam): collapsed,
  *   the icon rail goes off screen and the sidebar becomes one 64px icon rail; same cookie (`initialPinned` = expanded)
- *   and Cmd+\, no peek. See product-shell.tsx. Without `productRail` (apps/admin) nothing changes.
+ *   and Cmd+\, no peek. See product-shell.tsx. apps/main (products) and apps/admin (modules, no workspaces) both use it.
  */
 
 /** The opt-in product rail (apps/main). `nav` then holds only the OPEN product's pages. */
@@ -48,14 +48,18 @@ export interface ProductRailConfig {
     products: ShellProduct[]
     /** The product the current path belongs to; null on an account page. */
     activeProductId: string | null
-    workspaces: ShellWorkspace[]
-    onSwitchWorkspace: (id: string) => void
+    /** The workspace switcher at the top of the rail. Empty or omitted (apps/admin, which has no workspaces) = no switcher. */
+    workspaces?: ShellWorkspace[]
+    onSwitchWorkspace?: (id: string) => void
     /** Adds "Create workspace" to the switcher menu; the app opens its own dialog (called after the menu closes). */
     onCreateWorkspace?: () => void
     /** The open product's sidebar; null = an account page (no sidebar, the rail alone). */
     sidebar: ShellSidebar | null
     /** The label under the phone tab bar's last button, which opens the rail as a sheet. Default "Products". */
     phoneMenuLabel?: string
+    /** What the rail's entries are called (the rail's aria-label, the collapsed rail's switch menu). Default "Products";
+     *  apps/admin says "Modules". */
+    productsLabel?: string
 }
 
 export interface AppShellProps {

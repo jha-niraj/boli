@@ -81,10 +81,10 @@ export function railWidthFromCookie(value: string | undefined | null): number {
     return Number.isFinite(n) && n >= RAIL_WIDTH.min && n <= RAIL_WIDTH.max ? Math.round(n) : RAIL_WIDTH.default
 }
 
-/* ── Product rail (opt-in, apps/main; plan/main/jawaf/jawaf-v1.md "Names and structure") ─────────────────────────────
+/* ── Product rail (opt-in; apps/main's products, apps/admin's modules; plan/main/jawaf/jawaf-v1.md) ──────────────────
  * A thin icon rail at the far left (products, workspace switcher, credits + account at the foot) that slides out OVER
- * the page on hover, and next to it a sidebar with ONLY the open product's pages. Apps that pass no `productRail` to
- * AppShell (apps/admin) keep the classic single rail. */
+ * the page on hover, and next to it a sidebar with ONLY the open product's pages. An app that passes no `productRail`
+ * to AppShell keeps the classic single rail. */
 
 /** One product in the icon rail. */
 export interface ShellProduct {

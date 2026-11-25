@@ -44,10 +44,13 @@ export interface ProductRailProps {
     brand: ShellBrand
     products: ShellProduct[]
     activeProductId: string | null
-    workspaces: ShellWorkspace[]
-    onSwitchWorkspace: (id: string) => void
+    /** Empty or omitted = no workspace switcher (apps/admin). */
+    workspaces?: ShellWorkspace[]
+    onSwitchWorkspace?: (id: string) => void
     /** Adds "Create workspace" at the foot of the switcher menu; the app opens its own dialog. */
     onCreateWorkspace?: () => void
+    /** What the entries are called (aria-label of the list). Default "Products". */
+    productsLabel?: string
     account: ShellAccount
     notifications?: ShellNotifications
     /** Rows above the notifications row (Boli: credits + Add). Drawn with the icon in the first 40px. */
@@ -151,10 +154,12 @@ const COMPACT_STATE: ProductRailState = { expanded: false, layout: "rail", compa
  * nothing - a Products menu (switch product, or go to the overview), the app's credits (`footerTop`) and feedback
  * (`footerExtra`) drawn compact through `useProductRail().compact`, the bell with its unread dot, and the account menu.
  */
-export function CompactRailFoot({ brand, products, activeProductId, account, notifications, footerTop, footerExtra }: {
+export function CompactRailFoot({ brand, products, activeProductId, productsLabel = "Products", account, notifications, footerTop, footerExtra }: {
     brand: ShellBrand
     products: ShellProduct[]
     activeProductId: string | null
+    /** The switch menu's name. Default "Products"; apps/admin says "Modules". */
+    productsLabel?: string
     account: ShellAccount
     notifications?: ShellNotifications
     footerTop?: React.ReactNode
@@ -163,7 +168,7 @@ export function CompactRailFoot({ brand, products, activeProductId, account, not
     return (
         <ProductRailContext.Provider value={COMPACT_STATE}>
             <div className="flex shrink-0 flex-col items-center gap-1 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
-                <ProductsMenu brand={brand} products={products} activeProductId={activeProductId} />
+                <ProductsMenu brand={brand} products={products} activeProductId={activeProductId} label={productsLabel} />
                 {footerTop}
                 {footerExtra}
                 {notifications ? (
@@ -197,14 +202,14 @@ export function CompactRailFoot({ brand, products, activeProductId, account, not
 }
 
 /** The compact rail's way to change product: a menu of the products (Later ones greyed) and the overview. */
-function ProductsMenu({ brand, products, activeProductId }: { brand: ShellBrand; products: ShellProduct[]; activeProductId: string | null }) {
+function ProductsMenu({ brand, products, activeProductId, label: menuLabel }: { brand: ShellBrand; products: ShellProduct[]; activeProductId: string | null; label: string }) {
     return (
         <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-                <CompactRailButton icon={<LayoutGrid />} label="Products" hint="Switch product" />
+                <CompactRailButton icon={<LayoutGrid />} label={menuLabel} hint={menuLabel === "Products" ? "Switch product" : `Switch ${menuLabel.toLowerCase().replace(/s$/, "")}`} />
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" align="end" sideOffset={8} className="w-60">
-                <DropdownMenuLabel className="text-xs font-medium text-neutral-600 dark:text-neutral-400">Products</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs font-medium text-neutral-600 dark:text-neutral-400">{menuLabel}</DropdownMenuLabel>
                 {products.map((p) => {
                     const Icon = p.icon
                     const on = p.id === activeProductId
@@ -249,8 +254,8 @@ function initial(name: string) {
 }
 
 export function ProductRail({
-    brand, products, activeProductId, workspaces, onSwitchWorkspace, onCreateWorkspace, account, notifications, footerTop,
-    footerExtra, expanded, layout = "rail", onNavigate, onMenuOpenChange, children,
+    brand, products, activeProductId, workspaces = [], onSwitchWorkspace, onCreateWorkspace, productsLabel = "Products", account,
+    notifications, footerTop, footerExtra, expanded, layout = "rail", onNavigate, onMenuOpenChange, children,
 }: ProductRailProps) {
     const sheet = layout === "sheet"
     const railState = React.useMemo<ProductRailState>(() => ({ expanded, layout, onMenuOpenChange }), [expanded, layout, onMenuOpenChange])
@@ -288,21 +293,24 @@ export function ProductRail({
                 </AppLink>
             </div>
 
-            <div className="shrink-0 px-2 pb-2">
-                <WorkspaceSwitcher
-                    workspaces={workspaces}
-                    onSwitch={onSwitchWorkspace}
-                    onCreate={onCreateWorkspace}
-                    expanded={expanded || sheet}
-                    onOpenChange={onMenuOpenChange}
-                />
-            </div>
+            {/* No workspaces (apps/admin) = no switcher. */}
+            {workspaces.length > 0 && onSwitchWorkspace ? (
+                <div className="shrink-0 px-2 pb-2">
+                    <WorkspaceSwitcher
+                        workspaces={workspaces}
+                        onSwitch={onSwitchWorkspace}
+                        onCreate={onCreateWorkspace}
+                        expanded={expanded || sheet}
+                        onOpenChange={onMenuOpenChange}
+                    />
+                </div>
+            ) : null}
             </div>
 
             {sheet ? (
-                <ProductGrid products={products} activeProductId={activeProductId} onNavigate={onNavigate} />
+                <ProductGrid products={products} activeProductId={activeProductId} onNavigate={onNavigate} label={productsLabel} />
             ) : (
-                <nav aria-label="Products" className="flex min-h-0 flex-1 flex-col gap-0.5 px-2 pt-1">
+                <nav aria-label={productsLabel} className="flex min-h-0 flex-1 flex-col gap-0.5 px-2 pt-1">
                     {products.map((p) => (
                         <ProductLink key={p.id} product={p} active={p.id === activeProductId} expanded={expanded} onNavigate={onNavigate} />
                     ))}
@@ -316,7 +324,7 @@ export function ProductRail({
                 {footerTop}
                 {/* Feedback and Notifications share ONE row when the rail is open (owner, 2026-11-25: feedback first),
                     and stack as two icons in the collapsed 56px rail. The bell keeps its unread dot. */}
-                <div className={cn("min-w-0", expanded || sheet ? "grid grid-cols-2 gap-0.5" : "flex flex-col gap-0.5")}>
+                <div className={cn("min-w-0", (expanded || sheet) && footerExtra ? "grid grid-cols-2 gap-0.5" : "flex flex-col gap-0.5")}>
                     {footerExtra}
                     {notifications ? (
                         <Button
@@ -392,9 +400,9 @@ function ProductLink({ product, active, expanded, onNavigate }: { product: Shell
 }
 
 /** The phone sheet's products: a compact grid, so the open product's pages keep the room. */
-function ProductGrid({ products, activeProductId, onNavigate }: { products: ShellProduct[]; activeProductId: string | null; onNavigate?: () => void }) {
+function ProductGrid({ products, activeProductId, onNavigate, label: gridLabel = "Products" }: { products: ShellProduct[]; activeProductId: string | null; onNavigate?: () => void; label?: string }) {
     return (
-        <nav aria-label="Products" className="grid shrink-0 grid-cols-3 gap-1.5 px-2 pb-2">
+        <nav aria-label={gridLabel} className="grid shrink-0 grid-cols-3 gap-1.5 px-2 pb-2">
             {products.map((p) => {
                 const Icon = p.icon
                 const on = p.id === activeProductId

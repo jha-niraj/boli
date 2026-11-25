@@ -16,7 +16,10 @@
 		"db:seed": "dotenv -e ../../apps/main/.env.local -- tsx src/seed.ts",
 		"check-types": "tsc --noEmit",
 		"sql": "dotenv -e ../../apps/main/.env.local -- node scripts/run-sql.mjs",
-		"backfill:workspaces": "dotenv -e ../../apps/main/.env.local -- node scripts/backfill-workspaces.mjs"
+		"backfill:workspaces": "dotenv -e ../../apps/main/.env.local -- node scripts/backfill-workspaces.mjs",
+		"jawaf:house": "dotenv -e ../../apps/admin/.env.local -- node scripts/jawaf-house.mjs",
+		"jawaf:stuck-reads": "dotenv -e ../../apps/main/.env.local -- node scripts/jawaf-stuck-reads.mjs",
+		"seed:testadmin": "dotenv -e ../../apps/main/.env.local -- tsx src/seed-test-admin.ts"
 	},
 	"dependencies": {
 		"@neondatabase/serverless": "^1.2.1",

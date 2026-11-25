@@ -2,11 +2,12 @@
 	"name": "@repo/core",
 	"version": "0.0.0",
 	"private": true,
-	"description": "Framework-free helpers: site config (SITE), typed fields, csv, lists, documents",
+	"description": "Framework-free helpers: site config (SITE), typed fields, csv, lists, documents, countries and Nepal places (geo)",
 	"type": "module",
 	"exports": {
 		"./typed-fields": "./src/typed-fields/index.ts",
 		"./geo": "./src/geo/index.ts",
+		"./geo/nepal": "./src/geo/nepal.ts",
 		"./csv": "./src/csv/index.ts",
 		"./documents": "./src/documents/index.ts",
 		"./list/move-item": "./src/list/move-item.ts",

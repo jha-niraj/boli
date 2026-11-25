@@ -105,6 +105,48 @@ export const JAWAF_BUSINESS_TYPE_INFO: Record<JawafBusinessType, { label: string
     other: { label: "Something else", example: "Any business with questions to answer", suggested: ["What do you do?", "Kaha cha office?", "How can I contact you?"] },
 }
 
+/**
+ * Sectors a prospect or a pilot request can name (the searchable Sector picker, with "Other" for anything else). The
+ * LABEL is what is stored (`jawaf_prospect.sector` is free text), so an older typed value and an Other value read the
+ * same way. `type` is the business type the sector usually maps to; `keywords` are extra words search matches.
+ */
+export const JAWAF_SECTORS: readonly { label: string; type: JawafBusinessType; keywords?: readonly string[] }[] = [
+    { label: "Education (school or college)", type: "education", keywords: ["school", "college", "institute", "tuition"] },
+    { label: "Abroad study consultancy", type: "education", keywords: ["consultancy", "IELTS", "PTE", "visa"] },
+    { label: "Health clinic", type: "clinic", keywords: ["clinic", "dental", "eye", "polyclinic", "pharmacy"] },
+    { label: "Hospital", type: "clinic", keywords: ["hospital", "health"] },
+    { label: "Retail shop", type: "shop", keywords: ["shop", "store", "electronics", "clothing"] },
+    { label: "Online store", type: "shop", keywords: ["ecommerce", "online shop", "delivery"] },
+    { label: "Restaurant or cafe", type: "other", keywords: ["restaurant", "cafe", "food", "bakery"] },
+    { label: "Hotel or homestay", type: "hotel", keywords: ["hotel", "homestay", "resort", "guest house"] },
+    { label: "Travel or trekking", type: "hotel", keywords: ["travel", "trekking", "tour", "ticketing"] },
+    { label: "Real estate", type: "real_estate", keywords: ["housing", "land", "apartment"] },
+    { label: "Finance or cooperative", type: "other", keywords: ["bank", "cooperative", "microfinance", "remittance"] },
+    { label: "Insurance", type: "other", keywords: ["life insurance", "non-life"] },
+    { label: "IT or software", type: "other", keywords: ["software", "tech", "IT", "app"] },
+    { label: "Telecom or ISP", type: "other", keywords: ["internet", "ISP", "telecom"] },
+    { label: "Automobile", type: "shop", keywords: ["car", "bike", "showroom", "workshop"] },
+    { label: "Beauty or salon", type: "other", keywords: ["salon", "parlour", "spa", "beauty"] },
+    { label: "Fitness or gym", type: "other", keywords: ["gym", "yoga", "fitness"] },
+    { label: "Legal services", type: "other", keywords: ["law firm", "lawyer", "legal"] },
+    { label: "NGO or INGO", type: "other", keywords: ["non-profit", "NGO", "INGO"] },
+    { label: "Government office", type: "other", keywords: ["government", "municipality", "ward office"] },
+    { label: "Manufacturing", type: "other", keywords: ["factory", "industry"] },
+    { label: "Logistics or courier", type: "other", keywords: ["courier", "delivery", "cargo"] },
+    { label: "Events", type: "other", keywords: ["event", "wedding", "venue"] },
+    { label: "Media", type: "other", keywords: ["news", "media", "agency", "marketing"] },
+]
+
+/** Sector options for `ComboSelect` (value = label). */
+export function jawafSectorOptions(): { value: string; label: string; keywords?: readonly string[] }[] {
+    return JAWAF_SECTORS.map((s) => ({ value: s.label, label: s.label, keywords: s.keywords }))
+}
+
+/** Business type options for `ComboSelect`; the example ("Schools, colleges...") is searchable too. */
+export function jawafBusinessTypeOptions(): { value: JawafBusinessType; label: string; keywords: readonly string[] }[] {
+    return JAWAF_BUSINESS_TYPES.map((t) => ({ value: t, label: JAWAF_BUSINESS_TYPE_INFO[t].label, keywords: [JAWAF_BUSINESS_TYPE_INFO[t].example] }))
+}
+
 export const JAWAF_TONES = ["friendly", "professional", "casual", "formal"] as const
 export type JawafTone = (typeof JAWAF_TONES)[number]
 export const JAWAF_TONE_LABELS: Record<JawafTone, string> = { friendly: "Friendly", professional: "Professional", casual: "Casual", formal: "Formal" }
@@ -167,7 +209,8 @@ export type JawafNoteKind = (typeof JAWAF_NOTE_KINDS)[number]
 export const JAWAF_ORIGIN_KINDS = ["page", "file", "qa", "note", "fact"] as const
 export type JawafOriginKind = (typeof JAWAF_ORIGIN_KINDS)[number]
 
-export const JAWAF_JOB_KINDS = ["read", "file", "draft", "reindex"] as const
+/** Row jobs (jawaf_job.kind). `map` and `eval` run as jobs only under JOBS_RUNNER=workflow (packages/jawaf/src/jobs). */
+export const JAWAF_JOB_KINDS = ["read", "file", "draft", "reindex", "map", "eval"] as const
 export type JawafJobKind = (typeof JAWAF_JOB_KINDS)[number]
 export const JAWAF_JOB_STATUSES = ["queued", "running", "done", "failed", "cancelled"] as const
 export type JawafJobStatus = (typeof JAWAF_JOB_STATUSES)[number]

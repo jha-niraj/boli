@@ -11,7 +11,7 @@
 // editor, one chunker; a separate table would only duplicate the CRUD.
 import { sql } from 'drizzle-orm'
 import { bigint, boolean, customType, index, integer, jsonb, pgTable, smallint, text, timestamp, uniqueIndex, vector } from 'drizzle-orm/pg-core'
-import { user } from './core'
+import { adminAccess, user } from './core'
 import { workspace } from './workspace'
 
 /** BGE-M3 dense vectors. */
@@ -54,6 +54,10 @@ export const jawafBot = pgTable(
         setupStep: text('setup_step').notNull().default('business'),
         /** Admin overrides of the per-bot limits (@repo/boli/jawaf JawafLimitOverrides). */
         limits: jsonb('limits').$type<unknown>().notNull().default({}),
+        /** An admin paused the public page / widget / API (admin Jawaf > All bots); the page says it is paused. */
+        paused: boolean('paused').notNull().default(false),
+        pausedReason: text('paused_reason'),
+        pausedAt: timestamp('paused_at'),
         /** Free first-read web pages used (JAWAF_PRICES.freePagesPerBot). Moved by one conditional UPDATE per page. */
         freePagesUsed: integer('free_pages_used').notNull().default(0),
         createdById: text('created_by_id').references(() => user.id, { onDelete: 'set null' }),
@@ -360,4 +364,76 @@ export const jawafUsageMonth = pgTable(
         updatedAt: timestamp('updated_at').notNull().defaultNow(),
     },
     (t) => [uniqueIndex('jawaf_usage_month_ws_uq').on(t.workspaceId, t.month)],
+)
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Admin: demo prospects and claim links (plan/admin/jawaf/admin-v1.md "Jawaf in admin"). SQL: scripts/jawaf-admin.sql.
+// ---------------------------------------------------------------------------------------------------------------------
+
+export const JAWAF_PROSPECT_STAGES = ['sent', 'met', 'pilot', 'paying', 'lost'] as const
+export type JawafProspectStage = (typeof JAWAF_PROSPECT_STAGES)[number]
+
+/**
+ * A business we built a demo bot for (the demo tracker). Not tenant data: it belongs to the Boli team, so it has no
+ * workspace_id; the bot it points at lives in the "Boli Demos" house workspace until it is claimed.
+ */
+export const jawafProspect = pgTable(
+    'jawaf_prospect',
+    {
+        id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+        business: text('business').notNull(),
+        website: text('website'),
+        businessType: text('business_type').notNull().default('other'),
+        sector: text('sector'),
+        city: text('city'),
+        contactName: text('contact_name'),
+        phone: text('phone'),
+        email: text('email'),
+        stage: text('stage').$type<JawafProspectStage>().notNull().default('sent'),
+        /** The next step's day (stored as a UTC instant at midnight Nepal time). */
+        nextStepAt: timestamp('next_step_at'),
+        notes: text('notes').notNull().default(''),
+        /** The admin who owns the relationship (user.id of an admin). */
+        ownerUserId: text('owner_user_id').references(() => user.id, { onDelete: 'set null' }),
+        botId: text('bot_id').references(() => jawafBot.id, { onDelete: 'set null' }),
+        /** The contact form message (Communications > Inbox) the demo was built from. */
+        sourceContactMessageId: text('source_contact_message_id'),
+        createdById: text('created_by_id').references(() => user.id, { onDelete: 'set null' }),
+        createdAt: timestamp('created_at').notNull().defaultNow(),
+        updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    },
+    (t) => [
+        index('jawaf_prospect_stage_idx').on(t.stage, t.nextStepAt),
+        index('jawaf_prospect_bot_idx').on(t.botId),
+        index('jawaf_prospect_created_idx').on(t.createdAt),
+    ],
+)
+
+/**
+ * A one-time claim link for a demo bot: `/claim/<token>` on the app. Only the SHA-256 hex of the token is stored; the
+ * token is shown once. Works for 30 days, once; a new link for the same bot revokes the older open ones.
+ */
+export const jawafClaim = pgTable(
+    'jawaf_claim',
+    {
+        id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+        botId: text('bot_id').notNull().references(() => jawafBot.id, { onDelete: 'cascade' }),
+        prospectId: text('prospect_id').references(() => jawafProspect.id, { onDelete: 'set null' }),
+        tokenHash: text('token_hash').notNull(),
+        createdByAdminId: text('created_by_admin_id').references(() => adminAccess.id, { onDelete: 'set null' }),
+        expiresAt: timestamp('expires_at').notNull(),
+        sentAt: timestamp('sent_at'),
+        sentToEmail: text('sent_to_email'),
+        linkOpenedAt: timestamp('link_opened_at'),
+        claimedAt: timestamp('claimed_at'),
+        claimedWorkspaceId: text('claimed_workspace_id').references(() => workspace.id, { onDelete: 'set null' }),
+        claimedByUserId: text('claimed_by_user_id').references(() => user.id, { onDelete: 'set null' }),
+        revokedAt: timestamp('revoked_at'),
+        createdAt: timestamp('created_at').notNull().defaultNow(),
+    },
+    (t) => [
+        uniqueIndex('jawaf_claim_token_uq').on(t.tokenHash),
+        index('jawaf_claim_bot_idx').on(t.botId, t.createdAt),
+        index('jawaf_claim_created_idx').on(t.createdAt),
+    ],
 )

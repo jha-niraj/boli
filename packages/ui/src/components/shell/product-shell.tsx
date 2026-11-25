@@ -45,7 +45,7 @@ export function ProductShell({
     brand, nav, account, notifications, initialPinned, initialRailWidth, cookieName, railFooterExtra, railFooterTop,
     productRail, children,
 }: AppShellProps & { productRail: ProductRailConfig }) {
-    const { products, activeProductId, workspaces, onSwitchWorkspace, onCreateWorkspace, sidebar, phoneMenuLabel = "Products" } = productRail
+    const { products, activeProductId, workspaces, onSwitchWorkspace, onCreateWorkspace, sidebar, phoneMenuLabel = "Products", productsLabel } = productRail
     const hasSidebar = sidebar !== null
     const pathname = usePathname() ?? "/"
 
@@ -122,6 +122,7 @@ export function ProductShell({
                         workspaces={workspaces}
                         onSwitchWorkspace={onSwitchWorkspace}
                         onCreateWorkspace={onCreateWorkspace}
+                        productsLabel={productsLabel}
                         account={account}
                         notifications={notifications}
                         footerTop={railFooterTop}
@@ -157,6 +158,7 @@ export function ProductShell({
                                         brand={brand}
                                         products={products}
                                         activeProductId={activeProductId}
+                                        productsLabel={productsLabel}
                                         account={account}
                                         notifications={notifications}
                                         footerTop={railFooterTop}
@@ -228,6 +230,7 @@ export function ProductShell({
                             workspaces={workspaces}
                             onSwitchWorkspace={onSwitchWorkspace}
                             onCreateWorkspace={onCreateWorkspace}
+                            productsLabel={productsLabel}
                             account={account}
                             notifications={notifications ? { ...notifications, onOpen: () => { setNavOpen(false); notifications.onOpen() } } : undefined}
                             footerTop={railFooterTop}
