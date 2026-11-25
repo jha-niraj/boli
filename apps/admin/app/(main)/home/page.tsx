@@ -1,23 +1,20 @@
 import type { Metadata } from "next"
-import { getAnalyticsData } from "@/actions/analytics.action"
 import { getAuditLogsFiltered } from "@/actions/admin.action"
 import { requireAdminPage } from "@/lib/admin-session"
+import { loadHomeData } from "@/lib/home-data"
 import { adminCan } from "@/lib/permissions"
 import { HomeClient, type HomeOverview } from "./_components/home-client"
 
 export const metadata: Metadata = { title: "Home" }
 
+/** The console overview (on the Boli mark). Every admin can open it; each part shows only what they can read. */
 export default async function HomePage() {
     const admin = await requireAdminPage()
-    const canAnalytics = adminCan(admin, "analytics")
     const canAudit = adminCan(admin, "admin_management")
-    const [analytics, recent] = await Promise.all([
-        canAnalytics ? getAnalyticsData() : null,
-        canAudit ? getAuditLogsFiltered({ limit: 6 }) : null,
+    const [data, recent] = await Promise.all([
+        loadHomeData(admin),
+        canAudit ? getAuditLogsFiltered({ limit: 10 }) : null,
     ])
-    const initial: HomeOverview = {
-        analytics: analytics?.success ? analytics.data ?? null : null,
-        recent: recent?.success ? recent.data?.logs ?? [] : null,
-    }
-    return <HomeClient initial={initial} canAnalytics={canAnalytics} canAudit={canAudit} firstName={admin.name.split(" ")[0] ?? ""} />
+    const initial: HomeOverview = { data, recent: recent ? (recent.success ? recent.data?.logs ?? [] : []) : null }
+    return <HomeClient initial={initial} canAudit={canAudit} firstName={admin.name.split(" ")[0] ?? ""} />
 }

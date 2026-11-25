@@ -10,7 +10,8 @@ import { RelativeTime } from "@repo/ui/components/ui/relative-time"
 import { ScrollArea } from "@repo/ui/components/ui/scroll-area"
 import { StatBand } from "@repo/ui/components/ui/stat-band"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/ui/table"
-import { SURFACE } from "@repo/ui/lib/surfaces"
+import { TABLE_CARD, TABLE_EDGES } from "@/components/table-card"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import { getAdminActivityReport, type AdminActivityReport } from "@/actions/analytics.action"
 import { dayLabel, fmtNumber, humanize } from "@/components/admin-format"
 import { formatAdminRole, ROUTES } from "@/lib/navigation"
@@ -27,17 +28,17 @@ export function ActivityClient({ initial }: { initial: AdminActivityReport }) {
     })
 
     return (
-        <Page title="Admin activity" icon={<FileBarChart />} description="Who did what in the console, in UTC days" body="page">
+        <Page title="Admin activity" icon={<FileBarChart />} description="Who did what in the console, in Nepal days" body="page">
             <StatBand
                 items={[
-                    { icon: Activity, label: "Actions today", value: fmtNumber(data.actions.today), hint: "since 00:00 UTC" },
+                    { icon: Activity, label: "Actions today", value: fmtNumber(data.actions.today), hint: "since midnight, Nepal time" },
                     { icon: CalendarDays, label: "Last 7 days", value: fmtNumber(data.actions.last7) },
                     { icon: CalendarDays, label: "Last 30 days", value: fmtNumber(data.actions.last30) },
                     { icon: Activity, label: "All time", value: fmtNumber(data.actions.allTime), href: ROUTES.audit },
                 ]}
             />
             <div className="grid gap-3 lg:grid-cols-2">
-                <ChartPanel title="Actions per day" hint="Last 30 days, UTC">
+                <ChartPanel title="Actions per day" hint="Last 30 days, Nepal time">
                     <TrendLineChart
                         points={data.daily.map((d) => ({ label: dayLabel(d.day), value: d.value }))}
                         name="Actions"
@@ -56,9 +57,9 @@ export function ActivityClient({ initial }: { initial: AdminActivityReport }) {
 
             <section className="flex min-w-0 flex-col gap-2">
                 <h2 className="text-base font-semibold text-neutral-900 dark:text-white">By admin</h2>
-                <div className={SURFACE}>
+                <div className={TABLE_CARD}>
                     <ScrollArea orientation="both" viewportClassName="max-h-[44rem]">
-                        <div className="min-w-[720px]">
+                        <div className={`min-w-[720px] ${TABLE_EDGES}`}>
                             <Table scroller="parent">
                                 <TableHeader sticky>
                                     <TableRow>
@@ -73,7 +74,9 @@ export function ActivityClient({ initial }: { initial: AdminActivityReport }) {
                                 <TableBody>
                                     {data.admins.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={6} className="py-10 text-center text-sm text-neutral-600 dark:text-neutral-400">No admins yet.</TableCell>
+                                            <TableCell colSpan={6} className="whitespace-normal">
+                                                <BoliEmpty kind="usage" compact title="No admins yet" description="Admins you invite show here with what they did." />
+                                            </TableCell>
                                         </TableRow>
                                     ) : data.admins.map((a) => (
                                         <TableRow key={a.adminId}>

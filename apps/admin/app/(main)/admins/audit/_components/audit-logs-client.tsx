@@ -27,10 +27,12 @@ import { matchesFilterQuery } from "@repo/ui/lib/filter-match"
 import { cn } from "@repo/ui/lib/utils"
 import { getAuditLogsFiltered, type AdminListItem, type AuditLogWithAdmin } from "@/actions/admin.action"
 import { DetailRow, SideSheet } from "@/components/side-sheet"
+import { BoliEmpty } from "@/components/empty/boli-empty"
 import { fmtDateTime, fmtNumber, humanize } from "@/components/admin-format"
 import { formatAdminRole } from "@/lib/navigation"
 import { AUDIT_LIMIT, AUDIT_WINDOWS, auditWindowFrom, type AuditWindow } from "./audit-window"
 import { AuditLogsSkeleton } from "./audit-logs-skeleton"
+import { TABLE_CARD, TABLE_EDGES } from "@/components/table-card"
 
 type LogsData = { logs: AuditLogWithAdmin[]; total: number }
 
@@ -265,14 +267,25 @@ export function AuditLogsClient({ initialWindow, initialLogs, admins, initialAdm
                                     trigger={<Button variant="ghost" size="sm" className="cursor-pointer gap-2"><Columns3 className="h-4 w-4" />Columns</Button>}
                                 />
                             </div>
-                            {/* data-sheet-keep-open: pressing another row swaps the open sheet instead of closing it. */}
-                            <div data-sheet-keep-open="">
-                                <DataGridContainer className="rounded-xl border border-neutral-200 dark:border-neutral-800">
-                                    <DataGridScrollArea style={{ height }}>
-                                        <DataGridTable />
-                                    </DataGridScrollArea>
-                                </DataGridContainer>
-                            </div>
+                            {rows.length === 0 && !isFetching ? (
+                                <BoliEmpty
+                                    kind={logs.length === 0 ? "usage" : "search"}
+                                    framed
+                                    title={logs.length === 0 ? "Nothing recorded yet" : "No entry matches"}
+                                    description={logs.length === 0
+                                        ? (window_ === "all" ? "Every admin action in the console shows here as it happens." : `No admin action in the ${windowLabel.toLowerCase()}. Pick a longer window.`)
+                                        : "Change the search or remove a filter."}
+                                />
+                            ) : (
+                                // data-sheet-keep-open: pressing another row swaps the open sheet instead of closing it.
+                                <div data-sheet-keep-open="">
+                                    <DataGridContainer className={`${TABLE_CARD} ${TABLE_EDGES}`}>
+                                        <DataGridScrollArea style={{ height }}>
+                                            <DataGridTable />
+                                        </DataGridScrollArea>
+                                    </DataGridContainer>
+                                </div>
+                            )}
                         </DataGrid>
                     </div>
                 </>

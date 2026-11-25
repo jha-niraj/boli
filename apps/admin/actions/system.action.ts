@@ -96,7 +96,7 @@ export async function getSystemHealth(): Promise<Response<SystemHealth>> {
 }
 
 /** The routes this app actually has - every revalidatePath names a route that exists. */
-const CACHEABLE_PATHS = ["/home", "/analytics", "/users", "/communications", "/admins", "/system/settings"] as const
+const CACHEABLE_PATHS = ["/home", "/analytics", "/users", "/communications", "/admins", "/billing", "/billing/payments", "/billing/credits", "/system/settings", "/system/health"] as const
 
 export async function clearCache(cacheKeys?: string[]): Promise<Response<{ cleared: string[] }>> {
     try {

@@ -13,20 +13,26 @@ export type AdminPermission =
     | "communications"
     | "admin_management"
     | "system"
+    | "jawaf"
 
 export type PermissionLevel = "read" | "write" | "delete" | "full"
 
 export type AdminPermissions = Partial<Record<string, PermissionLevel[] | string[]>>
 
-export const ADMIN_MODULES: { id: AdminPermission; label: string; description: string }[] = [
+export const PERMISSION_LEVELS: PermissionLevel[] = ["read", "write", "delete", "full"]
+
+/**
+ * The access matrix's rows. `levels`: the levels that mean something for this module (the matrix shows "-" for the
+ * rest); omitted = all four.
+ */
+export const ADMIN_MODULES: { id: AdminPermission; label: string; description: string; levels?: PermissionLevel[] }[] = [
     { id: "users", label: "Users", description: "Look up and manage user accounts" },
     { id: "analytics", label: "Analytics and reports", description: "Sign-up trends, activity and financial reports" },
     { id: "communications", label: "Communications", description: "Announcements and email broadcasts" },
     { id: "admin_management", label: "Team", description: "Invite admins, set access, read the audit log" },
     { id: "system", label: "System", description: "Platform settings and notifications" },
+    { id: "jawaf", label: "Jawaf", description: "Demo bots, claims and every bot's numbers", levels: ["read", "write"] },
 ]
-
-export const PERMISSION_LEVELS: PermissionLevel[] = ["read", "write", "delete", "full"]
 
 export const defaultPermissionsByRole: Record<AdminRole, AdminPermissions> = {
     SUPER_ADMIN: {
@@ -35,6 +41,7 @@ export const defaultPermissionsByRole: Record<AdminRole, AdminPermissions> = {
         communications: ["read", "write", "delete", "full"],
         admin_management: ["read", "write", "delete", "full"],
         system: ["read", "write", "full"],
+        jawaf: ["read", "write", "full"],
     },
     TEAM_MEMBER: {},
 }

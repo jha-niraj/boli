@@ -6,7 +6,7 @@ import { clientErrorMessage } from "@repo/auth/errors"
 import { AuthTitle, CodeInput, Field, MethodTabs, Notice, PasswordInput, PrimaryButton, authInputCls } from "@repo/auth/ui"
 import { Button } from "@repo/ui/components/ui/button"
 import { Input } from "@repo/ui/components/ui/input"
-import { SigningInScreen } from "@repo/ui/components/ui/signing-in-screen"
+import { HomeLoader } from "@repo/brand/loaders/full-page"
 
 export interface AdminNotice {
     tone: "neutral" | "error"
@@ -73,7 +73,8 @@ export function AdminSignIn({ returnTo, notice }: { returnTo: string; notice: Ad
         arrive()
     }
 
-    if (arriving) return <SigningInScreen />
+    // The same Boli arrival loader as apps/main after sign-in, in the console's words.
+    if (arriving) return <HomeLoader lines={["Welcome back...", "Opening the console...", "Gathering the numbers...", "Almost there..."]} />
 
     return (
         <div>

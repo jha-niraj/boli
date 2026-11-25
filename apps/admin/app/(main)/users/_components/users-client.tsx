@@ -29,6 +29,7 @@ import { formatDate, PersonAvatar, Pill } from "../../admins/_components/admin-b
 import { UserSheet } from "./user-sheet"
 import { UsersSkeleton } from "./users-skeleton"
 import { EMPTY_USER_QUERY, resolveUserFilters, USER_FILTER_FIELDS, USER_KEYS, USERS_PAGE_SIZE } from "./users-query"
+import { TABLE_CARD, TABLE_EDGES } from "@/components/table-card"
 
 /** Row height and header height the bounded grid is sized from (a list ceiling of about 12 rows). */
 const ROW_H = 52
@@ -184,10 +185,10 @@ export function UsersClient({ initialList, initialStats }: { initialList?: UserL
         >
             <StatBand
                 items={[
-                    { icon: Users, label: "Users", value: s ? s.total.toLocaleString() : "-", hint: "all time" },
-                    { icon: UserCheck, label: "Active", value: s ? s.active.toLocaleString() : "-", hint: s ? `of ${s.total.toLocaleString()}` : undefined },
-                    { icon: MailCheck, label: "Email verified", value: s ? s.verified.toLocaleString() : "-", progress: s && s.total > 0 ? Math.round((s.verified / s.total) * 100) : undefined },
-                    { icon: UserPlus, label: "New", value: s ? s.newLast30.toLocaleString() : "-", hint: "last 30 days" },
+                    { icon: Users, label: "Users", value: s ? s.total.toLocaleString("en-US") : "-", hint: "all time" },
+                    { icon: UserCheck, label: "Active", value: s ? s.active.toLocaleString("en-US") : "-", hint: s ? `of ${s.total.toLocaleString("en-US")}` : undefined },
+                    { icon: MailCheck, label: "Email verified", value: s ? s.verified.toLocaleString("en-US") : "-", progress: s && s.total > 0 ? Math.round((s.verified / s.total) * 100) : undefined },
+                    { icon: UserPlus, label: "New", value: s ? s.newLast30.toLocaleString("en-US") : "-", hint: "last 30 days" },
                 ]}
             />
 
@@ -251,7 +252,7 @@ export function UsersClient({ initialList, initialStats }: { initialList?: UserL
                     ) : (
                         // The whole grid keeps an open user sheet open: a press on another row swaps it.
                         <div data-sheet-keep-open="" className={cn("min-w-0 transition-opacity", list.isPlaceholderData && "opacity-60")}>
-                            <DataGridContainer className="rounded-xl ring-1 ring-neutral-200 dark:ring-neutral-800">
+                            <DataGridContainer className={`${TABLE_CARD} ${TABLE_EDGES}`}>
                                 <DataGridScrollArea style={{ height }}>
                                     <DataGridTable />
                                 </DataGridScrollArea>

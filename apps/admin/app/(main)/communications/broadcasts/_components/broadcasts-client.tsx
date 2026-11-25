@@ -18,7 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@repo/ui/components/ui/textarea"
 import { toast } from "@repo/ui/components/ui/toast"
 import { useUrlTab } from "@repo/ui/hooks/use-url-tab"
-import { SURFACE } from "@repo/ui/lib/surfaces"
+import { TABLE_CARD, TABLE_EDGES } from "@/components/table-card"
 import { createBroadcast, deleteBroadcast, getBroadcasts, sendTestBroadcastEmail, updateBroadcast } from "@/actions/broadcasts.action"
 import { DetailRow, SideSheet } from "@/components/side-sheet"
 import { fmtDateTime, fmtNumber } from "@/components/admin-format"
@@ -138,9 +138,9 @@ export function BroadcastsClient({ initial, initialTab, initialOpen }: { initial
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                 <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by subject" aria-label="Search broadcasts" className="pl-9" />
             </div>
-            <div className={SURFACE}>
+            <div className={TABLE_CARD}>
                 <ScrollArea orientation="both" viewportClassName="max-h-[44rem]">
-                    <div className="min-w-[760px]">
+                    <div className={`min-w-[760px] ${TABLE_EDGES}`}>
                         <Table scroller="parent">
                             <TableHeader sticky>
                                 <TableRow>
@@ -225,7 +225,7 @@ export function BroadcastsClient({ initial, initialTab, initialOpen }: { initial
                     </>
                 ) : (
                     <>
-                        <InlineNote>Sending to every user is a long job (batched, retried, one unsubscribe link per person). This base stops at drafts and a test to yourself.</InlineNote>
+                        <InlineNote>Sending to every user is a long job (batched, retried, one unsubscribe link per person). Sending to everyone is not built yet: save a draft, or send a test to yourself.</InlineNote>
                         <div className="space-y-1.5">
                             <Label htmlFor="br-subject">Subject</Label>
                             <Input id="br-subject" value={draft.subject} onChange={(e) => setDraft((d) => ({ ...d, subject: e.target.value }))} placeholder="The email's subject line" maxLength={200} />

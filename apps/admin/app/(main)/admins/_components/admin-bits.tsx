@@ -52,11 +52,12 @@ export function Pill({ children, className }: { children: React.ReactNode; class
     )
 }
 
+/** A date (and time) in Nepal time, fixed locale and zone so the server and the browser print the same text. */
 export function formatDate(value: Date | string | null | undefined, withTime = false): string {
     if (!value) return "-"
     const d = typeof value === "string" ? new Date(value) : value
     if (Number.isNaN(d.getTime())) return "-"
     return new Intl.DateTimeFormat("en-GB", withTime
-        ? { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }
-        : { day: "numeric", month: "short", year: "numeric" }).format(d)
+        ? { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kathmandu" }
+        : { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kathmandu" }).format(d)
 }

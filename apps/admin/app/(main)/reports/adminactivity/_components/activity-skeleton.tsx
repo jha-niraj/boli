@@ -5,7 +5,7 @@ import { ChartCardSkeleton, TableSkeleton } from "@repo/ui/components/skeleton-k
 
 export function ActivitySkeleton() {
     return (
-        <PageSkeleton title="Admin activity" icon={<FileBarChart />} description="Who did what in the console, in UTC days" body="page">
+        <PageSkeleton title="Admin activity" icon={<FileBarChart />} description="Who did what in the console, in Nepal days" body="page">
             <StatBandSkeleton count={4} />
             <div className="grid gap-3 lg:grid-cols-2">
                 <ChartCardSkeleton height={176} />

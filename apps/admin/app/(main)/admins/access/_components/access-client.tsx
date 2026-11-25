@@ -16,6 +16,7 @@ import { ADMIN_KEYS, PersonAvatar, StatusDot } from "../../_components/admin-bit
 import { AdminSheet } from "../../_components/admin-sheet"
 import { levelSummary } from "../../_components/permission-matrix"
 import { AccessSkeleton } from "./access-skeleton"
+import { TABLE_CARD, TABLE_EDGES } from "@/components/table-card"
 
 async function fetchTeam(): Promise<AdminUser[]> {
     const r = await getAdminUsers()
@@ -55,8 +56,8 @@ export function AccessClient({ initialTeam }: { initialTeam?: AdminUser[] }) {
             {admins.length === 0 ? (
                 <BoliEmpty kind="keys" framed title="No admins yet" description="Invite admins from the Admins page." />
             ) : (
-                <ScrollArea orientation="both" className="rounded-xl ring-1 ring-neutral-200 dark:ring-neutral-800" viewportClassName="max-h-[40rem]">
-                    <div className="min-w-[56rem]">
+                <ScrollArea orientation="both" className={TABLE_CARD} viewportClassName="max-h-[40rem]">
+                    <div className={`min-w-[56rem] ${TABLE_EDGES}`}>
                         <Table scroller="parent">
                             <TableHeader sticky>
                                 <TableRow>

@@ -1,13 +1,12 @@
 import type { Metadata } from "next"
-import { getFinancialReport } from "@/actions/analytics.action"
 import { requireAdminPage } from "@/lib/admin-session"
+import { loadFinancialReport } from "@/lib/money-data"
 import { FinancialClient } from "./_components/financial-client"
 
 export const metadata: Metadata = { title: "Financial report" }
 
+/** Money > Reports > Financial. The read starts here (server-only loader) and seeds the client query. */
 export default async function FinancialReportPage() {
     await requireAdminPage("analytics")
-    const res = await getFinancialReport()
-    if (!res.success || !res.data) throw new Error(res.error ?? "Could not load the financial report")
-    return <FinancialClient initial={res.data} />
+    return <FinancialClient initial={await loadFinancialReport()} />
 }

@@ -18,7 +18,7 @@ import { StatBand } from "@repo/ui/components/ui/stat-band"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/ui/table"
 import { toast } from "@repo/ui/components/ui/toast"
 import { useUrlTab } from "@repo/ui/hooks/use-url-tab"
-import { SURFACE } from "@repo/ui/lib/surfaces"
+import { TABLE_CARD, TABLE_EDGES } from "@/components/table-card"
 import {
     createPlatformAnnouncement, deletePlatformAnnouncement, getPlatformAnnouncements, setPlatformAnnouncementStatus, updatePlatformAnnouncement,
 } from "@/actions/announcements.action"
@@ -152,9 +152,9 @@ export function AnnouncementsClient({ initial, initialTab, initialOpen }: { init
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                 <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by title" aria-label="Search announcements" className="pl-9" />
             </div>
-            <div className={SURFACE}>
+            <div className={TABLE_CARD}>
                 <ScrollArea orientation="both" viewportClassName="max-h-[44rem]">
-                    <div className="min-w-[760px]">
+                    <div className={`min-w-[760px] ${TABLE_EDGES}`}>
                         <Table scroller="parent">
                             <TableHeader sticky>
                                 <TableRow>

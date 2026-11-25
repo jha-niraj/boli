@@ -21,6 +21,7 @@ import { ADMIN_KEYS, formatDate, PersonAvatar, Pill, StatusDot } from "./admin-b
 import { AdminSheet } from "./admin-sheet"
 import { InviteSheet } from "./invite-sheet"
 import { TeamSkeleton } from "./team-skeleton"
+import { TABLE_CARD, TABLE_EDGES } from "@/components/table-card"
 
 const TABS = ["team", "invitations"] as const
 type Tab = (typeof TABS)[number]
@@ -115,8 +116,8 @@ export function TeamClient({ initialTeam, initialInvitations, initialTab }: {
                 admins.length === 0 ? (
                     <BoliEmpty kind="keys" framed title="No admins yet" description="Invite someone to help run the console." />
                 ) : (
-                    <ScrollArea orientation="both" className="rounded-xl ring-1 ring-neutral-200 dark:ring-neutral-800" viewportClassName="max-h-[40rem]">
-                        <div className="min-w-[44rem]">
+                    <ScrollArea orientation="both" className={TABLE_CARD} viewportClassName="max-h-[40rem]">
+                        <div className={`min-w-[44rem] ${TABLE_EDGES}`}>
                             <Table scroller="parent">
                                 <TableHeader sticky>
                                     <TableRow>
@@ -164,8 +165,8 @@ export function TeamClient({ initialTeam, initialInvitations, initialTab }: {
             ) : pending.length === 0 ? (
                 <BoliEmpty kind="notifications" framed title="No pending invitations" description="Invitations you send show here until they are used." />
             ) : (
-                <ScrollArea orientation="both" className="rounded-xl ring-1 ring-neutral-200 dark:ring-neutral-800" viewportClassName="max-h-[40rem]">
-                    <div className="min-w-[44rem]">
+                <ScrollArea orientation="both" className={TABLE_CARD} viewportClassName="max-h-[40rem]">
+                    <div className={`min-w-[44rem] ${TABLE_EDGES}`}>
                         <Table scroller="parent">
                             <TableHeader sticky>
                                 <TableRow>

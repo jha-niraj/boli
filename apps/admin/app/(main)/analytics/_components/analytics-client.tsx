@@ -8,6 +8,7 @@ import { StatBand } from "@repo/ui/components/ui/stat-band"
 import { getAnalyticsData, type AnalyticsData } from "@/actions/analytics.action"
 import { dayLabel, fmtNumber } from "@/components/admin-format"
 import { ROUTES } from "@/lib/navigation"
+import { ANALYTICS_DESCRIPTION, ANALYTICS_TITLE } from "./analytics-skeleton"
 
 export function AnalyticsClient({ initial }: { initial: AnalyticsData }) {
     const { data } = useQuery({
@@ -23,13 +24,13 @@ export function AnalyticsClient({ initial }: { initial: AnalyticsData }) {
     const signupPoints = data.dailySignups.map((d) => ({ label: dayLabel(d.day), value: d.value }))
 
     return (
-        <Page title="Analytics" icon={<BarChart3 />} description="Sign-ups and admin activity, in UTC days" body="page">
+        <Page title={ANALYTICS_TITLE} icon={<BarChart3 />} description={ANALYTICS_DESCRIPTION} body="page">
             <StatBand
                 items={[
                     { icon: Users, label: "Users", value: fmtNumber(data.signups.allTime), hint: "all time", href: ROUTES.users },
-                    { icon: UserPlus, label: "Joined today", value: fmtNumber(data.signups.today), hint: "since 00:00 UTC" },
-                    { icon: UserPlus, label: "Joined, last 7 days", value: fmtNumber(data.signups.last7) },
-                    { icon: UserPlus, label: "Joined, last 30 days", value: fmtNumber(data.signups.last30) },
+                    { icon: UserPlus, label: "Joined today", value: fmtNumber(data.signups.today), hint: "since midnight, Nepal time" },
+                    { icon: UserPlus, label: "Joined, last 7 days", value: fmtNumber(data.signups.last7), hint: "today included, Nepal days" },
+                    { icon: UserPlus, label: "Joined, last 30 days", value: fmtNumber(data.signups.last30), hint: "today included, Nepal days" },
                     {
                         icon: BadgeCheck,
                         label: "Email verified",
@@ -39,7 +40,7 @@ export function AnalyticsClient({ initial }: { initial: AnalyticsData }) {
                     },
                 ]}
             />
-            <ChartPanel title="New users per day" hint="Last 30 days, UTC">
+            <ChartPanel title="New users per day" hint="Last 30 days, Nepal time">
                 <TrendLineChart points={signupPoints} name="New users" height={220} emptyMessage="No one has signed up in the last 30 days." />
             </ChartPanel>
         </Page>

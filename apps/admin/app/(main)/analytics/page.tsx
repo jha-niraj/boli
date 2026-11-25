@@ -3,7 +3,7 @@ import { getAnalyticsData } from "@/actions/analytics.action"
 import { requireAdminPage } from "@/lib/admin-session"
 import { AnalyticsClient } from "./_components/analytics-client"
 
-export const metadata: Metadata = { title: "Analytics" }
+export const metadata: Metadata = { title: "Sign-ups" }
 
 export default async function AnalyticsPage() {
     await requireAdminPage("analytics")

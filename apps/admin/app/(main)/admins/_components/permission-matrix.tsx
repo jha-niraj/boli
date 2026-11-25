@@ -37,8 +37,8 @@ export function PermissionMatrix({ value, onChange, readOnly = false, allGranted
         onChange?.({ ...value, [module]: Array.from(current) })
     }
     return (
-        <ScrollArea orientation="horizontal" className="rounded-xl ring-1 ring-neutral-200 dark:ring-neutral-800">
-            <div className="min-w-[30rem]">
+        <ScrollArea orientation="horizontal" className="rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="min-w-[30rem] [&_td:first-child]:pl-4 [&_th:first-child]:pl-4 [&_td:last-child]:pr-4 [&_th:last-child]:pr-4">
                 <Table scroller="parent">
                     <TableHeader>
                         <TableRow>
@@ -56,6 +56,10 @@ export function PermissionMatrix({ value, onChange, readOnly = false, allGranted
                                     <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">{m.description}</p>
                                 </TableCell>
                                 {PERMISSION_LEVELS.map((l) => {
+                                    // A level this module does not use (Jawaf has only View and Edit): a dash, no box.
+                                    if (m.levels && !m.levels.includes(l)) {
+                                        return <TableCell key={l} className="text-center text-sm text-neutral-400 dark:text-neutral-600" aria-label={`${m.label}: no ${LEVEL_LABEL[l]} level`}>-</TableCell>
+                                    }
                                     const checked = allGranted || (value[m.id] ?? []).includes(l)
                                     return (
                                         <TableCell key={l} className="text-center">

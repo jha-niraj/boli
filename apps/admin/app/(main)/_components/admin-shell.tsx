@@ -1,22 +1,31 @@
 "use client"
 
 import * as React from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { BRAND } from "@repo/boli"
+import { BoliMark } from "@repo/brand/boli-mark"
+import { markNavPending } from "@repo/ui/components/app-link"
 import { AppShell } from "@repo/ui/components/shell/app-shell"
+import type { ShellSidebar } from "@repo/ui/lib/shell"
 import { NotificationsPanel, type NotificationView } from "@repo/ui/components/ui/notifications-panel"
 import {
     getShellNotifications, getShellUnreadCount, markAllShellNotificationsRead, markShellNotificationRead, stampShellSignIn,
 } from "@/actions/shell.action"
-import { AdminLockup } from "@/components/brand/admin-lockup"
 import { BoliEmpty } from "@/components/empty/boli-empty"
 import { AdminAccessProvider } from "@/context/admin-access-context"
-import { ADMIN_RAIL_COOKIE, adminNavFor, ROUTES, type AdminPermissions } from "@/lib/navigation"
+import { ADMIN_RAIL_COOKIE, adminModulesFor, moduleForPath, railModules, ROUTES, type AdminPermissions } from "@/lib/navigation"
 
 /**
- * The console shell: the shared AppShell (flush rail, pin / peek, phone tab bar) fed with this admin's rail, the
- * account menu and the notifications bell. The nav is built HERE, not in the server layout - its icons are
- * components, which cannot cross the server/client boundary.
+ * The console shell: the shared AppShell in its PRODUCT RAIL mode, exactly as apps/main (plan/admin/jawaf/admin-v1.md
+ * "Shell and look"): the 56px icon rail holds the admin MODULES (People, Money, Jawaf, Communications, System; the
+ * Boli mark -> Home), it widens over the page on hover; beside it the open module's sidebar. Collapsing (the sidebar's
+ * button or Cmd/Ctrl+\, cookie ADMIN_RAIL_COOKIE read by the server layout) turns the sidebar into the 64px icon rail.
+ * No workspaces (no switcher) and no credits card - the foot is the bell and the account row (name + chevron, the menu
+ * opening above it). Home, Profile and the 403 page have no sidebar.
+ *
+ * Modules and pages are filtered by this admin's permissions (lib/navigation.ts). Built HERE, not in the server
+ * layout - the icons are components, which cannot cross the server/client boundary.
  */
 export interface AdminShellProps {
     admin: { role: string; permissions: AdminPermissions; name: string; email: string; image: string | null }
@@ -32,7 +41,15 @@ const KEYS = {
 
 export function AdminShell({ admin, initialPinned, initialRailWidth, children }: AdminShellProps) {
     const queryClient = useQueryClient()
-    const nav = React.useMemo(() => adminNavFor(admin), [admin])
+    const router = useRouter()
+    const pathname = usePathname() ?? "/"
+    const modules = React.useMemo(() => adminModulesFor(admin), [admin])
+    const rail = React.useMemo(() => railModules(modules), [modules])
+    const current = moduleForPath(pathname, modules)
+    const currentId = current?.id ?? null
+    // Rebuilt only when the module changes (`current` is the same object from the memoised list while the path stays
+    // inside one module), so the sidebar keeps its state across pages.
+    const sidebar = React.useMemo<ShellSidebar | null>(() => (current ? { title: current.label, href: current.href } : null), [current])
     const [panelOpen, setPanelOpen] = React.useState(false)
 
     // Last sign-in time: once per browser session, not on every navigation. A write, so it is never part of a render.
@@ -77,8 +94,15 @@ export function AdminShell({ admin, initialPinned, initialRailWidth, children }:
     return (
         <AdminAccessProvider role={admin.role} permissions={admin.permissions}>
             <AppShell
-                brand={{ name: `${BRAND.name} Admin`, href: ROUTES.home, lockup: <AdminLockup size={19} /> }}
-                nav={nav}
+                brand={{ name: `${BRAND.name} Admin`, href: ROUTES.home, mark: <BoliMark px={24} /> }}
+                nav={current?.sidebar ?? []}
+                productRail={{
+                    products: rail,
+                    activeProductId: currentId,
+                    sidebar,
+                    productsLabel: "Modules",
+                    phoneMenuLabel: "Modules",
+                }}
                 account={{
                     user: { name: admin.name || admin.email, email: admin.email, image: admin.image },
                     profileHref: ROUTES.profile,
@@ -98,6 +122,14 @@ export function AdminShell({ admin, initialPinned, initialRailWidth, children }:
                 notifications={list.data ?? []}
                 loading={list.isPending && panelOpen}
                 onItemClick={async (n) => {
+                    if (n.href) {
+                        setPanelOpen(false)
+                        if (/^https?:\/\//.test(n.href)) window.open(n.href, "_blank", "noopener,noreferrer")
+                        else {
+                            markNavPending(n.href)
+                            router.push(n.href)
+                        }
+                    }
                     if (!n.readAt) {
                         await markShellNotificationRead(n.id)
                         await refresh()
