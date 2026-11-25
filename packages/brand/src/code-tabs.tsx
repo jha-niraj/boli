@@ -30,6 +30,7 @@ export function CodeTabs({
     className,
     bodyViewportClassName = CODE_CEILING,
     defaultLanguage = "curl",
+    fill = false,
 }: {
     samples: Record<SampleLanguage, string>
     /** Lines per language from `highlight()`; leave out to highlight in the browser. */
@@ -42,6 +43,12 @@ export function CodeTabs({
      */
     bodyViewportClassName?: string
     defaultLanguage?: SampleLanguage
+    /**
+     * Fill the height the parent gives the block (`className` sets it, e.g. `h-[20rem] lg:h-full` in a stretched grid
+     * cell) instead of sizing to the code - so a code block beside a card ends at the card's bottom. The code then
+     * scrolls inside whatever is left under the tab strip; `bodyViewportClassName` is ignored.
+     */
+    fill?: boolean
 }) {
     const [lang, setLang] = useState<SampleLanguage>(defaultLanguage)
     const id = useId()
@@ -62,8 +69,8 @@ export function CodeTabs({
     }
 
     return (
-        <div className={cn("@container min-w-0 overflow-hidden rounded-2xl border border-boli-line bg-white dark:border-neutral-800 dark:bg-neutral-900", className)}>
-            <div className="flex min-w-0 items-center justify-between gap-2 border-b border-boli-line px-1.5 py-1.5 dark:border-neutral-800">
+        <div className={cn("@container min-w-0 overflow-hidden rounded-2xl border border-boli-line bg-white dark:border-neutral-800 dark:bg-neutral-900", fill && "flex flex-col", className)}>
+            <div className="flex min-w-0 shrink-0 items-center justify-between gap-2 border-b border-boli-line px-1.5 py-1.5 dark:border-neutral-800">
                 <div role="tablist" aria-label="Language" onKeyDown={onKey} className="flex min-w-0 items-center gap-0.5">
                     {SAMPLE_LANGUAGES.map((l) => {
                         const active = l.id === lang
@@ -98,8 +105,13 @@ export function CodeTabs({
                 </div>
                 <CopyButton text={samples[lang]} />
             </div>
-            <div role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-tab-${lang}`} tabIndex={0} className="outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-boli-blue/30">
-                <CodeBody code={samples[lang]} lines={pre ?? lines} viewportClassName={bodyViewportClassName} />
+            <div role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-tab-${lang}`} tabIndex={0} className={cn("outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-boli-blue/30", fill && "relative min-h-0 flex-1")}>
+                {fill ? (
+                    // Absolute so the scroller takes the panel's real height (a percentage height inside Radix ScrollArea collapses).
+                    <CodeBody code={samples[lang]} lines={pre ?? lines} className="absolute inset-0" viewportClassName="h-full" />
+                ) : (
+                    <CodeBody code={samples[lang]} lines={pre ?? lines} viewportClassName={bodyViewportClassName} />
+                )}
             </div>
         </div>
     )

@@ -102,7 +102,7 @@ function ListPicker({
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder={`Search ${placeholder.toLowerCase()}…`}
-                    className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-400 h-auto text-inherit dark:text-inherit hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                    className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none h-auto text-inherit dark:text-inherit hover:bg-neutral-50 dark:hover:bg-neutral-900"
                 />
             </div>
             <div className="max-h-52 overflow-y-auto rounded-xl border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -151,7 +151,7 @@ function CountryPicker({ value, onChange }: { value: string; onChange: (code: st
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search country…"
-                    className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-400 h-auto text-inherit dark:text-inherit hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                    className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 pl-8 pr-3 py-2 text-sm focus:outline-none h-auto text-inherit dark:text-inherit hover:bg-neutral-50 dark:hover:bg-neutral-900"
                 />
             </div>
             <div className="max-h-56 overflow-y-auto rounded-xl border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -300,7 +300,7 @@ export function LocationSelector({ value, onChange, className }: LocationSelecto
                                 value={value.city ?? ''}
                                 onChange={(e) => onChange({ ...value, city: e.target.value })}
                                 placeholder="e.g. Kathmandu"
-                                className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-400 h-auto text-inherit dark:text-inherit hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                                className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 px-4 py-2.5 text-sm focus:outline-none h-auto text-inherit dark:text-inherit hover:bg-neutral-50 dark:hover:bg-neutral-900"
                                 onKeyDown={(e) => { if (e.key === 'Enter') setOpen(false); }}
                             />
                             <button

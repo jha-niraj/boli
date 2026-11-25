@@ -38,6 +38,16 @@ function Svg({ children, ...props }: ProductIconProps) {
     )
 }
 
+/** Home - a house with a rounded door: the overview of every product (main's rail, above Kura). */
+export function HomeIcon(props: ProductIconProps) {
+    return (
+        <Svg {...props}>
+            <path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19Z" />
+            <path d="M9.5 20.5V15a2.5 2.5 0 0 1 5 0v5.5" />
+        </Svg>
+    )
+}
+
 /** Kura - two overlapping speech bubbles (the front one speaks down-left, the one behind down-right). */
 export function KuraIcon(props: ProductIconProps) {
     return (

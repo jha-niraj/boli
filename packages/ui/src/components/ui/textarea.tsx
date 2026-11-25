@@ -5,7 +5,8 @@ export interface TextareaProps
 	extends React.TextareaHTMLAttributes<HTMLTextAreaElement> { }
 
 /**
- * THE FOCUS RING HAS NO OFFSET, AND THAT IS THE WHOLE POINT.
+ * NO FOCUS RING (owner, 2026-11-25): focus shows as the border darkening, nothing around the field. The
+ * history below is why an offset ring must never come back.
  *
  * This used to be `focus:ring-2 focus:ring-ring focus:ring-offset-2`. `ring-offset-2` paints a 2px
  * band of `--tw-ring-offset-color` BETWEEN the control and its ring, and nothing in this repo ever
@@ -15,8 +16,7 @@ export interface TextareaProps
  * opened rather than on a deliberate focus, because Radix autofocuses the first tabbable element
  * and in a message sheet that is the textarea.
  *
- * `input.tsx` in this same folder already had it right - a plain `focus-visible:ring-2` at 40%,
- * with the border darkening - so this is the shared control being brought back in line rather than
+ * `input.tsx` in this same folder already had it right - the border darkening - so this is the shared control being brought back in line rather than
  * a call site being patched. The two controls sit next to each other in half the forms in the app
  * and used to focus differently.
  *
@@ -52,8 +52,6 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 
 						focus-visible:outline-none
 						focus-visible:border-neutral-400 dark:focus-visible:border-neutral-500
-						focus-visible:ring-2
-						focus-visible:ring-ring/40
 
 						disabled:cursor-not-allowed
 						disabled:opacity-50

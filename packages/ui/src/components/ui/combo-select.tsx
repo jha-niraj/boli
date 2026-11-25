@@ -213,7 +213,7 @@ export function ComboSelect({
 						"flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl border px-3 font-medium ring-offset-0 focus-visible:ring-offset-0",
 						"border-neutral-950/[0.07] bg-neutral-950/[0.03] text-neutral-700 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-neutral-200",
 						"transition-colors hover:bg-neutral-950/[0.05] dark:hover:bg-white/[0.06]",
-						"focus-visible:border-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 dark:focus-visible:border-neutral-500",
+						"focus-visible:border-neutral-400 focus-visible:outline-none focus-visible:ring-0 dark:focus-visible:border-neutral-500",
 						"data-[state=open]:border-neutral-400 dark:data-[state=open]:border-neutral-500",
 						"disabled:cursor-not-allowed disabled:opacity-50",
 						height,

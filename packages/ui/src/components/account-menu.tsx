@@ -2,12 +2,13 @@
 
 import * as React from "react"
 import { useTheme } from "next-themes"
-import { ArrowUpRight, Coins, Laptop, LogOut, Moon, Sun, Volume2 } from "lucide-react"
+import { ArrowUpRight, Coins, LogOut, Moon, Sun, Volume2 } from "lucide-react"
 import { cn } from "../lib/utils"
 import { AppLink } from "./app-link"
 import { Button } from "./ui/button"
 import { Spinner } from "./ui/spinner"
 import { Switch } from "./ui/switch"
+import { startThemeTransition } from "./themeprovider"
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip"
 import { useSoundEnabled } from "./ui/sounds"
 import {
@@ -15,9 +16,6 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 
@@ -61,7 +59,7 @@ export interface AccountMenuProps {
         primary?: AccountMenuAction
     }
     items?: AccountMenuItem[]
-    /** The theme row (Light / Dark / System). On by default. */
+    /** The theme row (Light / Dark, inline). On by default. */
     appearance?: boolean
     /** The notification-sounds switch. On by default. */
     sounds?: boolean
@@ -104,7 +102,7 @@ export function AccountMenu({
 }: AccountMenuProps) {
     /*
      * Opens on HOVER as well as on a press (Niraj, 2026-11-23). A short grace on leave lets the pointer cross the gap
-     * from the chip to the menu, and from the menu into the Appearance sub-menu (its own portal). Touch and keyboard
+     * from the chip to the menu. Touch and keyboard
      * still open it with a press; only a mouse hovers.
      */
     const [own, setOwn] = React.useState(false)
@@ -130,6 +128,9 @@ export function AccountMenu({
             timer.current = null
             // Left before the intent delay opened it: nothing to close.
             if (!openRef.current) return
+            // The theme wipe (Light / Dark in this menu) covers the page with a snapshot for a moment: the pointer
+            // "leaves" without moving. That is not someone leaving the menu (owner, 2026-11-25).
+            if (document.documentElement.dataset.themeTransition) return
             timer.current = setTimeout(() => { timer.current = null; setOpen(false) }, 180)
         },
     }), [setOpen, openDelay])
@@ -152,12 +153,14 @@ export function AccountMenu({
                     if (isOpen) e.preventDefault()
                 }}
             >
+                {/* No focus ring (owner, 2026-11-25): focus returns to the chip when the menu closes, and Button's offset ring
+                    drew a hard outline round it. Keyboard focus shows as the hover fill instead. */}
                 {trigger ?? <Button
                     type="button"
                     variant="ghost"
                     aria-label={`Account - ${name}`}
                     className={cn(
-                        "h-10 min-w-0 gap-2 rounded-xl border border-neutral-950/[0.07] bg-neutral-950/[0.04] p-1 font-medium hover:bg-neutral-950/[0.07] data-[state=open]:bg-neutral-950/[0.08] dark:border-white/[0.08] dark:bg-white/[0.05] dark:hover:bg-white/[0.08] dark:data-[state=open]:bg-white/[0.1]",
+                        "h-10 min-w-0 gap-2 rounded-xl border border-neutral-950/[0.07] bg-neutral-950/[0.04] p-1 font-medium hover:bg-neutral-950/[0.07] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:bg-neutral-950/[0.07] dark:focus-visible:bg-white/[0.08] data-[state=open]:bg-neutral-950/[0.08] dark:border-white/[0.08] dark:bg-white/[0.05] dark:hover:bg-white/[0.08] dark:data-[state=open]:bg-white/[0.1]",
                         collapsed ? "w-10 justify-center" : "flex-1 justify-start pl-1.5 pr-3",
                         className,
                     )}
@@ -186,7 +189,7 @@ export function AccountMenu({
                 {credits ? <CreditsBox credits={credits} /> : null}
                 <div className="mt-1.5 flex flex-col">
                     {items.map((it) => <Row key={it.key} item={it} />)}
-                    {appearance ? <AppearanceRow hover={hover} /> : null}
+                    {appearance ? <AppearanceRow /> : null}
                     {sounds ? <SoundsRow /> : null}
                 </div>
                 <DropdownMenuSeparator className="mx-2 my-1.5 bg-neutral-950/[0.06] dark:bg-white/[0.07]" />
@@ -213,7 +216,7 @@ function CreditsBox({ credits }: { credits: NonNullable<AccountMenuProps["credit
      */
     const btn = (a: AccountMenuAction, primary: boolean) => {
         const cls = cn(
-            "h-9 min-h-9 flex-1 justify-center rounded-xl px-3 text-sm font-medium outline-none",
+            "h-9 min-h-9 min-w-0 flex-1 basis-0 justify-center whitespace-nowrap rounded-xl px-2 text-sm font-medium outline-none",
             primary
                 ? "bg-neutral-900 text-neutral-50 focus:bg-neutral-700 focus:text-neutral-50 dark:bg-neutral-100 dark:text-neutral-900 dark:focus:bg-white dark:focus:text-neutral-900"
                 : "border border-neutral-950/[0.08] bg-white text-neutral-800 focus:bg-neutral-100 focus:text-neutral-900 dark:border-white/[0.1] dark:bg-white/[0.05] dark:text-neutral-100 dark:focus:bg-white/[0.1] dark:focus:text-neutral-50",
@@ -269,38 +272,53 @@ function Row({ item }: { item: AccountMenuItem }) {
 }
 
 const THEMES = [
-    { value: "dark", label: "Dark", icon: Moon },
     { value: "light", label: "Light", icon: Sun },
-    { value: "system", label: "System", icon: Laptop },
+    { value: "dark", label: "Dark", icon: Moon },
 ] as const
 
-function AppearanceRow({ hover }: { hover: Pick<React.HTMLAttributes<HTMLElement>, "onPointerEnter" | "onPointerLeave"> }) {
-    const { theme, resolvedTheme, setTheme } = useTheme()
-    const current = theme ?? "system"
-    const Icon = (resolvedTheme === "dark" ? Moon : Sun)
+/**
+ * The theme as ONE row with Light and Dark side by side (owner, 2026-11-25): no sub-menu to open. The two halves are
+ * menu items, so the arrow keys reach them; choosing one runs the same
+ * wipe as the sidebar's ThemeSwitch, from the pressed button. "System" is gone from here: a press is an explicit choice,
+ * and before one the active half follows the resolved theme.
+ */
+function AppearanceRow() {
+    const { resolvedTheme, setTheme } = useTheme()
+    const active = resolvedTheme === "dark" ? "dark" : "light"
+    const Icon = active === "dark" ? Moon : Sun
     return (
-        <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-                <Icon />
-                <span className="flex-1">Appearance</span>
-                <span className="text-xs text-neutral-400">{THEMES.find((t) => t.value === current)?.label}</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent sideOffset={8} className="w-44" {...hover}>
-                {THEMES.map((t) => (
-                    <DropdownMenuItem
-                        key={t.value}
-                        // A finished choice: the menu closes (and an unpinned rail with it). Keeping it open left it hanging after the
-                        // pointer left, until the rail's own timer shut it (Niraj, 2026-11-23).
-                        onSelect={() => setTheme(t.value)}
-                        className={cn(current === t.value && "bg-neutral-950/[0.05] text-neutral-900 dark:bg-white/[0.07] dark:text-neutral-50")}
-                    >
-                        <t.icon />
-                        <span className="flex-1">{t.label}</span>
-                        {current === t.value ? <span aria-hidden className="size-1.5 rounded-full bg-neutral-900 dark:bg-neutral-100" /> : null}
-                    </DropdownMenuItem>
-                ))}
-            </DropdownMenuSubContent>
-        </DropdownMenuSub>
+        <div className="flex min-h-9 items-center gap-3 py-1 pl-3 pr-3 text-sm font-medium text-neutral-700 dark:text-neutral-200">
+            <Icon aria-hidden className="size-4 shrink-0 text-neutral-500 dark:text-neutral-400" />
+            {/* "Theme", not "Appearance": the menu is the rail row's width, and the longer word truncated to "A..." beside the pill (owner, 2026-11-25). */}
+            <span className="flex-1 whitespace-nowrap">Theme</span>
+            <div role="group" aria-label="Theme" className="flex shrink-0 items-center gap-0.5 rounded-full bg-neutral-950/[0.05] p-0.5 dark:bg-white/[0.07]">
+                {THEMES.map((t) => {
+                    const on = active === t.value
+                    return (
+                        <DropdownMenuItem
+                            key={t.value}
+                            aria-checked={on}
+                            role="menuitemradio"
+                            onSelect={(e) => {
+                                e.preventDefault()
+                                if (on) return
+                                const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                                startThemeTransition(() => setTheme(t.value), { x: r.left + r.width / 2, y: r.top + r.height / 2 })
+                            }}
+                            className={cn(
+                                "min-h-7 h-7 gap-1 rounded-full px-1.5 py-0 text-xs [&_svg]:size-3.5",
+                                on
+                                    ? "bg-white text-neutral-900 shadow-[0_1px_2px_rgba(0,0,0,0.08)] ring-1 ring-neutral-950/[0.06] focus:bg-white dark:bg-neutral-700 dark:text-neutral-50 dark:ring-white/[0.08] dark:focus:bg-neutral-700 [&_svg]:text-neutral-900 dark:[&_svg]:text-neutral-50"
+                                    : "text-neutral-500 focus:bg-neutral-950/[0.05] focus:text-neutral-900 dark:text-neutral-400 dark:focus:bg-white/[0.08] dark:focus:text-neutral-50",
+                            )}
+                        >
+                            <t.icon aria-hidden />
+                            {t.label}
+                        </DropdownMenuItem>
+                    )
+                })}
+            </div>
+        </div>
     )
 }
 

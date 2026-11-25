@@ -62,8 +62,6 @@ const SelectTrigger = React.forwardRef<
 
       focus-visible:outline-none
       focus-visible:border-neutral-400 dark:focus-visible:border-neutral-500
-      focus-visible:ring-2
-      focus-visible:ring-ring/40
       data-[state=open]:border-neutral-400 dark:data-[state=open]:border-neutral-500
 
       disabled:cursor-not-allowed

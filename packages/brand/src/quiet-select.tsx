@@ -31,7 +31,7 @@ export function QuietSelect({
             <SelectPrimitive.Trigger
                 aria-label={label}
                 className={cn(
-                    "group/sel inline-flex h-11 min-w-0 cursor-pointer items-center gap-2 rounded-full border border-boli-line bg-white pl-4 pr-3 text-[15px] text-boli-ink outline-none transition-colors hover:border-[#d6d0c8] focus-visible:border-boli-ink/40 focus-visible:ring-4 focus-visible:ring-boli-ink/[0.06] data-[state=open]:border-boli-ink/30",
+                    "group/sel inline-flex h-11 min-w-0 cursor-pointer items-center gap-2 rounded-full border border-boli-line bg-white pl-4 pr-3 text-[15px] text-boli-ink outline-none transition-colors hover:border-[#d6d0c8] focus-visible:border-boli-ink/40 data-[state=open]:border-boli-ink/30",
                     className,
                 )}
             >

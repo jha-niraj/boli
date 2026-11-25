@@ -312,15 +312,25 @@ function useRailHover(pathname: string, collapsed: boolean) {
 
     /** Is the pointer really over the rail right now (not what the last enter/leave event said)? */
     const hovered = () => !!ref.current?.matches(":hover")
+    /**
+     * The theme wipe (startThemeTransition) lays a view-transition snapshot over the whole page for about half a
+     * second: no element is :hover and every pointer event targets the document. Read as "the pointer left", that
+     * closed the rail the moment Light or Dark was picked in the account menu (owner, 2026-11-25). While it runs,
+     * nothing counts as leaving.
+     */
+    const inThemeWipe = () => typeof document !== "undefined" && !!document.documentElement.dataset.themeTransition
 
     const closeSoon = React.useCallback(() => {
         clear()
         if (menus.current > 0) return
         timer.current = setTimeout(() => {
             timer.current = null
+            if (inThemeWipe()) { closeSoonRef.current(); return }
             if (menus.current === 0 && !hovered()) { pointerIn.current = false; setOpen(false) }
         }, CLOSE_MS)
     }, [])
+    const closeSoonRef = React.useRef(closeSoon)
+    closeSoonRef.current = closeSoon
 
     // A page change always closes it and forgets any menu that unmounted without reporting its close.
     React.useEffect(() => { clear(); menus.current = 0; setOpen(false) }, [pathname])
@@ -361,9 +371,9 @@ function useRailHover(pathname: string, collapsed: boolean) {
             if (!el || !ref.current) return true
             return !ref.current.contains(el) && !el.closest("[data-radix-popper-content-wrapper],[role=dialog]")
         }
-        const onDown = (e: PointerEvent) => { if (outside(e.target) && menus.current === 0) { clear(); setOpen(false) } }
+        const onDown = (e: PointerEvent) => { if (!inThemeWipe() && outside(e.target) && menus.current === 0) { clear(); setOpen(false) } }
         const onMove = (e: PointerEvent) => {
-            if (e.pointerType !== "mouse" || menus.current > 0 || timer.current) return
+            if (e.pointerType !== "mouse" || menus.current > 0 || timer.current || inThemeWipe()) return
             if (outside(e.target) && !hovered()) closeSoon()
         }
         document.addEventListener("pointerdown", onDown, true)
@@ -376,7 +386,7 @@ function useRailHover(pathname: string, collapsed: boolean) {
         if (isOpen) { clear(); setOpen(true); return }
         menuClosedAt.current = Date.now()
         // A menu item was chosen or the menu was dismissed: stay open only if the pointer is actually on the rail.
-        requestAnimationFrame(() => { if (!hovered()) { pointerIn.current = false; closeSoon() } })
+        requestAnimationFrame(() => { if (!inThemeWipe() && !hovered()) { pointerIn.current = false; closeSoon() } })
     }, [closeSoon])
 
     const handlers = {
@@ -393,7 +403,7 @@ function useRailHover(pathname: string, collapsed: boolean) {
             openFromHover(e.target)
         },
         onPointerLeave: (e: React.PointerEvent) => {
-            if (e.pointerType !== "mouse") return
+            if (e.pointerType !== "mouse" || inThemeWipe()) return
             pointerIn.current = false
             suppressed.current = false
             closeSoon()

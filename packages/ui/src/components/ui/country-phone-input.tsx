@@ -59,7 +59,7 @@ export function CountrySelector({ value, onChange, disabled, className, countrie
                     role="combobox"
                     disabled={disabled}
                     className={cn(
-                        "flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm transition-colors hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-400/40 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed",
+                        "flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm transition-colors hover:bg-neutral-100 focus:outline-none dark:border-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed",
                         className
                     )}
                 >

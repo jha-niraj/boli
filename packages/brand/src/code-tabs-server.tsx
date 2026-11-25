@@ -12,6 +12,7 @@ export async function HighlightedCodeTabs(props: {
     className?: string
     bodyViewportClassName?: string
     defaultLanguage?: SampleLanguage
+    fill?: boolean
 }) {
     const entries = await Promise.all(SAMPLE_LANGUAGES.map(async (l) => [l.id, await highlight(props.samples[l.id], l.grammar)] as const))
     const highlighted: Partial<Record<SampleLanguage, HlLine[] | null>> = Object.fromEntries(entries)

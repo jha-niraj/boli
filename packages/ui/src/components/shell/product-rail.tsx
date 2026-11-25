@@ -72,8 +72,10 @@ export interface ProductRailProps {
 const label = (expanded: boolean) =>
     cn("min-w-0 flex-1 truncate text-left transition-opacity duration-150 motion-reduce:transition-none", expanded ? "opacity-100" : "opacity-0")
 
+// No focus ring on rail rows (owner, 2026-11-25): Button adds an offset ring, and focus comes back to the account row whenever its
+// menu closes, which drew a hard outline round it. Keyboard focus shows as the hover fill instead.
 const ROW =
-    "flex h-10 w-full min-w-0 cursor-pointer items-center gap-1 rounded-xl p-0 pr-2 text-sm font-normal outline-none transition-colors focus-visible:ring-2 focus-visible:ring-neutral-400"
+    "flex h-10 w-full min-w-0 cursor-pointer items-center gap-1 rounded-xl p-0 pr-2 text-sm font-normal outline-none transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:bg-neutral-950/[0.05] dark:focus-visible:bg-white/[0.07]"
 const ROW_IDLE =
     "text-neutral-600 hover:bg-neutral-950/[0.04] hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/[0.05] dark:hover:text-white"
 const ROW_ON = "bg-neutral-950/[0.06] font-medium text-neutral-900 dark:bg-white/[0.08] dark:text-white"
@@ -120,7 +122,7 @@ export const RailRowButton = React.forwardRef<HTMLButtonElement, React.Component
 /* ── Compact (the collapsed sidebar's 64px icon rail) ───────────────────────────────────────────────────────────── */
 
 const COMPACT_ITEM =
-    "relative flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl p-0 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-neutral-400 [&_svg]:size-[18px]"
+    "relative flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-xl p-0 outline-none transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:bg-neutral-950/[0.05] dark:focus-visible:bg-white/[0.07] [&_svg]:size-[18px]"
 
 /** A 40px icon control in the compact rail: the soft pill when `active` (Sarvam), the row hover otherwise. */
 export function compactRailItemClass(active = false) {
@@ -413,7 +415,7 @@ function ProductGrid({ products, activeProductId, onNavigate, label: gridLabel =
                         onClick={onNavigate}
                         aria-current={on ? "page" : undefined}
                         className={cn(
-                            "flex min-w-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-neutral-400",
+                            "flex min-w-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-xs outline-none transition-colors focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:bg-neutral-950/[0.05] dark:focus-visible:bg-white/[0.07]",
                             on ? ROW_ON : "text-neutral-700 hover:bg-neutral-950/[0.04] dark:text-neutral-300 dark:hover:bg-white/[0.05]",
                             p.soon && !on && "text-neutral-500 dark:text-neutral-500",
                         )}

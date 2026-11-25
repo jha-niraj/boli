@@ -352,7 +352,7 @@ export function TimePicker({
 					title={current === null ? placeholder : formatTime12(value)}
 					onMouseDown={onFieldMouseDown}
 					className={cn(
-						"flex h-10 w-full min-w-0 cursor-text items-center gap-1 rounded-xl border border-input bg-background px-2 text-sm ring-offset-background transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+						"flex h-10 w-full min-w-0 cursor-text items-center gap-1 rounded-xl border border-input bg-background px-2 text-sm transition-colors focus-within:border-neutral-400 dark:focus-within:border-neutral-500",
 						disabled && "pointer-events-none cursor-not-allowed opacity-50",
 						className,
 					)}
