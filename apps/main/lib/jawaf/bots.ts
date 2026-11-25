@@ -1,15 +1,15 @@
 import "server-only"
-import { and, db, eq } from "@repo/db"
+import { db, eq } from "@repo/db"
 import { jawafBot } from "@repo/db/schema"
-import { AppError } from "@repo/errors"
 import {
     JAWAF_BUILTIN_FIELDS, JAWAF_BUSINESS_TYPES, JAWAF_CUSTOM_FIELD_TYPES, JAWAF_LENGTHS, JAWAF_RESERVED_SLUGS, JAWAF_SETUP_STEPS, JAWAF_SLUG_PATTERN,
-    JAWAF_THEMES, JAWAF_TONES, jawafLimitsFor, type JawafLimitOverrides,
+    JAWAF_THEMES, JAWAF_TONES,
 } from "@repo/boli/jawaf"
 import type {
     JawafBot, JawafBotSummary, JawafBusinessType, JawafContactFields, JawafCustomSection, JawafLength, JawafPageLook, JawafSetupStep, JawafSlugCheck,
     JawafTone,
 } from "@/types/jawaf"
+import { botLimits, loadBot, narrowLimits, type BotRow } from "@repo/jawaf/bots"
 import { slugify } from "./text"
 
 /**
@@ -17,7 +17,8 @@ import { slugify } from "./text"
  * throws notfound otherwise), the jsonb narrowing (stored JSON is never trusted as-is) and the view builders.
  */
 
-export type BotRow = typeof jawafBot.$inferSelect
+// The row type, the loader and the limits live in @repo/jawaf (the jobs Worker needs them too).
+export { botLimits, loadBot, narrowLimits, type BotRow }
 
 const iso = (d: Date | null | undefined) => (d ? d.toISOString() : null)
 const obj = (v: unknown): Record<string, unknown> => (v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {})
@@ -79,16 +80,6 @@ export function narrowLook(raw: unknown): JawafPageLook {
     }
 }
 
-export function narrowLimits(raw: unknown): JawafLimitOverrides {
-    const o = obj(raw)
-    const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : undefined)
-    return { pagesPerBot: n(o.pagesPerBot), filesPerBot: n(o.filesPerBot), fileMaxBytes: n(o.fileMaxBytes) }
-}
-
-export function botLimits(bot: BotRow) {
-    return jawafLimitsFor(narrowLimits(bot.limits))
-}
-
 export function toBotSummary(b: BotRow): JawafBotSummary {
     return {
         id: b.id,
@@ -120,13 +111,6 @@ export function toBotView(b: BotRow): JawafBot {
         claimExpiresAt: iso(b.claimExpiresAt),
         updatedAt: b.updatedAt.toISOString(),
     }
-}
-
-/** The bot, when it belongs to the workspace. Throws AppError('notfound') otherwise (never reveals another tenant's bot). */
-export async function loadBot(workspaceId: string, botId: string): Promise<BotRow> {
-    const [b] = await db.select().from(jawafBot).where(and(eq(jawafBot.id, botId), eq(jawafBot.workspaceId, workspaceId))).limit(1)
-    if (!b) throw new AppError("notfound", "That bot could not be found in this workspace.")
-    return b
 }
 
 /** Public lookup by slug (the /j page, widget, API) - no tenant filter by design; callers read only public fields. */

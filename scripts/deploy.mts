@@ -23,6 +23,9 @@ const ENV_FILE: Record<Target, string> = { staging: '.env', prod: '.env.producti
 /** In deploy order: what others call goes first. */
 const APPS: Record<string, { next: boolean; memory?: number; before?: string[] }> = {
     // Add every deployable here, in deploy order: what others call goes first.
+    // boli-jobs (Workflows + the RateLimiter Durable Object) FIRST: main and admin bind to it (JOBS), and a service
+    // binding to a Worker that does not exist yet fails their deploy. A plain Worker: no Next build, just wrangler.
+    jobs: { next: false },
     admin: { next: true, memory: 4096 },
     main: { next: true },
     // The public site (bolihq.com). Last: it only links to main, nothing calls it.

@@ -7,7 +7,9 @@ import type {
     JawafBotCounts, JawafCsvImportResult, JawafFactSection, JawafMapResult, JawafNote, JawafPageView, JawafQa, JawafSourceView, JawafTable,
 } from "@/types/jawaf"
 import { botLimits, type BotRow } from "./bots"
-import { mapSite } from "./crawl"
+import { mapAndStoreSitePages } from "@repo/jawaf/map"
+import { jobs } from "@/lib/jobs"
+import { mapSiteJob } from "./jobs"
 import { indexFact, indexNote, indexQa, unindex } from "./indexer"
 import { htmlToText, urlKey } from "./text"
 
@@ -54,42 +56,14 @@ export function toPageView(p: PageRow): JawafPageView {
  * Re-mapping keeps the owner's earlier choices and read state for pages already known.
  */
 export async function mapAndStoreSite(bot: BotRow, url: string, userId: string | null): Promise<JawafMapResult> {
-    const limit = botLimits(bot).pagesPerBot
-    const map = await mapSite(url, limit)
-    let [source] = await db.select().from(jawafSource).where(and(eq(jawafSource.botId, bot.id), eq(jawafSource.kind, "site"))).limit(1)
-    if (!source) {
-        ;[source] = await db.insert(jawafSource).values({ workspaceId: bot.workspaceId, botId: bot.id, kind: "site", url, status: "queued", pagesFound: map.found, createdById: userId }).returning()
-    } else {
-        await db.update(jawafSource).set({ url, pagesFound: map.found, updatedAt: new Date() }).where(eq(jawafSource.id, source.id))
+    // JOBS_RUNNER=workflow: the map runs as a `map` Workflow (waited for); local: inline, as before.
+    if (jobs.runner() === "workflow") {
+        const m = await mapSiteJob(bot, url, userId)
+        const pages = await db.select().from(jawafPage).where(eq(jawafPage.sourceId, m.sourceId)).orderBy(asc(jawafPage.rank))
+        return { sourceId: m.sourceId, pages: pages.map(toPageView), included: m.included, dropped: m.dropped }
     }
-    if (!source) throw new AppError("unknown", "The website could not be saved. Try again.")
-    // How many are already included (an earlier map / added URLs) - new pages are ticked only up to the limit.
-    const [{ n: alreadyIncluded } = { n: 0 }] = await db.select({ n: count() }).from(jawafPage).where(and(eq(jawafPage.botId, bot.id), eq(jawafPage.status, "included")))
-    let room = Math.max(0, limit - Number(alreadyIncluded))
-    const rows = map.pages.map((p) => {
-        const include = p.suggested && room > 0
-        if (include) room--
-        return {
-            workspaceId: bot.workspaceId,
-            botId: bot.id,
-            sourceId: source!.id,
-            url: p.url,
-            urlKey: p.urlKey,
-            title: p.title,
-            status: include ? "included" : "excluded",
-            readStatus: "pending",
-            suggested: p.suggested,
-            rank: p.rank,
-        }
-    })
-    for (let i = 0; i < rows.length; i += 100) {
-        await db.insert(jawafPage).values(rows.slice(i, i + 100)).onConflictDoUpdate({
-            target: [jawafPage.botId, jawafPage.urlKey],
-            set: { rank: sql`excluded.rank`, suggested: sql`excluded.suggested`, title: sql`coalesce(${jawafPage.title}, excluded.title)`, updatedAt: new Date() },
-        })
-    }
-    const pages = await db.select().from(jawafPage).where(eq(jawafPage.sourceId, source.id)).orderBy(asc(jawafPage.rank))
-    return { sourceId: source.id, pages: pages.map(toPageView), included: pages.filter((p) => p.status === "included").length, dropped: map.dropped }
+    const m = await mapAndStoreSitePages(bot, url, userId)
+    return { sourceId: m.sourceId, pages: m.pages.map(toPageView), included: m.included, dropped: m.dropped }
 }
 
 /** Tick / untick pages. Including past the bot's limit throws AppError('validation'). Excluding drops their chunks. */

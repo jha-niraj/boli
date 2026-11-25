@@ -25,6 +25,8 @@
         "@repo/email": "workspace:*",
         "@repo/erasure": "workspace:*",
         "@repo/errors": "workspace:*",
+        "@repo/jawaf": "workspace:*",
+        "@repo/jobs": "workspace:*",
         "@repo/legal": "workspace:*",
         "@repo/payments": "workspace:*",
         "@repo/pdf": "workspace:*",

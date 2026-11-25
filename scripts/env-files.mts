@@ -8,7 +8,7 @@ import { join } from 'path';
  */
 
 export const ROOT = join(import.meta.dirname, '..');
-export const APPS_WITH_ENV = ['main', 'admin', 'web'] as const; // add every new deployable here
+export const APPS_WITH_ENV = ['main', 'admin', 'web', 'jobs'] as const; // add every new deployable here
 export const STANDARD_ENV_FILES = ['.env', '.env.local', '.env.production', '.env.production.local'];
 
 export const appDir = (app: string) => join(ROOT, 'apps', app);

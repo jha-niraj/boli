@@ -25,7 +25,13 @@
 	// Run next to the database (set to your Neon region), not next to the visitor: a page makes several queries.
 	"placement": { "region": "aws:ap-southeast-1" },
 	"assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
-	"services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "basecode-main-staging" }],
+	// JOBS: the boli-jobs Worker (apps/jobs) - Workflows for long jobs and the RateLimiter Durable Object, called as RPC
+	// only when JOBS_RUNNER=workflow (packages/jobs). Deploy boli-jobs first: a binding to a Worker that does not exist
+	// yet fails the deploy.
+	"services": [
+		{ "binding": "WORKER_SELF_REFERENCE", "service": "basecode-main-staging" },
+		{ "binding": "JOBS", "service": "boli-jobs-staging" }
+	],
 	"r2_buckets": [
 		{ "bucket_name": "basecode-files", "binding": "FILES", "remote": true },
 		{ "bucket_name": "basecode-next-cache", "binding": "NEXT_INC_CACHE_R2_BUCKET" }
@@ -37,7 +43,10 @@
 		"prod": {
 			"name": "basecode-main",
 			// "routes": [{ "pattern": "app.example.com", "custom_domain": true }],
-			"services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "basecode-main" }],
+			"services": [
+				{ "binding": "WORKER_SELF_REFERENCE", "service": "basecode-main" },
+				{ "binding": "JOBS", "service": "boli-jobs" }
+			],
 			"r2_buckets": [
 				{ "bucket_name": "basecode-files-prod", "binding": "FILES", "remote": true },
 				{ "bucket_name": "basecode-next-cache-prod", "binding": "NEXT_INC_CACHE_R2_BUCKET" }

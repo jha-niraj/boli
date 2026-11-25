@@ -21,6 +21,7 @@
         "@repo/db": "workspace:*",
         "@repo/email": "workspace:*",
         "@repo/errors": "workspace:*",
+        "@repo/jobs": "workspace:*",
         "@repo/ui": "workspace:*",
         "@tailwindcss/postcss": "^4.3.5",
         "@tanstack/react-query": "^5.108.3",

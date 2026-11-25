@@ -1,5 +1,6 @@
 import "server-only"
-import { defineCronJob } from "@repo/cron"
+import { defineCronJob, type CronJobResult } from "@repo/cron"
+import { jobsRunner } from "@repo/jobs"
 import { queueWeeklyRereads, runDueJobs } from "./jobs"
 
 /**
@@ -12,7 +13,9 @@ export const jawafJobsCron = defineCronJob({
     name: "jawaf-jobs",
     slot: "hourly",
     description: "Queues weekly Jawaf website re-reads and advances Jawaf reading jobs nobody is watching.",
-    async run({ now }) {
+    async run({ now }): Promise<CronJobResult> {
+        // JOBS_RUNNER=workflow: the boli-jobs Worker's own cron queues re-reads and resumes orphans (apps/jobs).
+        if (jobsRunner() === "workflow") return { skipped: "JOBS_RUNNER=workflow: boli-jobs runs these" }
         const queued = await queueWeeklyRereads(now)
         const { slices, finished } = await runDueJobs(40_000)
         return { rereadsQueued: queued, slices, finished }

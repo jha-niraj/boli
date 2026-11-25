@@ -167,6 +167,12 @@ Does the user need the result to continue, and how long can it take?
    with `refetchInterval`.
 Never move small fast work into a long job "to be safe". Never `void promise()`.
 
+**Where long jobs live: `apps/jobs` (boli-jobs)**, read `apps/jobs/CLAUDE.md` before adding one. A job is written ONCE
+as plain idempotent steps (`packages/jawaf/src/jobs/steps.ts`) on a `jawaf_job` row; `JOBS_RUNNER=workflow|local` (main's
+and admin's env, `local` by default) picks the runner: a Cloudflare Workflow in boli-jobs over the `JOBS` service
+binding, or the row's tick poll + hourly cron. Exact shared limits are boli-jobs' `RateLimiter` Durable Object behind
+`@repo/jobs`'s limiter, with the in-memory / database limit as the local fallback.
+
 ## 6. Database
 
 - **Neon over HTTP** (`@repo/db`). Workers have no raw TCP. `db.batch([...])` is one round trip; **`db.transaction()`

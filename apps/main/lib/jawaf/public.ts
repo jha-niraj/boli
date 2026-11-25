@@ -3,6 +3,8 @@ import { cache } from "react"
 import { and, asc, db, desc, eq, gt, sql } from "@repo/db"
 import { jawafBot, jawafContact, jawafConversation, jawafFactSection, jawafMessage } from "@repo/db/schema"
 import { AppError } from "@repo/errors"
+import { memoryHit, type LimitRule } from "@repo/jobs"
+import { jobs } from "@/lib/jobs"
 import { isPublicStorageConfigured, storageHref } from "@repo/storage"
 import { JAWAF_BUSINESS_TYPE_INFO, JAWAF_LIMITS, JAWAF_SCRIPTS, type JawafBusinessType, type JawafScript } from "@repo/boli/jawaf"
 import type { JawafAnswerSource, JawafPageLook } from "@/types/jawaf"
@@ -337,6 +339,10 @@ export async function ownConversation(botId: string, visitorId: string | null, c
 // ---------------------------------------------------------------------------------------------------------------------
 
 export const PUBLIC_LIMITS = {
+    /**
+     * Every limit below is EXACT under JOBS_RUNNER=workflow (the RateLimiter Durable Object in boli-jobs). With
+     * JOBS_RUNNER=local the visitor limits are database counts and the IP limits are per-isolate memory, as noted.
+     */
     /** Questions per visitor (counted in the database: survives isolates). */
     askVisitorPerMinute: 20,
     askVisitorPerDay: 300,
@@ -354,23 +360,21 @@ export const PUBLIC_LIMITS = {
     rateIpPerMinute: 60,
 } as const
 
-const windows = new Map<string, number[]>()
+// The per-isolate window moved to @repo/jobs (it is the limiter's fallback); re-exported for anything that used it here.
+export { memoryHit }
 
-/** A sliding window in this isolate's memory. True = allowed (and counted). */
-export function memoryHit(key: string, limit: number, windowMs: number): boolean {
-    const now = Date.now()
-    const list = (windows.get(key) ?? []).filter((t) => now - t < windowMs)
-    if (list.length >= limit) {
-        windows.set(key, list)
-        return false
-    }
-    list.push(now)
-    windows.set(key, list)
-    if (windows.size > 20_000) {
-        for (const [k, v] of windows) if (!v.length || now - v[v.length - 1]! > 86_400_000) windows.delete(k)
-    }
-    return true
+/**
+ * One limit check: EXACT through the RateLimiter Durable Object (boli-jobs) when JOBS_RUNNER=workflow, else today's
+ * per-isolate window (and, for visitors, today's database counts below). Throws AppError('ratelimit', message).
+ */
+async function limit(key: string, rules: LimitRule[], message: (rule: string) => string): Promise<void> {
+    const d = await jobs.limiter.hit(`jawaf:${key}`, rules)
+    if (!d.ok) throw new AppError("ratelimit", message(d.rule))
 }
+
+const MINUTE = 60_000
+const HOUR = 3_600_000
+const DAY = 86_400_000
 
 /** The caller's IP, hashed (never stored or logged raw). */
 export async function ipKey(req: Request): Promise<string> {
@@ -384,9 +388,13 @@ const DAY_DONE = "That is a lot of questions for one day. Please contact the bus
 
 /** Throws AppError('ratelimit') with a visitor-friendly sentence when this question would go over a limit. */
 export async function checkAskLimits(botId: string, visitorId: string | null, ip: string): Promise<void> {
-    if (!memoryHit(`ask:m:${ip}`, PUBLIC_LIMITS.askIpPerMinute, 60_000)) throw new AppError("ratelimit", SLOW_DOWN)
-    if (!memoryHit(`ask:d:${ip}`, PUBLIC_LIMITS.askIpPerDay, 86_400_000)) throw new AppError("ratelimit", DAY_DONE)
+    const msg = (rule: string) => (rule === "day" ? DAY_DONE : SLOW_DOWN)
+    await limit(`ask:ip:${ip}`, [{ id: "minute", limit: PUBLIC_LIMITS.askIpPerMinute, windowMs: MINUTE }, { id: "day", limit: PUBLIC_LIMITS.askIpPerDay, windowMs: DAY }], msg)
     if (!visitorId) return
+    if (jobs.exactLimits()) {
+        await limit(`ask:v:${botId}:${visitorId}`, [{ id: "minute", limit: PUBLIC_LIMITS.askVisitorPerMinute, windowMs: MINUTE }, { id: "day", limit: PUBLIC_LIMITS.askVisitorPerDay, windowMs: DAY }], msg)
+        return
+    }
     const res = await db.execute(sql`
         SELECT count(*) FILTER (WHERE m.created_at > now() - interval '1 minute')::int AS minute, count(*)::int AS day
           FROM jawaf_message m
@@ -398,11 +406,12 @@ export async function checkAskLimits(botId: string, visitorId: string | null, ip
     if ((row.day ?? 0) >= PUBLIC_LIMITS.askVisitorPerDay) throw new AppError("ratelimit", DAY_DONE)
 }
 
-export function checkSpeechLimits(visitorId: string | null, ip: string): void {
-    if (!memoryHit(`stt:m:${ip}`, PUBLIC_LIMITS.speechIpPerMinute, 60_000)) throw new AppError("ratelimit", "Too many voice messages at once. Wait a minute, or type instead.")
+export async function checkSpeechLimits(visitorId: string | null, ip: string): Promise<void> {
+    const busy = "Too many voice messages at once. Wait a minute, or type instead."
+    await limit(`stt:ip:${ip}`, [{ id: "minute", limit: PUBLIC_LIMITS.speechIpPerMinute, windowMs: MINUTE }], () => busy)
     if (visitorId) {
-        if (!memoryHit(`stt:vm:${visitorId}`, PUBLIC_LIMITS.speechVisitorPerMinute, 60_000)) throw new AppError("ratelimit", "Too many voice messages at once. Wait a minute, or type instead.")
-        if (!memoryHit(`stt:vd:${visitorId}`, PUBLIC_LIMITS.speechVisitorPerDay, 86_400_000)) throw new AppError("ratelimit", "Voice is resting for today. Type your question instead.")
+        await limit(`stt:v:${visitorId}`, [{ id: "minute", limit: PUBLIC_LIMITS.speechVisitorPerMinute, windowMs: MINUTE }, { id: "day", limit: PUBLIC_LIMITS.speechVisitorPerDay, windowMs: DAY }],
+            (rule) => (rule === "day" ? "Voice is resting for today. Type your question instead." : busy))
     }
 }
 
@@ -419,10 +428,11 @@ export async function saveContact(input: {
     channel: "link" | "qr"
 }): Promise<{ id: string }> {
     const { bot } = input
-    if (!memoryHit(`contact:${input.ip}`, PUBLIC_LIMITS.contactIpPerHour, 3_600_000)) {
-        throw new AppError("ratelimit", "You have sent your details several times already. The business will be in touch.")
-    }
-    if (input.visitorId) {
+    const sentEnough = "You have sent your details several times already. The business will be in touch."
+    await limit(`contact:ip:${input.ip}`, [{ id: "hour", limit: PUBLIC_LIMITS.contactIpPerHour, windowMs: HOUR }], () => sentEnough)
+    if (input.visitorId && jobs.exactLimits()) {
+        await limit(`contact:v:${bot.id}:${input.visitorId}`, [{ id: "hour", limit: PUBLIC_LIMITS.contactVisitorPerHour, windowMs: HOUR }], () => sentEnough)
+    } else if (input.visitorId) {
         const res = await db.execute(sql`
             SELECT count(*)::int AS n FROM jawaf_contact k JOIN jawaf_conversation c ON c.id = k.conversation_id
              WHERE k.bot_id = ${bot.id} AND c.visitor_id = ${input.visitorId} AND k.created_at > now() - interval '1 hour'
@@ -458,7 +468,7 @@ export async function saveContact(input: {
 /** A visitor's thumbs up / down (or 0 to take it back) on one of THEIR assistant messages. */
 export async function rateMessage(input: { bot: BotRow; visitorId: string | null; ip: string; messageId: string; rating: 1 | -1 | 0; reason?: string | null }): Promise<void> {
     if (!input.visitorId) throw new AppError("notfound", "That reply could not be found.")
-    if (!memoryHit(`rate:${input.ip}`, PUBLIC_LIMITS.rateIpPerMinute, 60_000)) throw new AppError("ratelimit", "Wait a moment and try again.")
+    await limit(`rate:ip:${input.ip}`, [{ id: "minute", limit: PUBLIC_LIMITS.rateIpPerMinute, windowMs: MINUTE }], () => "Wait a moment and try again.")
     const res = await db.update(jawafMessage)
         .set({ rating: input.rating === 0 ? null : input.rating, ratingReason: input.rating === -1 ? (input.reason?.trim() || null) : null })
         .where(and(

@@ -1,0 +1,71 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	/*
+	 * boli-jobs: long jobs (Cloudflare Workflows) and live shared state (the RateLimiter Durable Object) for main and
+	 * admin, reached ONLY through their JOBS service binding (apps/jobs/CLAUDE.md). No routes and workers_dev off: it is
+	 * not on the internet, so RPC needs no shared secret.
+	 *
+	 * TOP LEVEL = STAGING (`boli-jobs-staging`), so a bare `wrangler deploy` can never reach production. Production is
+	 * `env.prod` (`boli-jobs`). Deploy only with `pnpm deploy:staging jobs` / `pnpm deploy:prod jobs` (a person runs
+	 * these). Bindings do NOT inherit into env.prod: every workflow, the Durable Object and its migration are repeated.
+	 *
+	 * account_id: pin it (scripts/deploy.mts refuses to deploy until it is a real 32-hex id).
+	 */
+	"account_id": "__CLOUDFLARE_ACCOUNT_ID__",
+	"name": "boli-jobs-staging",
+	"main": "src/index.ts",
+	"workers_dev": false,
+	"preview_urls": false,
+	"minify": true,
+	"compatibility_date": "2025-11-01",
+	// nodejs_compat: the Neon driver, the engine's node-style imports, and process.env filled from vars / secrets.
+	"compatibility_flags": ["nodejs_compat"],
+	// Next to the database (Neon region), like main and admin: every job step makes several queries.
+	"placement": { "region": "aws:ap-southeast-1" },
+	// @repo/ai imports "server-only" (a Next-only guard that throws elsewhere).
+	"alias": { "server-only": "./src/shims/server-only.ts" },
+	/*
+	 * One Workflow per job kind (packages/jobs/src/kinds.ts). `name` is unique per ACCOUNT, so staging and production
+	 * carry their own names. Row jobs: instance id = the jawaf_job id. Scheduled: started by the cron below.
+	 */
+	"workflows": [
+		{ "name": "boli-jobs-staging-jawaf-read", "binding": "JAWAF_READ", "class_name": "JawafReadWorkflow" },
+		{ "name": "boli-jobs-staging-jawaf-file", "binding": "JAWAF_FILE", "class_name": "JawafFileWorkflow" },
+		{ "name": "boli-jobs-staging-jawaf-draft", "binding": "JAWAF_DRAFT", "class_name": "JawafDraftWorkflow" },
+		{ "name": "boli-jobs-staging-jawaf-reindex", "binding": "JAWAF_REINDEX", "class_name": "JawafReindexWorkflow" },
+		{ "name": "boli-jobs-staging-jawaf-map", "binding": "JAWAF_MAP", "class_name": "JawafMapWorkflow" },
+		{ "name": "boli-jobs-staging-jawaf-eval", "binding": "JAWAF_EVAL", "class_name": "JawafEvalWorkflow" },
+		{ "name": "boli-jobs-staging-jawaf-rereads", "binding": "JAWAF_REREADS", "class_name": "JawafRereadsWorkflow" },
+		{ "name": "boli-jobs-staging-jawaf-digest", "binding": "JAWAF_DIGEST", "class_name": "JawafDigestWorkflow" }
+	],
+	// The exact rate limits (one object per key; SQLite storage).
+	"durable_objects": { "bindings": [{ "name": "RATE_LIMITER", "class_name": "RateLimiter" }] },
+	"migrations": [{ "tag": "v1", "new_sqlite_classes": ["RateLimiter"] }],
+	// Staging runs no crons: a staging job would email real people. `JobsService.runScheduled` starts one by hand.
+	"triggers": { "crons": [] },
+	"observability": { "enabled": true, "head_sampling_rate": 1 },
+	"env": {
+		"prod": {
+			"name": "boli-jobs",
+			"workers_dev": false,
+			"preview_urls": false,
+			"workflows": [
+				{ "name": "boli-jobs-jawaf-read", "binding": "JAWAF_READ", "class_name": "JawafReadWorkflow" },
+				{ "name": "boli-jobs-jawaf-file", "binding": "JAWAF_FILE", "class_name": "JawafFileWorkflow" },
+				{ "name": "boli-jobs-jawaf-draft", "binding": "JAWAF_DRAFT", "class_name": "JawafDraftWorkflow" },
+				{ "name": "boli-jobs-jawaf-reindex", "binding": "JAWAF_REINDEX", "class_name": "JawafReindexWorkflow" },
+				{ "name": "boli-jobs-jawaf-map", "binding": "JAWAF_MAP", "class_name": "JawafMapWorkflow" },
+				{ "name": "boli-jobs-jawaf-eval", "binding": "JAWAF_EVAL", "class_name": "JawafEvalWorkflow" },
+				{ "name": "boli-jobs-jawaf-rereads", "binding": "JAWAF_REREADS", "class_name": "JawafRereadsWorkflow" },
+				{ "name": "boli-jobs-jawaf-digest", "binding": "JAWAF_DIGEST", "class_name": "JawafDigestWorkflow" }
+			],
+			"durable_objects": { "bindings": [{ "name": "RATE_LIMITER", "class_name": "RateLimiter" }] },
+			"migrations": [{ "tag": "v1", "new_sqlite_classes": ["RateLimiter"] }],
+			/*
+			 * UTC. Hourly: weekly re-reads that are due + resume orphaned jobs (src/index.ts CRONS). 02:15 UTC = 08:00 in
+			 * Nepal: the owner digest + follow-up reminders (skeleton: counts only, sends nothing yet).
+			 */
+			"triggers": { "crons": ["5 * * * *", "15 2 * * *"] }
+		}
+	}
+}

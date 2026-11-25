@@ -59,6 +59,9 @@ importers:
       '@repo/errors':
         specifier: workspace:*
         version: link:../../packages/errors
+      '@repo/jobs':
+        specifier: workspace:*
+        version: link:../../packages/jobs
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -122,7 +125,7 @@ importers:
     devDependencies:
       '@opennextjs/cloudflare':
         specifier: ^1.20.18
-        version: 1.20.18(next@16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(wrangler@4.166.0(@types/node@22.19.3))
+        version: 1.20.18(next@16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(wrangler@4.166.0(@cloudflare/workers-types@5.20261125.1)(@types/node@22.19.3))
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
@@ -146,7 +149,41 @@ importers:
         version: 5.9.3
       wrangler:
         specifier: ^4.166.0
-        version: 4.166.0(@types/node@22.19.3)
+        version: 4.166.0(@cloudflare/workers-types@5.20261125.1)(@types/node@22.19.3)
+
+  apps/jobs:
+    dependencies:
+      '@repo/boli':
+        specifier: workspace:*
+        version: link:../../packages/boli
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@repo/errors':
+        specifier: workspace:*
+        version: link:../../packages/errors
+      '@repo/jawaf':
+        specifier: workspace:*
+        version: link:../../packages/jawaf
+      '@repo/jobs':
+        specifier: workspace:*
+        version: link:../../packages/jobs
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^5.20261119.1
+        version: 5.20261125.1
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.3
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      wrangler:
+        specifier: ^4.166.0
+        version: 4.166.0(@cloudflare/workers-types@5.20261125.1)(@types/node@22.19.3)
 
   apps/main:
     dependencies:
@@ -186,6 +223,12 @@ importers:
       '@repo/errors':
         specifier: workspace:*
         version: link:../../packages/errors
+      '@repo/jawaf':
+        specifier: workspace:*
+        version: link:../../packages/jawaf
+      '@repo/jobs':
+        specifier: workspace:*
+        version: link:../../packages/jobs
       '@repo/legal':
         specifier: workspace:*
         version: link:../../packages/legal
@@ -276,7 +319,7 @@ importers:
     devDependencies:
       '@opennextjs/cloudflare':
         specifier: ^1.20.18
-        version: 1.20.18(next@16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(wrangler@4.166.0(@types/node@22.19.3))
+        version: 1.20.18(next@16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(wrangler@4.166.0(@cloudflare/workers-types@5.20261125.1)(@types/node@22.19.3))
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
@@ -300,7 +343,7 @@ importers:
         version: 5.9.3
       wrangler:
         specifier: ^4.166.0
-        version: 4.166.0(@types/node@22.19.3)
+        version: 4.166.0(@cloudflare/workers-types@5.20261125.1)(@types/node@22.19.3)
 
   apps/web:
     dependencies:
@@ -403,7 +446,7 @@ importers:
     devDependencies:
       '@opennextjs/cloudflare':
         specifier: ^1.20.18
-        version: 1.20.18(next@16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(wrangler@4.166.0(@types/node@22.19.3))
+        version: 1.20.18(next@16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(wrangler@4.166.0(@cloudflare/workers-types@5.20261125.1)(@types/node@22.19.3))
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
@@ -433,7 +476,7 @@ importers:
         version: 5.9.3
       wrangler:
         specifier: ^4.166.0
-        version: 4.166.0(@types/node@22.19.3)
+        version: 4.166.0(@cloudflare/workers-types@5.20261125.1)(@types/node@22.19.3)
 
   packages/ai:
     dependencies:
@@ -488,7 +531,7 @@ importers:
         version: link:../ui
       better-auth:
         specifier: ^1.7.27
-        version: 1.7.27(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(drizzle-kit@0.31.11)(drizzle-orm@0.45.4(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3)))(next@16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(prisma@6.14.0(typescript@5.9.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        version: 1.7.27(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(drizzle-kit@0.31.11)(drizzle-orm@0.45.4(@cloudflare/workers-types@5.20261125.1)(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3)))(next@16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(prisma@6.14.0(typescript@5.9.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       lucide-react:
         specifier: ^0.562.0
         version: 0.562.0(react@19.3.1)
@@ -537,7 +580,7 @@ importers:
         version: link:../payments
       drizzle-orm:
         specifier: ^0.45.4
-        version: 0.45.4(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
+        version: 0.45.4(@cloudflare/workers-types@5.20261125.1)(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -686,7 +729,7 @@ importers:
         version: link:../db
       drizzle-orm:
         specifier: ^0.45.4
-        version: 0.45.4(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
+        version: 0.45.4(@cloudflare/workers-types@5.20261125.1)(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -723,7 +766,7 @@ importers:
         version: link:../errors
       drizzle-orm:
         specifier: ^0.45.4
-        version: 0.45.4(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
+        version: 0.45.4(@cloudflare/workers-types@5.20261125.1)(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
     devDependencies:
       '@repo/crypto':
         specifier: workspace:*
@@ -776,7 +819,7 @@ importers:
         version: link:../storage
       drizzle-orm:
         specifier: ^0.45.4
-        version: 0.45.4(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
+        version: 0.45.4(@cloudflare/workers-types@5.20261125.1)(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -839,6 +882,65 @@ importers:
         specifier: ^8.49.0
         version: 8.50.1(eslint@9.39.2(jiti@2.7.0))(typescript@5.9.3)
 
+  packages/jawaf:
+    dependencies:
+      '@repo/ai':
+        specifier: workspace:*
+        version: link:../ai
+      '@repo/billing':
+        specifier: workspace:*
+        version: link:../billing
+      '@repo/boli':
+        specifier: workspace:*
+        version: link:../boli
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../db
+      '@repo/errors':
+        specifier: workspace:*
+        version: link:../errors
+      '@repo/pdf':
+        specifier: workspace:*
+        version: link:../pdf
+      '@repo/sarvamai':
+        specifier: workspace:*
+        version: link:../sarvamai
+      '@repo/storage':
+        specifier: workspace:*
+        version: link:../storage
+      '@repo/webdata':
+        specifier: workspace:*
+        version: link:../webdata
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.3
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/jobs:
+    dependencies:
+      '@repo/errors':
+        specifier: workspace:*
+        version: link:../errors
+      '@repo/jawaf':
+        specifier: workspace:*
+        version: link:../jawaf
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.3
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   packages/legal:
     dependencies:
       '@repo/db':
@@ -849,7 +951,7 @@ importers:
         version: link:../errors
       drizzle-orm:
         specifier: ^0.45.4
-        version: 0.45.4(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
+        version: 0.45.4(@cloudflare/workers-types@5.20261125.1)(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -871,7 +973,7 @@ importers:
         version: link:../errors
       drizzle-orm:
         specifier: ^0.45.4
-        version: 0.45.4(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
+        version: 0.45.4(@cloudflare/workers-types@5.20261125.1)(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
       stripe:
         specifier: ^23.2.0
         version: 23.2.0(@types/node@22.19.3)
@@ -1578,6 +1680,9 @@ packages:
     engines: {node: '>=16'}
     cpu: [x64]
     os: [win32]
+
+  '@cloudflare/workers-types@5.20261125.1':
+    resolution: {integrity: sha512-FBFIY/srJZZtZjxyH56AerZ0ZDbhr6Ifa5O707q0f7YzHmzqd+2zD3vG6d8cAcSDL/heJvsP7eEAsYRLFd7jpw==}
 
   '@cloudflare/workers-utils@0.56.0':
     resolution: {integrity: sha512-Fw3/zR+pQp+5hKn1CHIRkCYz49fyAb2qRqCq01jBGqlKL0rRnZyXYD4j0h9cjaWPYYQUOe5y6L7BNp2ZwsHg5A==}
@@ -8115,12 +8220,12 @@ snapshots:
       nanostores: 1.3.0
       zod: 4.6.7
 
-  '@better-auth/drizzle-adapter@1.7.27(@better-auth/core@1.7.27(@better-auth/utils@0.5.1)(@better-fetch/fetch@1.3.3)(better-call@1.4.6(zod@4.6.7))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.5.1)(drizzle-orm@0.45.4(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3)))':
+  '@better-auth/drizzle-adapter@1.7.27(@better-auth/core@1.7.27(@better-auth/utils@0.5.1)(@better-fetch/fetch@1.3.3)(better-call@1.4.6(zod@4.6.7))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.5.1)(drizzle-orm@0.45.4(@cloudflare/workers-types@5.20261125.1)(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3)))':
     dependencies:
       '@better-auth/core': 1.7.27(@better-auth/utils@0.5.1)(@better-fetch/fetch@1.3.3)(better-call@1.4.6(zod@4.6.7))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0)
       '@better-auth/utils': 0.5.1
     optionalDependencies:
-      drizzle-orm: 0.45.4(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
+      drizzle-orm: 0.45.4(@cloudflare/workers-types@5.20261125.1)(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
 
   '@better-auth/kysely-adapter@1.7.27(@better-auth/core@1.7.27(@better-auth/utils@0.5.1)(@better-fetch/fetch@1.3.3)(better-call@1.4.6(zod@4.6.7))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.5.1)(kysely@0.28.17)':
     dependencies:
@@ -8181,6 +8286,8 @@ snapshots:
 
   '@cloudflare/workerd-windows-64@1.20261119.1':
     optional: true
+
+  '@cloudflare/workers-types@5.20261125.1': {}
 
   '@cloudflare/workers-utils@0.56.0':
     dependencies:
@@ -8697,7 +8804,7 @@ snapshots:
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
-      '@jridgewell/sourcemap-codec': 1.5.5
+      '@jridgewell/sourcemap-codec': 1.6.0
       '@jridgewell/trace-mapping': 0.3.31
 
   '@jridgewell/remapping@2.3.5':
@@ -8719,12 +8826,12 @@ snapshots:
   '@jridgewell/trace-mapping@0.3.31':
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
-      '@jridgewell/sourcemap-codec': 1.5.5
+      '@jridgewell/sourcemap-codec': 1.6.0
 
   '@jridgewell/trace-mapping@0.3.9':
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
-      '@jridgewell/sourcemap-codec': 1.5.5
+      '@jridgewell/sourcemap-codec': 1.6.0
 
   '@mdx-js/loader@3.1.1':
     dependencies:
@@ -8863,7 +8970,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@opennextjs/cloudflare@1.20.18(next@16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(wrangler@4.166.0(@types/node@22.19.3))':
+  '@opennextjs/cloudflare@1.20.18(next@16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(wrangler@4.166.0(@cloudflare/workers-types@5.20261125.1)(@types/node@22.19.3))':
     dependencies:
       '@ast-grep/napi': 0.45.3
       '@dotenvx/dotenvx': 2.38.2
@@ -8877,7 +8984,7 @@ snapshots:
       next: 16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       resolve.exports: 2.0.4
       ts-tqdm: 0.8.6
-      wrangler: 4.166.0(@types/node@22.19.3)
+      wrangler: 4.166.0(@cloudflare/workers-types@5.20261125.1)(@types/node@22.19.3)
       yargs: 18.2.0
     transitivePeerDependencies:
       - diff
@@ -11202,10 +11309,10 @@ snapshots:
 
   baseline-browser-mapping@2.11.39: {}
 
-  better-auth@1.7.27(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(drizzle-kit@0.31.11)(drizzle-orm@0.45.4(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3)))(next@16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(prisma@6.14.0(typescript@5.9.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+  better-auth@1.7.27(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(drizzle-kit@0.31.11)(drizzle-orm@0.45.4(@cloudflare/workers-types@5.20261125.1)(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3)))(next@16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(prisma@6.14.0(typescript@5.9.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
     dependencies:
       '@better-auth/core': 1.7.27(@better-auth/utils@0.5.1)(@better-fetch/fetch@1.3.3)(better-call@1.4.6(zod@4.6.7))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0)
-      '@better-auth/drizzle-adapter': 1.7.27(@better-auth/core@1.7.27(@better-auth/utils@0.5.1)(@better-fetch/fetch@1.3.3)(better-call@1.4.6(zod@4.6.7))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.5.1)(drizzle-orm@0.45.4(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3)))
+      '@better-auth/drizzle-adapter': 1.7.27(@better-auth/core@1.7.27(@better-auth/utils@0.5.1)(@better-fetch/fetch@1.3.3)(better-call@1.4.6(zod@4.6.7))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.5.1)(drizzle-orm@0.45.4(@cloudflare/workers-types@5.20261125.1)(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3)))
       '@better-auth/kysely-adapter': 1.7.27(@better-auth/core@1.7.27(@better-auth/utils@0.5.1)(@better-fetch/fetch@1.3.3)(better-call@1.4.6(zod@4.6.7))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.5.1)(kysely@0.28.17)
       '@better-auth/memory-adapter': 1.7.27(@better-auth/core@1.7.27(@better-auth/utils@0.5.1)(@better-fetch/fetch@1.3.3)(better-call@1.4.6(zod@4.6.7))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.5.1)
       '@better-auth/mongo-adapter': 1.7.27(@better-auth/core@1.7.27(@better-auth/utils@0.5.1)(@better-fetch/fetch@1.3.3)(better-call@1.4.6(zod@4.6.7))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.5.1)
@@ -11224,7 +11331,7 @@ snapshots:
     optionalDependencies:
       '@prisma/client': 6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3)
       drizzle-kit: 0.31.11
-      drizzle-orm: 0.45.4(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
+      drizzle-orm: 0.45.4(@cloudflare/workers-types@5.20261125.1)(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3))
       next: 16.4.6(patch_hash=dknqqz3d62zh4temrwe4xwn3fq)(@types/node@22.19.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       prisma: 6.14.0(typescript@5.9.3)
       react: 19.3.1
@@ -11585,8 +11692,9 @@ snapshots:
       esbuild: 0.25.12
       tsx: 4.23.15
 
-  drizzle-orm@0.45.4(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3)):
+  drizzle-orm@0.45.4(@cloudflare/workers-types@5.20261125.1)(@neondatabase/serverless@1.2.1)(@prisma/client@6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3))(kysely@0.28.17)(postgres@3.4.9)(prisma@6.14.0(typescript@5.9.3)):
     optionalDependencies:
+      '@cloudflare/workers-types': 5.20261125.1
       '@neondatabase/serverless': 1.2.1
       '@prisma/client': 6.14.0(prisma@6.14.0(typescript@5.9.3))(typescript@5.9.3)
       kysely: 0.28.17
@@ -14496,7 +14604,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20261119.1
       '@cloudflare/workerd-windows-64': 1.20261119.1
 
-  wrangler@4.166.0(@types/node@22.19.3):
+  wrangler@4.166.0(@cloudflare/workers-types@5.20261125.1)(@types/node@22.19.3):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.5.1
       '@cloudflare/unenv-preset': 2.16.2(unenv@2.0.0-rc.24)(workerd@1.20261119.1)
@@ -14512,6 +14620,7 @@ snapshots:
       unenv: 2.0.0-rc.24
       workerd: 1.20261119.1
     optionalDependencies:
+      '@cloudflare/workers-types': 5.20261125.1
       fsevents: 2.3.3
     transitivePeerDependencies:
       - '@types/node'
