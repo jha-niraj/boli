@@ -17,6 +17,7 @@ One row per doc. Status: Planned / In progress / Done / Dropped.
 | [repo/ml/docintel-testset.md](repo/ml/docintel-testset.md) | Done | 2026-11-24 | Stage 0 document reader measured on ~30 real public Nepali documents: CER, digit accuracy, Preeti trap, next steps |
 | [web/site/web-split.md](web/site/web-split.md) | In progress | 2026-11-24 | Split the public site into apps/web (bolihq.com), shared packages, mega-menu nav, Blog/Models/Guides/Changelog, SEO |
 | [web/site/content-seo.md](web/site/content-seo.md) | In progress | 2026-11-24 | apps/web content SEO to gurukulhq level: authors, topics, takeaways, FAQs, Service schema, RSS, markdown for agents |
+| [gateway-go/v1/chat-completions-port.md](gateway-go/v1/chat-completions-port.md) | In progress | 2026-11-24 | Experimental Go port of POST /v1/chat/completions (apps/gateway-go, :3110) plus a Go course artifact taught through it |
 | [main/kura/kura-message-actions.md](main/kura/kura-message-actions.md) | Done | 2026-11-24 | Kura: icon-only panel toggle at the end, thinking steps checked live, copy and like / dislike under replies |
 | [main/jawaf/jawaf-v1.md](main/jawaf/jawaf-v1.md) | In progress | 2026-11-25 | Jawaf v1: workspaces + members, Sarvam-style product rail, the business answer product (knowledge, playground, public link + QR, widget, API), admin restyle and demo bots |
 | [web/site/products-pages.md](web/site/products-pages.md) | In progress | 2026-11-25 | Public /products index and the /jawaf and /kura landing pages (no reviews until real pilots); round 2 show-don't-tell redesign |

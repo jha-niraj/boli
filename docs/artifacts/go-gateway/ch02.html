@@ -1,0 +1,185 @@
+<p class="eyebrow">CHAPTER 02 - PRIMER</p>
+<h1>Modules, packages and visibility</h1>
+<p class="lede">How Go code is organised: a module is the project, a package is a folder, and a capital letter decides what other packages can see.</p>
+<div class="lands"><span>go.mod</span><span>cmd/gateway</span><span>internal/boli</span></div>
+
+<h2>Module: the project</h2>
+<script type="text/plain" data-lang="bash" data-caption="terminal, the command that started the service">
+$ cd apps/gateway-go && go mod init bolihq.com/gateway
+go: creating new go.mod: module bolihq.com/gateway
+</script>
+<script type="text/plain" data-lang="text" data-caption="apps/gateway-go/go.mod">
+module bolihq.com/gateway
+
+go 1.27.4
+</script>
+<p>A <strong>module</strong> is a tree of Go code with a <code>go.mod</code> at its root, roughly a <code>package.json</code>. Line 1 is the <strong>module path</strong>: the prefix of every import path inside it. It is a name, not a URL Go has to fetch, but the convention is a domain you control, so <code>bolihq.com/gateway</code> can never collide with anyone else's code. The <code>go</code> line is the minimum Go version the code needs.</p>
+<p>When pgx arrives (Chapter 8), <code>go get</code> adds a <code>require</code> line here and creates <code>go.sum</code>: a checksum for every downloaded file, which plays the role of pnpm-lock's integrity hashes. Both files are committed.</p>
+
+<h2>Package: one folder</h2>
+<p>A <strong>package</strong> is all the <code>.go</code> files in ONE folder. They share one namespace: a function in <code>boli.go</code> can call a function in another file of the same folder with no import. Every file in the folder starts with the same <code>package</code> name. The one exception is test files, which may use <code>&lt;name&gt;_test</code> (see below).</p>
+<p>The import path of a package is the module path plus the folder: <code>internal/boli</code> becomes <code>bolihq.com/gateway/internal/boli</code>. In code you then refer to it by its package name, the last word: <code>boli.CostMicro</code>.</p>
+<script type="text/plain" data-lang="go" data-caption="cmd/gateway/main.go">
+import (
+	"fmt" // standard library: no domain in the path
+
+	"bolihq.com/gateway/internal/boli" // our module + folder
+)
+
+cost := boli.CostMicro(m, 38, 61) // package name, dot, exported name
+</script>
+<p>gofmt groups imports with standard library first, then a blank line, then everything else. Third-party paths look like <code>github.com/jackc/pgx/v5</code>: the <code>/v5</code> is part of the path, because in Go a new MAJOR version is a different import path, so v4 and v5 can even live in one program.</p>
+
+<h2>Exported means Capitalised</h2>
+<p>Go has no <code>export</code> keyword and no <code>public</code>/<code>private</code>. The rule is one character: <strong>a name that starts with a capital letter is exported</strong> (visible to other packages), and a lowercase name is private to its package. This applies to functions, types, constants, variables, struct fields and methods.</p>
+<script type="text/plain" data-lang="bash" data-caption="checked on this Mac: calling a lowercase function from another package">
+$ go build ./...
+# example.com/demo/b
+b/b.go:5:25: undefined: a.helper
+</script>
+<p>Struct fields follow the same rule, and this matters a lot in the next chapter: <code>encoding/json</code> lives in another package, so it can only read and write CAPITALISED fields. A lowercase field is silently left out of the JSON.</p>
+
+<h2><code>cmd/</code> and <code>internal/</code></h2>
+<p>Two folder names carry meaning:</p>
+<ul>
+<li><strong><code>cmd/&lt;name&gt;/</code></strong> is a convention: each folder under cmd is one program (<code>package main</code>). <code>go build ./cmd/gateway</code> makes a binary named <code>gateway</code>. A second tool (say, a key-hash checker) would be <code>cmd/keycheck</code>.</li>
+<li><strong><code>internal/</code></strong> is enforced by the compiler: a package under <code>internal/</code> can only be imported by code inside the folder that CONTAINS <code>internal</code>. Our <code>bolihq.com/gateway/internal/boli</code> is importable from anywhere in <code>apps/gateway-go</code> and from nowhere else. This is how you say "not a public API" in Go.</li>
+</ul>
+<p>Here is where the service is heading. Only <code>cmd/gateway</code> and <code>internal/boli</code> exist today; the rest lands chapter by chapter.</p>
+<script type="text/plain" data-lang="text" data-caption="apps/gateway-go (planned; today: go.mod, cmd/gateway, internal/boli)">
+apps/gateway-go/
+  go.mod  go.sum  README.md
+  cmd/gateway/main.go        wiring: config, pool, server on :3110        (Ch 7, 13)
+  internal/
+    boli/        prices, models, limits, error codes   <- packages/boli          (Ch 1)
+    openai/      request/response structs + validation <- schemas/chat-completions.ts (Ch 3)
+    apierr/      the {"error": {...}} shape             <- route.ts apiError     (Ch 4)
+    config/      env keys -> a Config struct            <- process.env reads     (Ch 7)
+    store/       pgx: keys, rate limit, balance, charge <- keys/ratelimit/credits.ts (Ch 8)
+    upstream/    the llama-server client                <- upstream.ts           (Ch 6, 9)
+    httpapi/     handlers, middleware, streaming        <- route.ts              (Ch 7, 9, 10)
+</script>
+
+<h2>Dependencies point one way</h2>
+<figure class="diagram">
+<svg viewBox="0 0 820 300" role="img" aria-label="Package dependency direction from cmd down to boli">
+<defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#222"/></marker></defs>
+<g font-family="JetBrains Mono, monospace" font-size="13" fill="#000">
+<rect x="330" y="14" width="160" height="40" rx="8" fill="#eef0f3" stroke="#555"/><text x="410" y="39" text-anchor="middle">cmd/gateway</text>
+<rect x="250" y="94" width="140" height="40" rx="8" fill="#e3f4f8" stroke="#00708c"/><text x="320" y="119" text-anchor="middle">httpapi</text>
+<rect x="430" y="94" width="140" height="40" rx="8" fill="#e3f4f8" stroke="#00708c"/><text x="500" y="119" text-anchor="middle">config</text>
+<rect x="40" y="184" width="130" height="40" rx="8" fill="#fff4dc" stroke="#9a6a00"/><text x="105" y="209" text-anchor="middle">store</text>
+<rect x="200" y="184" width="130" height="40" rx="8" fill="#fff4dc" stroke="#9a6a00"/><text x="265" y="209" text-anchor="middle">upstream</text>
+<rect x="360" y="184" width="130" height="40" rx="8" fill="#fff4dc" stroke="#9a6a00"/><text x="425" y="209" text-anchor="middle">openai</text>
+<rect x="520" y="184" width="130" height="40" rx="8" fill="#fff4dc" stroke="#9a6a00"/><text x="585" y="209" text-anchor="middle">apierr</text>
+<rect x="330" y="250" width="160" height="40" rx="8" fill="#e4f4ea" stroke="#1d7443"/><text x="410" y="275" text-anchor="middle">boli (no imports)</text>
+<line x1="390" y1="54" x2="330" y2="92" stroke="#222" stroke-width="1.4" marker-end="url(#a2)"/>
+<line x1="430" y1="54" x2="490" y2="92" stroke="#222" stroke-width="1.4" marker-end="url(#a2)"/>
+<line x1="290" y1="134" x2="120" y2="182" stroke="#222" stroke-width="1.4" marker-end="url(#a2)"/>
+<line x1="310" y1="134" x2="270" y2="182" stroke="#222" stroke-width="1.4" marker-end="url(#a2)"/>
+<line x1="330" y1="134" x2="415" y2="182" stroke="#222" stroke-width="1.4" marker-end="url(#a2)"/>
+<line x1="350" y1="134" x2="570" y2="182" stroke="#222" stroke-width="1.4" marker-end="url(#a2)"/>
+<line x1="425" y1="224" x2="415" y2="248" stroke="#222" stroke-width="1.4" marker-end="url(#a2)"/>
+<line x1="585" y1="224" x2="460" y2="252" stroke="#222" stroke-width="1.4" marker-end="url(#a2)"/>
+<line x1="105" y1="224" x2="345" y2="262" stroke="#222" stroke-width="1.4" marker-end="url(#a2)"/>
+<text x="700" y="120" font-size="12">arrow = "imports"</text>
+<text x="700" y="140" font-size="12">no arrow ever</text>
+<text x="700" y="158" font-size="12">points back up</text>
+</g>
+</svg>
+<figcaption>Planned import graph. boli sits at the bottom and imports nothing of ours; cmd/gateway at the top wires everything together.</figcaption>
+</figure>
+<p>Go <strong>forbids import cycles</strong>. If <code>a</code> imports <code>b</code> and <code>b</code> imports <code>a</code>, nothing compiles:</p>
+<script type="text/plain" data-lang="bash" data-caption="checked on this Mac">
+package example.com/demo/a
+	imports example.com/demo/b from a.go
+	imports example.com/demo/a from b.go: import cycle not allowed
+</script>
+<p>TypeScript tolerates cycles (sometimes with a confusing <code>undefined</code> at load time). Go makes you decide which package is lower-level. The usual fix is to move the shared piece into a third, lower package, or to have the lower package declare an interface that the upper one satisfies (Chapter 5).</p>
+
+<h2>Test files and the two test packages</h2>
+<p>A file ending in <code>_test.go</code> is compiled only by <code>go test</code>, never into the binary. <code>boli_test.go</code> says <code>package boli</code>, so it is a <strong>white-box</strong> test: it can see lowercase names. A test file may instead say <code>package boli_test</code>: a <strong>black-box</strong> test that must import <code>bolihq.com/gateway/internal/boli</code> and can only use exported names, exactly like a real caller. We use white-box for small pure packages and black-box for the HTTP API.</p>
+
+<h2>Package-level state: keep it to config</h2>
+<p><code>var Models = []Model{BoliChat}</code> is a package-level variable: created once when the program starts, shared by everything. Fine for fixed tables. For anything that changes at run time (a database pool, a counter), package-level variables become hidden global state that tests can't swap out. The service keeps them for read-only tables, and passes everything else explicitly as struct fields, starting in Chapter 5. Go also has <code>func init()</code>, which runs automatically before main. We avoid it, because code that runs implicitly is hard to follow.</p>
+
+<h2>TypeScript vs Go</h2>
+<div class="vs">
+<script type="text/plain" data-lang="ts" data-caption="the TS monorepo">
+// packages/boli/package.json: "name": "@repo/boli"
+// pnpm-workspace.yaml: packages: ["apps/*", "packages/*"]
+
+// packages/boli/src/boli.ts
+export const MICRO_PER_CREDIT = 1_000_000   // export keyword
+const BASE62 = "0123..."                     // no export = private to the FILE
+
+// apps/main/lib/platform/credits.ts
+import { costMicro, MICRO_PER_CREDIT } from "@repo/boli"
+costMicro(model, 38, 61)                    // imported names used bare
+</script>
+<script type="text/plain" data-lang="go" data-caption="the Go module">
+// apps/gateway-go/go.mod: module bolihq.com/gateway
+// no workspace file: one module, folders are packages
+
+// internal/boli/boli.go
+const MicroPerCredit int64 = 1_000_000 // Capital = exported
+const base62 = "0123..."               // lowercase = private to the PACKAGE (all files in the folder)
+
+// cmd/gateway/main.go
+import "bolihq.com/gateway/internal/boli"
+boli.CostMicro(m, 38, 61) // always qualified by the package name
+</script>
+</div>
+<div class="tablewrap"><table class="map">
+<tr><th>Idea</th><th>TypeScript here</th><th>Go here</th></tr>
+<tr><td>Project file</td><td><code>package.json</code></td><td><code>go.mod</code></td></tr>
+<tr><td>Lock / integrity</td><td><code>pnpm-lock.yaml</code></td><td><code>go.sum</code></td></tr>
+<tr><td>Unit of code</td><td>a file (module)</td><td>a folder (package)</td></tr>
+<tr><td>Visibility</td><td><code>export</code> per name, per file</td><td>Capital letter, per package</td></tr>
+<tr><td>Private package</td><td><code>"private": true</code> + workspace</td><td><code>internal/</code>, enforced by the compiler</td></tr>
+<tr><td>Barrel / index</td><td><code>index.ts</code> re-exports</td><td>not needed: the folder IS the package</td></tr>
+<tr><td>Cycles</td><td>allowed (risky)</td><td>compile error</td></tr>
+<tr><td>Server-only code</td><td><code>import "server-only"</code></td><td>everything is server code</td></tr>
+</table></div>
+
+<h2>Traps</h2>
+<ol class="traps">
+<li><strong>Private is per PACKAGE, not per file.</strong> A lowercase name in <code>boli.go</code> is visible in every other file of <code>internal/boli</code>. Split a package only when you want a real boundary.</li>
+<li><strong>Two package names in one folder do not compile</strong> (the only exception is <code>x_test</code> in test files). One folder, one package.</li>
+<li><strong>The package name is what you type, the path is what you import.</strong> They usually match the last path element. When they do not, such as pgx's path ending <code>/v5</code> while its package is named <code>pgx</code>, you still type <code>pgx.Connect</code>.</li>
+<li><strong>A lowercase struct field is invisible to encoding/json.</strong> No error, it just is not in the output. Chapter 3 starts here.</li>
+<li><strong>Do not name a package <code>utils</code>, <code>common</code> or <code>helpers</code>.</strong> The name is part of every call (<code>utils.Do</code> says nothing). Name it by what it provides: <code>apierr.Write</code>, <code>store.Charge</code>.</li>
+<li><strong>Importing a package runs its package-level initialisers</strong> (and any <code>init()</code>). Keep them cheap and free of I/O, so importing never connects to a database.</li>
+<li><strong>The import path must start with the module path in go.mod.</strong> Rename the module and every import changes with it.</li>
+</ol>
+
+<div data-quiz></div>
+<script type="application/json" class="quiz">
+[
+ {"kind":"Recall","q":"What is a Go <em>module</em>?","options":["One .go file","A tree of packages with a go.mod at the root, versioned together","A folder of .go files","A compiled binary"],"answer":1,"why":"Module = project and versioning unit. Package = one folder inside it."},
+ {"kind":"Recall","q":"What is a Go <em>package</em>?","options":["Every file in the module","All .go files in one folder, sharing one namespace","A file with exported functions","Anything listed in go.sum"],"answer":1,"why":"One folder, one package. Files in it see each other's names with no imports."},
+ {"kind":"Recall","q":"What makes a name visible outside its package?","options":["The <code>export</code> keyword","The <code>pub</code> keyword","It starts with a capital letter","Listing it in go.mod"],"answer":2,"why":"Capitalised = exported. That covers funcs, types, consts, vars, fields and methods."},
+ {"kind":"Recall","q":"What is the import path of the folder <code>apps/gateway-go/internal/boli</code>?","options":["<code>./internal/boli</code>","<code>internal/boli</code>","<code>bolihq.com/gateway/internal/boli</code>","<code>@repo/boli</code>"],"answer":2,"why":"Module path from go.mod + folder path inside the module. Relative imports are not allowed in modules."},
+ {"kind":"Recall","q":"Which file gets the checksums of downloaded dependencies?","options":["go.mod","go.sum","go.lock","vendor.json"],"answer":1,"why":"go.sum holds hashes so every machine gets byte-identical dependencies. Commit it with go.mod."},
+ {"kind":"Recall","q":"Who enforces the <code>internal/</code> rule?","options":["A lint rule you can turn off","The go command/compiler: importing it from outside the parent tree is an error","Nobody; it is a naming convention","GitHub"],"answer":1,"why":"Unlike <code>cmd/</code> (a convention), <code>internal/</code> is enforced."},
+ {"kind":"Recall","q":"Why is the module path <code>bolihq.com/gateway</code> rather than just <code>gateway</code>?","options":["Go downloads the code from bolihq.com","A domain you own keeps the path globally unique; dot-free first elements are reserved-looking (like the standard library's <code>fmt</code>)","It is required for internal/ to work","Because the binary is deployed there"],"answer":1,"why":"It is a name, never fetched while it lives in this repo. A domain-shaped name is the convention."},
+ {"kind":"Read the code","q":"In <code>cmd/gateway/main.go</code>, why is the call written <code>boli.CostMicro(...)</code> and not just <code>CostMicro(...)</code>?","options":["Style choice","Names from another package are always qualified by the package name; Go has no named imports like TS's <code>import { x }</code>","Because CostMicro is a method","Because main.go is in package main"],"answer":1,"why":"The qualifier shows at every call site where a name comes from."},
+ {"kind":"Read the code","q":"<code>boli_test.go</code> starts with <code>package boli</code>. What can it see?","options":["Only exported names","Exported AND unexported names: it is in the same package (white-box)","Nothing until it imports boli","Only test helpers"],"answer":1,"why":"A <code>package boli_test</code> file would be black-box: it imports boli and sees only exported names."},
+ {"kind":"Read the code","q":"pgx is imported as <code>\"github.com/jackc/pgx/v5\"</code>. What do you type in code?","options":["<code>v5.Connect</code>","<code>pgx.Connect</code>","<code>jackc.Connect</code>","<code>github.Connect</code>"],"answer":1,"why":"You type the package NAME (declared in its files: <code>package pgx</code>), not the last path element. The <code>/v5</code> is a major-version suffix."},
+ {"kind":"Read the code","q":"Why would <code>/v5</code> be part of an import path at all?","options":["It is the Go version","Each major version is a different import path, so breaking changes never sneak in through an update","It marks a beta release","It is the folder depth"],"answer":1,"why":"Semantic import versioning: v2+ of a module lives at a path ending /vN. v1 and v0 have no suffix."},
+ {"kind":"Read the code","q":"Where does a second program, say a tool that prints a key's hash, belong?","options":["In internal/boli","In <code>cmd/keycheck/main.go</code> with <code>package main</code>","In the same main.go as a second <code>func main</code>","In go.mod"],"answer":1,"why":"One folder per binary under cmd/. Each has its own package main and func main."},
+ {"kind":"Predict","q":"<code>internal/boli/boli.go</code> declares <code>const base62 = \"...\"</code>. <code>cmd/gateway/main.go</code> uses <code>boli.base62</code>. What happens?","options":["It works; same module","Compile error (the checked message on this Mac: <code>undefined: boli.base62</code>)","It works but go vet warns","It is nil at run time"],"answer":1,"why":"Lowercase names are invisible outside the package. The compiler reports them as undefined."},
+ {"kind":"Predict","q":"Package <code>store</code> imports <code>httpapi</code>, and <code>httpapi</code> imports <code>store</code>. What happens?","options":["Works; Go resolves it lazily","Compile error: <code>import cycle not allowed</code>","Runtime undefined values, like TS","Only a vet warning"],"answer":1,"why":"Cycles are forbidden. Fix it by moving the shared piece lower, or by declaring an interface in the lower package."},
+ {"kind":"Predict","q":"You put <code>a.go</code> with <code>package store</code> and <code>b.go</code> with <code>package db</code> in the same folder. What happens?","options":["Two packages from one folder","Compile error: found packages store and db in the same directory","The first file wins","They merge"],"answer":1,"why":"One folder holds exactly one package (plus an optional <code>_test</code> package for tests)."},
+ {"kind":"Predict","q":"A struct has a field <code>balance int64</code> (lowercase) and you marshal it to JSON with encoding/json. What appears?","options":["<code>{\"balance\":0}</code>","<code>{}</code>: the field is unexported, so json cannot see it","A compile error","A panic"],"answer":1,"why":"json is another package and can only reach exported fields. It skips the field silently. A classic first-week bug."},
+ {"kind":"Predict","q":"A file named <code>boli_test.go</code> has a bug that does not compile. Does <code>go build ./cmd/gateway</code> fail?","options":["Yes, everything compiles together","No: _test.go files are compiled only by go test","Only on Linux","Yes, but only with -race"],"answer":1,"why":"Test files are excluded from builds. <code>go vet</code> and <code>go test</code> would catch it."},
+ {"kind":"Spot the bug","q":"What is wrong with this import in a Go module?","code":"import \"../boli\"","options":["Nothing","Relative import paths are not allowed in modules; use the full path <code>bolihq.com/gateway/internal/boli</code>","It needs a .go extension","It must be in parentheses"],"answer":1,"why":"Module imports are always full paths starting with the module path."},
+ {"kind":"Spot the bug","q":"Someone adds <code>internal/utils/utils.go</code> with <code>func Do(...)</code>. What is the design problem?","options":["internal cannot hold utils","The package name says nothing at the call site (<code>utils.Do</code>); name packages by what they provide","Functions cannot be called Do","utils must be capitalised"],"answer":1,"why":"Good Go package names are short nouns about one thing: <code>apierr</code>, <code>store</code>, <code>upstream</code>."},
+ {"kind":"Spot the bug","q":"A package does this. Why is it a bad idea?","code":"var Pool = mustConnect(os.Getenv(\"DATABASE_URL\")) // package level","options":["It is fine","Importing the package now opens a database connection, tests cannot swap it, and a missing env var crashes everything at startup","os.Getenv cannot run at package level","Pool must be lowercase"],"answer":1,"why":"Package-level initialisers run on import. Create the pool in main and pass it down (Chapter 5)."},
+ {"kind":"Port it","q":"TS uses a barrel <code>index.ts</code> that re-exports from several files. What is the Go equivalent?","options":["A file called index.go","Nothing is needed: every exported name in any file of the folder is already part of the package","A go.mod per folder","An <code>export *</code> line"],"answer":1,"why":"The folder is the package. Split code into files freely; callers see one package."},
+ {"kind":"Port it","q":"TS: <code>import \"server-only\"</code> stops browser code importing a module. Which Go feature is closest in spirit, keeping code from being imported where it should not be?","options":["<code>//go:server</code>","<code>internal/</code>: only code under the parent folder may import it","Lowercase file names","A build tag"],"answer":1,"why":"Not the same thing (Go has no browser bundle), but internal/ is the compiler-enforced \"not for outside callers\" boundary."},
+ {"kind":"Port it","q":"In the TS repo a name without <code>export</code> is private to its FILE. A lowercase Go name is private to its...","options":["file","function","package (every file in the folder)","module"],"answer":2,"why":"This is why Go packages are often several files: helpers shared between them stay lowercase."},
+ {"kind":"Recall","q":"Why does the service avoid <code>func init()</code>?","options":["It is deprecated","It runs implicitly on import, which hides side effects and makes the startup order hard to follow; explicit calls from main are clearer","It is slower","It only works in package main"],"answer":1,"why":"init is legal and sometimes useful (registering drivers), but explicit wiring in main is easier to read and test."},
+ {"kind":"Read the code","q":"In the planned dependency graph, which package imports nothing else from our module?","options":["cmd/gateway","httpapi","store","boli"],"answer":3,"why":"boli is the bottom: pure constants and functions. Everything may import it; it imports none of ours."}
+]
+</script>

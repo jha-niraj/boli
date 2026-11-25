@@ -1,0 +1,337 @@
+<p class="eyebrow">CHAPTER 01 - PRIMER</p>
+<h1>Go from zero: the syntax</h1>
+<p class="lede">Every piece of syntax you need for this service, taught from one real file: <code>internal/boli/boli.go</code>, the Go copy of <code>packages/boli</code>.</p>
+<div class="lands"><span>internal/boli/boli.go</span><span>internal/boli/boli_test.go</span></div>
+
+<p>This is the longest chapter. Read it in sections; each one is short and builds on the one before. The TypeScript you already know is your anchor throughout.</p>
+
+<h2>1. The shape of a Go file</h2>
+<script type="text/plain" data-lang="go" data-caption="internal/boli/boli.go (top)">
+// Package boli is the Go copy of Boli's platform contract: prices, the model list, limits and the API error table.
+package boli
+
+// MicroPerCredit: 1 credit = Rs 1 = 1,000,000 micro-credits.
+const MicroPerCredit int64 = 1_000_000
+</script>
+<p>Every file starts with a <strong>package clause</strong> (<code>package boli</code>). Then come the imports, if any, then top-level declarations in any order: <code>const</code>, <code>var</code>, <code>type</code> and <code>func</code>. Comments are <code>//</code> or <code>/* */</code>. A comment right above a declaration is its <strong>doc comment</strong>: <code>go doc</code> and your editor show it, and by convention it starts with the name it documents.</p>
+<p>There are no semicolons. The compiler adds them at the end of lines for you, which is why an opening brace <code>{</code> must sit on the same line as its <code>if</code>, <code>for</code> or <code>func</code>.</p>
+
+<h2>2. Variables, basic types and zero values</h2>
+<p>There are two ways to declare a variable:</p>
+<script type="text/plain" data-lang="go" data-caption="two declaration forms">
+var balance int64        // declared, set to its zero value: 0
+var label = "boli-chat"  // type inferred: string
+
+cost := CostMicro(m, 38, 61) // short form: declare + assign, type inferred (int64). Only inside functions.
+cost = 0                     // plain = assigns to a variable that already exists
+</script>
+<p><code>:=</code> is the one you will type most. It declares a NEW variable. <code>=</code> assigns to an existing one. Mixing them up is the first bug everyone hits (see Traps).</p>
+<p>Every type has a <strong>zero value</strong>, so a variable is never "undefined":</p>
+<div class="tablewrap"><table class="map">
+<tr><th>Type</th><th>Examples</th><th>Zero value</th><th>TS cousin</th></tr>
+<tr><td>whole numbers</td><td><code>int</code>, <code>int64</code>, <code>int32</code>, <code>int8</code>, <code>uint8</code> (= <code>byte</code>)</td><td><code>0</code></td><td><code>number</code> (one type for all)</td></tr>
+<tr><td>decimals</td><td><code>float64</code>, <code>float32</code></td><td><code>0</code></td><td><code>number</code></td></tr>
+<tr><td>text</td><td><code>string</code> (bytes, UTF-8), <code>rune</code> (one Unicode code point)</td><td><code>""</code></td><td><code>string</code></td></tr>
+<tr><td>truth</td><td><code>bool</code></td><td><code>false</code></td><td><code>boolean</code></td></tr>
+<tr><td>pointers, slices, maps, funcs, interfaces, channels</td><td><code>*Model</code>, <code>[]string</code>, <code>map[K]V</code></td><td><code>nil</code></td><td><code>null</code> / <code>undefined</code></td></tr>
+<tr><td>structs</td><td><code>Model</code></td><td>every field at its own zero value</td><td>an object, all fields empty</td></tr>
+</table></div>
+<p><strong>Numbers never convert by themselves.</strong> <code>int</code> and <code>int64</code> are different types, and you can't multiply an <code>int64</code> by an <code>int</code> variable or divide it into a <code>float64</code> without saying so. That is why <code>main.go</code> writes:</p>
+<script type="text/plain" data-lang="go" data-caption="cmd/gateway/main.go">
+float64(cost) / float64(boli.MicroPerCredit) // T(x) converts x to type T
+</script>
+<p>Money is <code>int64</code> micro-credits everywhere, just like the TS rule "money is integer minor units". <code>int64</code> holds up to about 9.2 x 10^18, so it can count micro-credits for any balance we will ever see.</p>
+
+<h2>3. Constants</h2>
+<script type="text/plain" data-lang="go" data-caption="internal/boli/boli.go">
+const MicroPerCredit int64 = 1_000_000 // typed constant; underscores are just for reading
+
+const DefaultMaxTokens = 1024 // UNtyped constant: becomes int, int64 or float64 wherever it is used
+
+const (
+	APIKeyPrefix       = "boli_sk_"
+	APIKeyRandomLength = 32
+	RateLimitPerMin    = 30
+)
+</script>
+<p>Constants are fixed at compile time: numbers, strings and booleans only (no slices or structs, which is why <code>Models</code> is a <code>var</code>). An <strong>untyped</strong> constant like <code>DefaultMaxTokens</code> is just "the number 1024" until it meets a typed value, so it fits into an <code>int</code> field or an <code>int64</code> field without a conversion. A parenthesised block groups several declarations; it works for <code>const</code>, <code>var</code>, <code>import</code> and <code>type</code>.</p>
+
+<h2>4. Functions and multiple results</h2>
+<script type="text/plain" data-lang="go" data-caption="internal/boli/boli.go">
+func CostMicro(m Model, inputTokens, outputTokens int64) int64 {
+	raw := inputTokens*m.PricePerMillion.Input + outputTokens*m.PricePerMillion.Output
+	if raw > 0 {
+		return raw
+	}
+	return 0
+}
+</script>
+<p>Read it left to right: <code>func</code>, the name, the parameters as <code>name Type</code> (type AFTER the name, like TS, but with no colon), then the result type. <code>inputTokens, outputTokens int64</code> means both are <code>int64</code>.</p>
+<p>A function can return several values. That is how Go says "found or not" with no <code>undefined</code>:</p>
+<script type="text/plain" data-lang="go" data-caption="internal/boli/boli.go">
+func ModelByID(id string) (Model, bool) {
+	for _, m := range Models {
+		if m.ID == id {
+			return m, true
+		}
+	}
+	return Model{}, false // the zero Model plus "not found"
+}
+
+// the caller, from boli_test.go - the "comma ok" idiom:
+if m, ok := ModelByID("boli-chat"); !ok || m.ContextTokens != 8192 {
+	t.Fatalf("boli-chat: got %+v, ok=%v", m, ok)
+}
+</script>
+<p>The <strong>blank identifier</strong> <code>_</code> throws a value away: <code>_, ok := ModelByID(x)</code> when you only need to know if it exists. Errors use exactly this pattern too: <code>value, err := something()</code> (Chapter 4).</p>
+
+<h2>5. Control flow: if, for, switch</h2>
+<p>No parentheses around conditions, braces always required, and no ternary <code>a ? b : c</code>. Write an <code>if</code>.</p>
+<p><code>if</code> can start with a short statement whose variables live only inside the if/else. You saw it above: <code>if m, ok := ModelByID(...); !ok { ... }</code>.</p>
+<p><code>for</code> is Go's ONLY loop. It has four forms:</p>
+<script type="text/plain" data-lang="go" data-caption="the four for loops">
+for _, m := range Models { }   // range over a slice: index, value (we drop the index with _)
+for code, info := range APIErrors { } // range over a map: key, value (in RANDOM order)
+for i := 0; i < 3; i++ { }     // classic three-part loop
+for n < limit { }              // "while"
+for { }                        // forever; leave with break or return
+</script>
+<p><code>switch</code> needs no <code>break</code>: a case ends at the next case. A switch with no value is a clean if-else chain:</p>
+<script type="text/plain" data-lang="go" data-caption="switch with no value">
+switch {
+case status >= 500:
+	kind = "server"
+case status >= 400:
+	kind = "client"
+default:
+	kind = "ok"
+}
+</script>
+
+<h2>6. Slices: Go's arrays</h2>
+<p>An <strong>array</strong> has a fixed length that is part of its type (<code>[3]int</code>), and you will rarely use one. A <strong>slice</strong> (<code>[]int</code>) is the growable list you use everywhere, like a TS array. Under the hood a slice is a small header with three fields: a pointer to an array, a length and a capacity.</p>
+<figure class="diagram">
+<svg viewBox="0 0 760 230" role="img" aria-label="Two slice headers sharing one backing array">
+<defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#222"/></marker></defs>
+<g font-family="JetBrains Mono, monospace" font-size="13" fill="#000">
+<text x="20" y="28" font-weight="600">a := []int{1, 2, 3}</text>
+<rect x="20" y="40" width="200" height="34" fill="#e3f4f8" stroke="#00708c"/><text x="30" y="62">ptr | len 3 | cap 3</text>
+<text x="20" y="128" font-weight="600">b := a[:2]</text>
+<rect x="20" y="140" width="200" height="34" fill="#fff4dc" stroke="#9a6a00"/><text x="30" y="162">ptr | len 2 | cap 3</text>
+<text x="400" y="28" font-weight="600">backing array (one, shared)</text>
+<rect x="400" y="80" width="90" height="44" fill="#eef0f3" stroke="#555"/><text x="440" y="107">1</text>
+<rect x="490" y="80" width="90" height="44" fill="#eef0f3" stroke="#555"/><text x="530" y="107">2</text>
+<rect x="580" y="80" width="90" height="44" fill="#fbe9e5" stroke="#a8321f"/><text x="600" y="107">3 -&gt; 99</text>
+<line x1="220" y1="57" x2="398" y2="95" stroke="#222" stroke-width="1.5" marker-end="url(#a1)"/>
+<line x1="220" y1="157" x2="398" y2="112" stroke="#222" stroke-width="1.5" marker-end="url(#a1)"/>
+<text x="400" y="160" font-size="12">b = append(b, 99) fits in cap 3,</text>
+<text x="400" y="178" font-size="12">so it writes into slot 3 of the SHARED array.</text>
+<text x="400" y="200" font-size="12">Printed: a = [1 2 99], b = [1 2 99]</text>
+</g>
+</svg>
+<figcaption>A slice is a view onto an array. Slicing and appending can share memory, which is the source of the most surprising slice bugs.</figcaption>
+</figure>
+<script type="text/plain" data-lang="go" data-caption="internal/boli/boli.go">
+var Models = []Model{BoliChat} // a slice literal with one element
+
+func ModelIDs() []string {
+	ids := make([]string, 0, len(Models)) // length 0, room for len(Models) without growing
+	for _, m := range Models {
+		ids = append(ids, m.ID) // append returns the (possibly new) slice: always assign it back
+	}
+	return ids
+}
+</script>
+<p><code>len(s)</code> is how many elements it has, <code>cap(s)</code> how many fit before <code>append</code> must allocate a bigger array and copy. <code>s[1:3]</code> is a new view of elements 1 and 2 (end excluded), still sharing memory. A nil slice (<code>var s []string</code>) has length 0 and works with <code>len</code>, <code>range</code> and <code>append</code>, so you almost never need to check for nil.</p>
+
+<h2>7. Maps</h2>
+<script type="text/plain" data-lang="go" data-caption="internal/boli/boli.go">
+var APIErrors = map[ErrorCode]ErrorInfo{
+	ErrInvalidRequest: {Status: 400, Type: "invalid_request_error"},
+	ErrInvalidAPIKey:  {Status: 401, Type: "authentication_error"},
+	// ...
+}
+
+info, ok := APIErrors[code] // comma ok again: ok is false when the key is missing
+</script>
+<p><code>map[K]V</code> is a hash map, like a TS <code>Record</code> or <code>Map</code>. Reading a missing key does not fail: it returns V's zero value, which is why you use <code>ok</code> when "missing" and "zero" mean different things. <code>delete(m, k)</code> removes, <code>len(m)</code> counts. Iteration order is deliberately random on every run, so never depend on it. Writing to a nil map (<code>var m map[string]int</code> with no <code>make</code>) panics.</p>
+
+<h2>8. Structs</h2>
+<script type="text/plain" data-lang="go" data-caption="internal/boli/boli.go">
+type Price struct {
+	Input  int64
+	Output int64
+}
+
+type Model struct {
+	ID              string // public id used in the API
+	Label           string
+	ContextTokens   int
+	PricePerMillion Price // a struct inside a struct
+	Languages       []string
+}
+
+var BoliChat = Model{
+	ID:              "boli-chat",
+	ContextTokens:   8192,
+	PricePerMillion: Price{Input: 2, Output: 6},
+	Languages:       []string{"English", "Romanized Nepali", "Nepali (Devanagari)", "Code-mixed"},
+}
+</script>
+<p>A struct is a named group of fields, the closest thing to a TS object type, but it is a real type with a fixed set of fields: you cannot add a field at run time. Fields you leave out of a literal get their zero value. Read fields with a dot: <code>m.PricePerMillion.Input</code>.</p>
+<p>Tests use <strong>anonymous structs</strong> for tables of cases, a struct type written inline with no name:</p>
+<script type="text/plain" data-lang="go" data-caption="internal/boli/boli_test.go">
+cases := []struct {
+	name          string
+	input, output int64
+	want          int64
+}{
+	{name: "input only", input: 100, output: 0, want: 200},
+	{name: "typical call", input: 38, output: 61, want: 38*2 + 61*6},
+}
+</script>
+
+<h2>9. Values, copies and pointers</h2>
+<p>Go passes everything <strong>by value</strong>: assigning or passing a struct copies it. That is different from TS, where objects are always shared references.</p>
+<script type="text/plain" data-lang="go" data-caption="checked on this Mac">
+x := BoliChat
+y := x              // a full copy of the struct...
+y.ID = "copy"       // ...so x.ID is still "boli-chat"
+y.Languages[0] = "ne" // BUT the slice header was copied, not the array: x.Languages[0] is now "ne" too
+
+p := &x             // & takes the address: p has type *Model ("pointer to Model")
+p.ID = "via pointer" // Go dereferences for you: same as (*p).ID; x.ID changes
+</script>
+<p>Use a pointer when a function must change the caller's value, or when a struct is large and copying it on every call is wasteful. <code>CostMicro</code> takes <code>m Model</code> by value because it only reads it. There is no pointer arithmetic in Go, so pointers are safe to use.</p>
+
+<h2>10. Named types and methods</h2>
+<script type="text/plain" data-lang="go" data-caption="internal/boli/boli.go">
+type ErrorCode string // a NEW type whose underlying type is string
+
+const (
+	ErrInvalidRequest ErrorCode = "invalid_request"
+	ErrInvalidAPIKey  ErrorCode = "invalid_api_key"
+)
+
+// A method: a function with a receiver (c ErrorCode) written before its name.
+func (c ErrorCode) Info() ErrorInfo {
+	if info, ok := APIErrors[c]; ok {
+		return info
+	}
+	return ErrorInfo{Status: 500, Type: "server_error"}
+}
+
+// use: boli.ErrInvalidAPIKey.Info().Status == 401
+</script>
+<p><code>ErrorCode</code> is like the TS union <code>keyof typeof API_ERRORS</code>, but looser: Go has no union of string literals, so any string can be converted with <code>ErrorCode("typo")</code>. The named type still stops you passing a random <code>string</code> variable by accident, and it lets us attach methods. Any named type you define can have methods, not just structs. Go has no classes: a type plus its methods is the whole idea.</p>
+
+<h2>11. Strings are bytes (this matters for Nepali)</h2>
+<script type="text/plain" data-lang="go" data-caption="checked on this Mac">
+s := "नेपाल"
+len(s)                      // 15: BYTES, not characters (each Devanagari code point is 3 bytes in UTF-8)
+utf8.RuneCountInString(s)   // 5: code points (runes)
+for i, r := range "नेपा" { } // ranging a string yields runes, i is the BYTE offset: 0, 3, 6, 9
+</script>
+<p>In JavaScript <code>"नेपाल".length</code> is 5 (UTF-16 code units). In Go <code>len</code> counts bytes. Any limit like "name at most 64 characters" must decide which one it means. The TS zod <code>.max(64)</code> counts UTF-16 units, and Chapter 3 will match that exactly.</p>
+
+<h2>12. Printing with fmt</h2>
+<div class="tablewrap"><table class="map">
+<tr><th>Verb</th><th>Prints</th><th>For <code>BoliChat.PricePerMillion</code></th></tr>
+<tr><td><code>%v</code></td><td>the value, default format</td><td><code>{2 6}</code></td></tr>
+<tr><td><code>%+v</code></td><td>with field names</td><td><code>{Input:2 Output:6}</code></td></tr>
+<tr><td><code>%T</code></td><td>the type</td><td><code>boli.Price</code></td></tr>
+<tr><td><code>%d</code> / <code>%s</code> / <code>%q</code></td><td>integer / string / quoted string</td><td><code>%q</code> of the ID: <code>"boli-chat"</code></td></tr>
+<tr><td><code>%.6f</code></td><td>float, 6 decimals</td><td>442 micro as credits: <code>0.000442</code></td></tr>
+</table></div>
+<p><code>fmt.Println(a, b)</code> prints with spaces and a newline. <code>fmt.Printf</code> formats. <code>fmt.Sprintf</code> returns the string instead of printing it. You will use Sprintf for every error message in the service.</p>
+
+<h2>TypeScript vs Go</h2>
+<div class="vs">
+<script type="text/plain" data-lang="ts" data-caption="packages/boli/src/boli.ts">
+export function modelById(id: string): BoliModel | undefined {
+    return MODELS.find((m) => m.id === id)
+}
+
+export function costMicro(model: BoliModel, inputTokens: number, outputTokens: number): number {
+    const raw = inputTokens * model.pricePerMillion.input + outputTokens * model.pricePerMillion.output
+    return raw > 0 ? Math.ceil(raw) : 0
+}
+
+export const API_ERRORS = {
+    invalid_request: { status: 400, type: "invalid_request_error" },
+} as const
+export type ApiErrorCode = keyof typeof API_ERRORS
+</script>
+<script type="text/plain" data-lang="go" data-caption="internal/boli/boli.go">
+func ModelByID(id string) (Model, bool) {
+	for _, m := range Models { // no .find: write the loop
+		if m.ID == id {
+			return m, true
+		}
+	}
+	return Model{}, false
+}
+
+func CostMicro(m Model, inputTokens, outputTokens int64) int64 {
+	raw := inputTokens*m.PricePerMillion.Input + outputTokens*m.PricePerMillion.Output
+	if raw > 0 { // no ternary: write the if
+		return raw
+	}
+	return 0
+}
+
+type ErrorCode string
+var APIErrors = map[ErrorCode]ErrorInfo{ErrInvalidRequest: {Status: 400, Type: "invalid_request_error"}}
+</script>
+</div>
+<p>Why no <code>Math.ceil</code>? In TS <code>number</code> is a float, so the ceil guards against a fractional price. Our prices are whole micro-credits per token, so in <code>int64</code> the result is already whole. The comment in boli.go says what must change if a price ever becomes fractional: integer ceiling division, never floats.</p>
+
+<h2>Traps</h2>
+<ol class="traps">
+<li><strong><code>:=</code> in an inner block makes a NEW variable that hides the outer one.</strong> <code>n := 10; if n := 5; n &gt; 1 { }</code> leaves the outer <code>n</code> at 10. This bites hardest with <code>err</code>.</li>
+<li><strong>Integer division truncates toward zero.</strong> <code>7/2</code> is 3 and <code>-7/2</code> is -3. Convert to <code>float64</code> first if you want 3.5.</li>
+<li><strong>Integers overflow silently.</strong> An <code>int8</code> at 127 plus 1 becomes -128 with no error. Use <code>int64</code> for money and token counts.</li>
+<li><strong>Writing to a nil map panics.</strong> <code>var m map[string]int; m["x"] = 1</code> crashes. Create it with <code>make(map[string]int)</code> or a literal. Reading a nil map is fine.</li>
+<li><strong><code>for _, m := range models</code> gives you a COPY.</strong> <code>m.ID = "x"</code> changes the copy, not the slice. Use the index: <code>models[i].ID = "x"</code>.</li>
+<li><strong><code>append</code> may or may not reuse the array.</strong> If two slices share an array and one appends within capacity, the other sees the write. Always assign the result back: <code>s = append(s, v)</code>.</li>
+<li><strong><code>len(string)</code> is bytes.</strong> <code>len("नेपाल")</code> is 15. Count runes with <code>utf8.RuneCountInString</code>.</li>
+<li><strong>Map order is random.</strong> Two runs can print a map in different orders. Sort the keys when output must be stable (tests, JSON you compare).</li>
+<li><strong>Copying a struct copies its slice HEADER, not the elements.</strong> Both copies still share the elements.</li>
+<li><strong><code>:=</code> does not work outside functions.</strong> At package level use <code>var x = ...</code>.</li>
+</ol>
+
+<div data-quiz></div>
+<script type="application/json" class="quiz">
+[
+ {"kind":"Recall","q":"What is the first non-comment line of every Go file?","options":["<code>import</code>","<code>package &lt;name&gt;</code>","<code>func main()</code>","<code>module &lt;path&gt;</code>"],"answer":1,"why":"The package clause comes first. <code>module</code> belongs in go.mod, not in .go files."},
+ {"kind":"Recall","q":"What is the zero value of a <code>string</code>, an <code>int64</code> and a <code>bool</code>?","options":["<code>nil</code>, <code>nil</code>, <code>nil</code>","<code>\"\"</code>, <code>0</code>, <code>false</code>","undefined until assigned","<code>\" \"</code>, <code>-1</code>, <code>false</code>"],"answer":1,"why":"Every type has a usable zero value. Only pointers, slices, maps, funcs, interfaces and channels are nil."},
+ {"kind":"Recall","q":"Which line declares AND assigns a new variable inside a function?","options":["<code>cost = 5</code>","<code>cost := 5</code>","<code>let cost = 5</code>","<code>cost: int = 5</code>"],"answer":1,"why":"<code>:=</code> declares and infers the type. <code>=</code> only assigns to an existing variable."},
+ {"kind":"Recall","q":"Go has how many kinds of loop keyword?","options":["Three: for, while, do","Two: for and while","One: <code>for</code>, in several forms","None; you use recursion"],"answer":2,"why":"<code>for</code> covers range, three-part, while-style and infinite loops."},
+ {"kind":"Recall","q":"How does Go say \"not found\" from <code>ModelByID</code>?","options":["It returns <code>undefined</code>","It throws an exception","It returns two values: the model (zero value if missing) and a <code>bool</code>","It returns -1"],"answer":2,"why":"The comma-ok idiom: <code>m, ok := ModelByID(id)</code>. Go has no undefined and no exceptions for normal flow."},
+ {"kind":"Read the code","q":"In <code>func CostMicro(m Model, inputTokens, outputTokens int64) int64</code>, what is the type of <code>inputTokens</code>?","options":["<code>Model</code>","Untyped","<code>int64</code>, shared with outputTokens","<code>int</code>"],"answer":2,"why":"Consecutive parameters of the same type can share one type name at the end of the group."},
+ {"kind":"Predict","q":"What does this print?","code":"fmt.Println(7/2, 7.0/2, -7/2, 7%3)","options":["<code>3.5 3.5 -3.5 1</code>","<code>3 3.5 -3 1</code>","<code>4 3.5 -4 1</code>","<code>3 3.5 -4 1</code>"],"answer":1,"why":"Integer division truncates toward zero (so -7/2 is -3, not -4). <code>7.0</code> is a float constant, so that division is a float. Checked on this Mac."},
+ {"kind":"Predict","q":"What does this print?","code":"s := \"नेपाल\"\nfmt.Println(len(s), utf8.RuneCountInString(s))","options":["<code>5 5</code>","<code>15 5</code>","<code>5 15</code>","<code>10 5</code>"],"answer":1,"why":"len counts UTF-8 bytes (5 Devanagari code points x 3 bytes = 15). RuneCountInString counts code points."},
+ {"kind":"Predict","q":"What does this print?","code":"n := 10\nif n := 5; n > 1 {\n\tfmt.Println(\"inner\", n)\n}\nfmt.Println(\"outer\", n)","options":["<code>inner 5</code> then <code>outer 5</code>","<code>inner 5</code> then <code>outer 10</code>","Compile error: n redeclared","<code>inner 10</code> then <code>outer 10</code>"],"answer":1,"why":"The <code>n := 5</code> in the if statement is a new variable scoped to the if. It shadows the outer n, which stays 10."},
+ {"kind":"Predict","q":"What does this print?","code":"var m map[string]int\nfmt.Println(m[\"x\"], len(m), m == nil)","options":["Panic: nil map","<code>0 0 true</code>","<code>&lt;nil&gt; 0 true</code>","Compile error"],"answer":1,"why":"Reading a nil map is safe and returns the zero value. Only WRITING to a nil map panics."},
+ {"kind":"Predict","q":"What does this print?","code":"ms := []Model{{ID: \"a\"}}\nfor _, x := range ms {\n\tx.ID = \"changed\"\n}\nfmt.Println(ms[0].ID)","options":["<code>changed</code>","<code>a</code>","Compile error: x is unused","Panic"],"answer":1,"why":"The range variable is a copy of each element. Change <code>ms[i].ID</code> with the index form to modify the slice."},
+ {"kind":"Predict","q":"What does this print?","code":"a := []int{1, 2, 3}\nb := a[:2]\nb = append(b, 99)\nfmt.Println(a, b)","options":["<code>[1 2 3] [1 2 99]</code>","<code>[1 2 99] [1 2 99]</code>","<code>[1 2 3] [1 2 3 99]</code>","Panic: index out of range"],"answer":1,"why":"b has len 2 and cap 3, so append writes into slot 2 of the SHARED array, overwriting a's 3. See the diagram."},
+ {"kind":"Predict","q":"What does this print?","code":"x := Model{ID: \"boli-chat\", Languages: []string{\"en\"}}\ny := x\ny.ID = \"copy\"\ny.Languages[0] = \"ne\"\nfmt.Println(x.ID, x.Languages[0])","options":["<code>copy ne</code>","<code>boli-chat en</code>","<code>boli-chat ne</code>","<code>copy en</code>"],"answer":2,"why":"Assigning a struct copies its fields. The ID string is independent, but the slice field copies only the header, so both share the array."},
+ {"kind":"Predict","q":"What do <code>%v</code> and <code>%+v</code> print for <code>Price{Input: 2, Output: 6}</code>?","options":["<code>{2 6}</code> and <code>{Input:2 Output:6}</code>","<code>Price{2,6}</code> both times","<code>{Input:2 Output:6}</code> both times","<code>2 6</code> and <code>Input=2 Output=6</code>"],"answer":0,"why":"%+v adds field names, which is the most useful verb for debugging structs. %#v would add the type name too."},
+ {"kind":"Predict","q":"What does this print?","code":"var i8 int8 = 127\ni8++\nfmt.Println(i8)","options":["<code>128</code>","Panic: overflow","<code>-128</code>","Compile error"],"answer":2,"why":"Integer overflow wraps around silently at run time. (A CONSTANT that overflows is a compile error, but a variable is not checked.)"},
+ {"kind":"Read the code","q":"Why is <code>Models</code> declared with <code>var</code> and not <code>const</code>?","options":["Style only","Constants can only be numbers, strings and booleans; a slice of structs cannot be a constant","Because it changes at run time","const is only for exported names"],"answer":1,"why":"Go constants are compile-time scalars. Slices, maps and structs are always variables."},
+ {"kind":"Read the code","q":"<code>const DefaultMaxTokens = 1024</code> has no type. What does that allow?","options":["Nothing; it defaults to float64","It can be used where an int, int64 or float64 is expected, with no conversion","It can be changed later","It is a string"],"answer":1,"why":"An untyped constant takes the type its context needs. A typed constant (<code>const X int64 = 1</code>) would need a conversion to become an int."},
+ {"kind":"Read the code","q":"In <code>ids := make([]string, 0, len(Models))</code>, what are 0 and len(Models)?","options":["Start and end index","Length 0, capacity len(Models)","Capacity 0, length len(Models)","Default value and size"],"answer":1,"why":"make(type, len, cap). Starting at length 0 with enough capacity lets append fill it without reallocating."},
+ {"kind":"Read the code","q":"What is <code>(c ErrorCode)</code> in <code>func (c ErrorCode) Info() ErrorInfo</code>?","options":["A parameter list","The receiver: it makes Info a method you call as <code>code.Info()</code>","A type assertion","A generic type parameter"],"answer":1,"why":"A receiver before the name turns a function into a method on that type. Any named type can have methods."},
+ {"kind":"Read the code","q":"Why does the API use <code>int64</code> micro-credits instead of <code>float64</code> credits?","options":["Floats are slower","Money must be exact; floats cannot represent most decimals exactly (0.1 + 0.2 != 0.3)","int64 uses less memory","JSON cannot hold floats"],"answer":1,"why":"Same rule as the TS repo: money is integer minor units, never floats, never a tolerance compare."},
+ {"kind":"Spot the bug","q":"Why does this fail to compile?","code":"func total(n int, price int64) int64 {\n\treturn n * price\n}","options":["Missing semicolon","<code>int</code> and <code>int64</code> are different types; write <code>int64(n) * price</code>","Functions cannot return int64","price must be a pointer"],"answer":1,"why":"Go never converts numeric types implicitly, even between int and int64."},
+ {"kind":"Spot the bug","q":"This crashes at run time. Why?","code":"var counts map[string]int\ncounts[\"boli-chat\"]++","options":["++ does not work on maps","The map is nil; writing to a nil map panics. Use <code>counts := make(map[string]int)</code>","Keys must be ErrorCode","Missing comma ok"],"answer":1,"why":"A declared-but-not-made map is nil. Reads are fine, writes panic."},
+ {"kind":"Spot the bug","q":"This file does not compile. What is wrong?","code":"package boli\n\nlimit := 30\n\nfunc Limit() int { return limit }","options":["limit must be capitalised","<code>:=</code> is only allowed inside functions; use <code>var limit = 30</code>","A func cannot return a package variable","Missing import"],"answer":1,"why":"Package-level declarations must start with a keyword (var, const, type, func)."},
+ {"kind":"Spot the bug","q":"The intent is to uppercase every model id. Why does nothing change?","code":"for _, m := range Models {\n\tm.ID = strings.ToUpper(m.ID)\n}","options":["strings.ToUpper returns nothing","m is a copy of each element; assign through the index: <code>Models[i].ID = ...</code>","range over structs is not allowed","IDs are constants"],"answer":1,"why":"The classic range-copy trap. <code>for i := range Models { Models[i].ID = ... }</code> works."},
+ {"kind":"Spot the bug","q":"A validator must reject names longer than 64 characters, like zod's <code>.max(64)</code>. What is wrong with <code>if len(name) &gt; 64</code>?","options":["Nothing","len counts bytes, so a 30-character Devanagari name (90 bytes) would be wrongly rejected","len does not work on strings","It should be &gt;= 64"],"answer":1,"why":"Byte length is not character length. Chapter 3 matches zod, which counts UTF-16 code units."},
+ {"kind":"Port it","q":"Which Go line matches TS <code>const ok = balance &gt; 0 ? \"yes\" : \"no\"</code>?","options":["<code>ok := balance &gt; 0 ? \"yes\" : \"no\"</code>","<code>ok := \"no\"; if balance &gt; 0 { ok = \"yes\" }</code>","<code>ok := if balance &gt; 0 { \"yes\" } else { \"no\" }</code>","<code>ok := balance &gt; 0 &amp;&amp; \"yes\" || \"no\"</code>"],"answer":1,"why":"Go has no ternary and if is a statement, not an expression. Set a default, then overwrite it in an if."},
+ {"kind":"Port it","q":"TS: <code>const ids = MODELS.map((m) =&gt; m.id)</code>. What does the Go version in boli.go do instead?","options":["Calls <code>Models.Map(...)</code>","Makes a slice with <code>make</code>, loops with <code>for range</code> and <code>append</code>s each ID","Uses a generic <code>slices.Map</code> from the standard library","Converts the slice to JSON and back"],"answer":1,"why":"The standard library has no map/filter on slices (the <code>slices</code> package has Sort, Contains, Index and similar). A plain loop is idiomatic Go."},
+ {"kind":"Port it","q":"TS has <code>type ApiErrorCode = keyof typeof API_ERRORS</code>, a union that rejects unknown strings at compile time. What does Go's <code>type ErrorCode string</code> give you?","options":["The same compile-time union check","A distinct type: a plain string variable needs an explicit conversion, but <code>ErrorCode(\"anything\")</code> still compiles, so Info() handles unknown codes","A runtime enum that panics on bad values","Nothing; it is the same as string"],"answer":1,"why":"Go has no string-literal unions. A named type plus a fallback (Info returns 500 for unknown codes) is the usual answer."},
+ {"kind":"Predict","q":"What does this switch print when code is 429?","code":"switch {\ncase code >= 500:\n\tfmt.Println(\"server\")\ncase code >= 400:\n\tfmt.Println(\"client\")\ndefault:\n\tfmt.Println(\"ok\")\n}","options":["<code>client</code> then <code>ok</code> (falls through)","<code>client</code>","<code>server</code>","Nothing; switch needs a value"],"answer":1,"why":"Go cases do not fall through, so there is no break needed. A valueless switch picks the first true case."},
+ {"kind":"Predict","q":"<code>p := &amp;x; p.ID = \"via pointer\"</code>. What is <code>x.ID</code> now?","options":["Unchanged: p is a copy","<code>\"via pointer\"</code>: p points at x, and <code>p.ID</code> is shorthand for <code>(*p).ID</code>","Compile error: use <code>p-&gt;ID</code>","nil"],"answer":1,"why":"&amp; takes x's address. Field access through a pointer dereferences automatically; Go has no -&gt; operator."}
+]
+</script>

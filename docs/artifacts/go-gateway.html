@@ -1,0 +1,463 @@
+<title>Go Through the Gateway</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+/* Layout: a sticky chapter rail on the left (a fold-out list on phones), one reading column on the right.
+   The subject is a Go service, so code is the main material: code panels are first-class, prose stays ~68ch. */
+:root {
+  --bg: #f5f7f9;
+  --surface: #ffffff;
+  --ink: #14191e;
+  --muted: #4b5561;
+  --line: #d9e0e6;
+  --accent: #00708c;
+  --accent-soft: #e2f3f7;
+  --good: #1d7443;
+  --good-soft: #e4f4ea;
+  --bad: #a8321f;
+  --bad-soft: #fbe9e5;
+  --code-bg: #eef2f5;
+  --code-ink: #1b2229;
+  --hl-kw: #8a2a6b;
+  --hl-str: #1d6b3a;
+  --hl-com: #6a7582;
+  --hl-num: #9a4b00;
+  --hl-type: #00708c;
+  --hl-fn: #3a4fb0;
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1316; --surface: #161b1f; --ink: #e6ebee; --muted: #a2adb7; --line: #2a3238;
+    --accent: #52c4e0; --accent-soft: #12303a; --good: #6fd39a; --good-soft: #13301f; --bad: #f08a76; --bad-soft: #3a1b15;
+    --code-bg: #12181c; --code-ink: #dfe6ea;
+    --hl-kw: #e48ac8; --hl-str: #8fd8a5; --hl-com: #7f8c98; --hl-num: #f2b36b; --hl-type: #6fd3ec; --hl-fn: #a9b6ff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1316; --surface: #161b1f; --ink: #e6ebee; --muted: #a2adb7; --line: #2a3238;
+  --accent: #52c4e0; --accent-soft: #12303a; --good: #6fd39a; --good-soft: #13301f; --bad: #f08a76; --bad-soft: #3a1b15;
+  --code-bg: #12181c; --code-ink: #dfe6ea;
+  --hl-kw: #e48ac8; --hl-str: #8fd8a5; --hl-com: #7f8c98; --hl-num: #f2b36b; --hl-type: #6fd3ec; --hl-fn: #a9b6ff;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+}
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+.wrap {
+  display: grid; grid-template-columns: 272px minmax(0, 1fr); gap: 40px;
+  max-width: 1180px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 80px;
+}
+@media (max-width: 880px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 20px; padding-block: 16px 64px; } }
+
+/* Rail */
+.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; }
+.brand { font-family: var(--font-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0 0 4px; text-wrap: balance; }
+.brand-sub { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+.rail details > summary { display: none; }
+.toc { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.toc a {
+  display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 8px; align-items: baseline;
+  padding: 7px 10px; border-radius: 8px; text-decoration: none; color: var(--ink); font-size: 14px; line-height: 1.35;
+}
+.toc a:hover { background: var(--accent-soft); }
+.toc a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.toc .n { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.toc .soon { color: var(--muted); }
+.toc .score { font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.toc .score.done { color: var(--good); }
+.toc .gate { font-size: 11px; color: var(--muted); padding: 12px 10px 4px; letter-spacing: .04em; }
+@media (max-width: 880px) {
+  .rail { position: static; max-height: none; overflow: visible; }
+  .rail details { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+  .rail details > summary { display: flex; justify-content: space-between; cursor: pointer; padding: 12px 14px; font-weight: 600; list-style: none; }
+  .rail details > summary::-webkit-details-marker { display: none; }
+  .rail details > summary::after { content: "Chapters"; color: var(--accent); font-weight: 500; }
+  .rail details[open] > summary::after { content: "Close"; }
+  .rail details > .toc { padding: 0 6px 10px; }
+  .brand-sub { margin-bottom: 12px; }
+}
+
+/* Reading column */
+main { min-width: 0; }
+.chapter { max-width: 780px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; color: var(--accent); letter-spacing: .06em; margin: 0 0 6px; }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(28px, 4vw, 38px); line-height: 1.15; margin: 0 0 12px; text-wrap: balance; }
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 24px; line-height: 1.25; margin: 44px 0 10px; text-wrap: balance; }
+h3 { font-size: 17px; font-weight: 600; margin: 28px 0 6px; }
+p, li { max-width: 68ch; }
+.lede { font-size: 18px; color: var(--muted); margin: 0 0 20px; }
+code { font-family: var(--font-mono); font-size: .88em; background: var(--code-bg); color: var(--code-ink); padding: 1px 5px; border-radius: 5px; }
+.lands { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.lands span { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; color: var(--muted); background: var(--surface); }
+
+figure.code { margin: 16px 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--code-bg); }
+figure.code figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding: 8px 14px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; }
+figure.code figcaption .lang { color: var(--accent); }
+figure.code pre { margin: 0; padding: 14px; overflow-x: auto; }
+figure.code pre code { background: none; padding: 0; font-size: 13.5px; line-height: 1.55; color: var(--code-ink); }
+.hljs-keyword, .hljs-built_in.hljs-keyword { color: var(--hl-kw); }
+.hljs-string { color: var(--hl-str); }
+.hljs-comment { color: var(--hl-com); font-style: italic; }
+.hljs-number, .hljs-literal { color: var(--hl-num); }
+.hljs-type, .hljs-built_in, .hljs-class .hljs-title { color: var(--hl-type); }
+.hljs-title.function_, .hljs-title { color: var(--hl-fn); }
+
+.vs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; margin: 16px 0; }
+.vs figure.code { margin: 0; }
+@media (max-width: 720px) { .vs { grid-template-columns: minmax(0, 1fr); } }
+
+.note { border-left: 3px solid var(--accent); background: var(--surface); padding: 10px 14px; border-radius: 0 10px 10px 0; margin: 16px 0; }
+.note strong:first-child { color: var(--accent); }
+
+table.map { border-collapse: collapse; width: 100%; font-size: 14px; }
+.tablewrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table.map th, table.map td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.map tr:last-child td { border-bottom: 0; }
+table.map th { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .03em; }
+table.map td code { white-space: nowrap; }
+
+ol.traps { padding-left: 0; list-style: none; counter-reset: t; display: flex; flex-direction: column; gap: 10px; }
+ol.traps li { counter-increment: t; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 12px 48px; position: relative; max-width: none; }
+ol.traps li::before { content: counter(t); position: absolute; left: 14px; top: 12px; width: 22px; height: 22px; border-radius: 50%; background: var(--bad-soft); color: var(--bad); font-size: 12px; font-weight: 600; display: grid; place-items: center; }
+
+/* Diagrams: black text on light fills in BOTH themes (owner's rule), on a light panel. */
+figure.diagram { margin: 20px 0; background: #fbfcfd; border: 1px solid var(--line); border-radius: 12px; padding: 14px; overflow-x: auto; }
+figure.diagram svg { display: block; min-width: 560px; width: 100%; height: auto; }
+figure.diagram figcaption { color: #333; font-size: 13px; margin-top: 8px; }
+
+/* Quiz */
+.quiz-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; }
+.quiz-head .tally { font-family: var(--font-mono); font-size: 14px; font-variant-numeric: tabular-nums; color: var(--muted); }
+.quiz-head .tally b { color: var(--ink); }
+.btn { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 6px 12px; cursor: pointer; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.qs { list-style: none; padding: 0; margin: 16px 0 0; display: flex; flex-direction: column; gap: 14px; counter-reset: q; }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; max-width: none; counter-increment: q; }
+.q-top { display: flex; gap: 10px; align-items: baseline; margin-bottom: 8px; }
+.q-top::before { content: counter(q); font-family: var(--font-mono); font-size: 12px; color: var(--muted); min-width: 20px; }
+.kind { font-size: 11px; letter-spacing: .04em; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.q-text { margin: 0 0 10px; font-weight: 500; }
+.q figure.code { margin: 8px 0 12px; }
+.opts { display: grid; gap: 8px; }
+.opt { text-align: left; font: inherit; font-size: 15px; line-height: 1.45; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 10px; padding: 9px 12px; cursor: pointer; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; }
+.opt .l { font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding-top: 2px; }
+.opt:hover:not([disabled]) { border-color: var(--accent); }
+.opt[disabled] { cursor: default; }
+.opt.right { border-color: var(--good); background: var(--good-soft); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.opt code { font-size: .85em; }
+.why { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); font-size: 15px; }
+.why .verdict { font-weight: 600; }
+.why .verdict.ok { color: var(--good); }
+.why .verdict.no { color: var(--bad); }
+.q-actions { margin-top: 10px; display: flex; gap: 8px; }
+.q-actions .btn { font-size: 13px; padding: 4px 10px; }
+
+.pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.pager a { text-decoration: none; font-weight: 500; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin: 16px 0; }
+.card { border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 12px 14px; text-decoration: none; color: var(--ink); display: flex; flex-direction: column; gap: 4px; }
+a.card:hover { border-color: var(--accent); }
+.card .n { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+.card.soon { opacity: .72; }
+.card .t { font-weight: 600; line-height: 1.3; }
+.card .b { font-size: 13px; color: var(--muted); line-height: 1.45; }
+.loading, .failed { color: var(--muted); padding: 40px 0; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+  <aside class="rail">
+    <p class="brand">Go Through the Gateway</p>
+    <p class="brand-sub">Learn Go by porting Boli's <code>/v1/chat/completions</code></p>
+    <details id="tocbox" open>
+      <summary>Chapter list</summary>
+      <ol class="toc" id="toc"></ol>
+    </details>
+  </aside>
+  <main id="main"><p class="loading">Loading...</p></main>
+</div>
+
+<script>
+/* The course outline. `ready: true` chapters have a fragment at chapters/chNN.html.
+   Each gate flips the next chapter to ready. */
+const CHAPTERS = [
+  { n: 0,  title: "Setup and the go tool", blurb: "What got installed, go run / build / test / vet / fmt, your first program.", files: ["go.mod", "cmd/gateway/main.go"], ready: true },
+  { n: 1,  title: "Go from zero: the syntax", blurb: "Variables, types, constants, functions, if / for / switch, slices, maps, structs, pointers - all from internal/boli.", files: ["internal/boli/boli.go", "internal/boli/boli_test.go"], ready: true },
+  { n: 2,  title: "Modules, packages and visibility", blurb: "go.mod, import paths, cmd/ and internal/, capital letters as export, dependency direction.", files: ["go.mod", "the folder tree"], ready: true },
+  { n: 3,  title: "Types, structs and JSON tags", blurb: "The OpenAI request and response as Go structs; porting the zod schema to hand-written validation.", files: ["internal/openai"], ready: false },
+  { n: 4,  title: "Errors and wrapping", blurb: "error values, fmt.Errorf with %w, errors.Is / errors.As, and the OpenAI error shape.", files: ["internal/apierr"], ready: false },
+  { n: 5,  title: "Interfaces", blurb: "Accept interfaces, return structs: the store and upstream seams that make tests easy.", files: ["internal/gateway"], ready: false },
+  { n: 6,  title: "Context and cancellation", blurb: "context.Context through every call, timeouts, and why the upstream call ignores the client leaving.", files: ["internal/upstream"], ready: false },
+  { n: 7,  title: "net/http handlers and middleware", blurb: "Go 1.22 routing, handlers, middleware chains, GET /v1/models, the server on :3110.", files: ["internal/httpapi", "cmd/gateway"], ready: false },
+  { n: 8,  title: "Postgres with pgx", blurb: "Key lookup, the rate-limit count, balance, and the charge: pgx batches and transactions vs Neon HTTP.", files: ["internal/store"], ready: false },
+  { n: 9,  title: "Calling llama-server", blurb: "net/http client, building the upstream body, the non-streaming answer and its charge.", files: ["internal/upstream", "internal/httpapi"], ready: false },
+  { n: 10, title: "Streaming with http.Flusher", blurb: "SSE pass-through line by line, rewriting model, counting deltas, charging before close.", files: ["internal/httpapi/stream.go"], ready: false },
+  { n: 11, title: "Goroutines, channels and mutexes", blurb: "One goroutine per request, data races, sync.Mutex, and why the limiter stays a DB count.", files: ["-race tests"], ready: false },
+  { n: 12, title: "Testing with httptest", blurb: "Fake upstream, fake store, table tests for every error path, the race detector.", files: ["*_test.go"], ready: false },
+  { n: 13, title: "Running it next to main", blurb: "Config, slog, graceful shutdown, the probe on both ports, and the full Go-to-TS map.", files: ["README.md"], ready: false },
+];
+
+const pad = (n) => String(n).padStart(2, "0");
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private window: answers just are not kept */ } },
+  del(k) { try { localStorage.removeItem(k); } catch { /* ignore */ } },
+};
+const answersKey = (n) => `go-gateway:answers:${n}`;
+const totalsKey = (n) => `go-gateway:total:${n}`;
+
+function scoreOf(n) {
+  const a = store.get(answersKey(n)) || {};
+  const total = store.get(totalsKey(n));
+  const done = Object.values(a);
+  return { right: done.filter((x) => x.ok).length, answered: done.length, total };
+}
+
+function renderToc(current) {
+  const toc = document.getElementById("toc");
+  const items = [`<li><a href="#outline" ${current === "outline" ? 'aria-current="page"' : ""}><span class="n">-</span><span>Course outline</span><span></span></a></li>`];
+  CHAPTERS.forEach((c) => {
+    if (c.n === 0) items.push(`<li class="gate">PRIMER</li>`);
+    if (c.n === 3) items.push(`<li class="gate">THE SERVICE, PIECE BY PIECE</li>`);
+    const s = scoreOf(c.n);
+    const score = c.ready && s.total ? `<span class="score ${s.answered === s.total ? "done" : ""}">${s.right}/${s.total}</span>` : "<span></span>";
+    const label = c.ready ? c.title : `<span class="soon">${c.title}</span>`;
+    items.push(`<li><a href="#chapter-${c.n}" ${current === c.n ? 'aria-current="page"' : ""}><span class="n">${pad(c.n)}</span><span>${label}</span>${score}</a></li>`);
+  });
+  toc.innerHTML = items.join("");
+}
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+
+function dedent(text) {
+  const lines = text.replace(/^\n+|\s+$/g, "").split("\n");
+  const indents = lines.filter((l) => l.trim()).map((l) => l.match(/^[ ]*/)[0].length);
+  const cut = indents.length ? Math.min(...indents) : 0;
+  return lines.map((l) => l.slice(cut)).join("\n");
+}
+
+function codeFigure(src, lang, caption) {
+  const fig = document.createElement("figure");
+  fig.className = "code";
+  const langName = { go: "Go", ts: "TypeScript", typescript: "TypeScript", bash: "Terminal", sql: "SQL", json: "JSON", text: "Output", python: "Python" }[lang] || lang;
+  if (caption || langName) fig.innerHTML = `<figcaption><span>${esc(caption || "")}</span><span class="lang">${esc(langName)}</span></figcaption>`;
+  const pre = document.createElement("pre");
+  const code = document.createElement("code");
+  code.textContent = dedent(src);
+  const hl = { ts: "typescript", text: "plaintext" }[lang] || lang;
+  code.className = `language-${hl}`;
+  pre.appendChild(code);
+  fig.appendChild(pre);
+  if (window.hljs && hl !== "plaintext") { try { window.hljs.highlightElement(code); } catch { /* plain text is fine */ } }
+  return fig;
+}
+
+/* Code lives in <script type="text/plain" data-lang="go" data-caption="..."> so Go's < and & need no escaping. */
+function upgradeCode(root) {
+  root.querySelectorAll('script[type="text/plain"][data-lang]').forEach((s) => {
+    s.replaceWith(codeFigure(s.textContent, s.dataset.lang, s.dataset.caption));
+  });
+}
+
+const LETTERS = "ABCDEFG";
+
+function seededOrder(len, seed) {
+  let s = (seed * 2654435761 + 12345) >>> 0;
+  const rnd = () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+  const idx = Array.from({ length: len }, (_, k) => k);
+  for (let k = len - 1; k > 0; k--) { const j = Math.floor(rnd() * (k + 1)); [idx[k], idx[j]] = [idx[j], idx[k]]; }
+  return idx;
+}
+
+function renderQuiz(root, n) {
+  const holder = root.querySelector("[data-quiz]");
+  const data = root.querySelector('script[type="application/json"].quiz');
+  if (!holder || !data) return;
+  let qs;
+  try { qs = JSON.parse(data.textContent); } catch (e) { holder.innerHTML = `<p class="failed">The quiz could not be read (${esc(e.message)}).</p>`; return; }
+  store.set(totalsKey(n), qs.length);
+  const answers = store.get(answersKey(n)) || {};
+
+  holder.innerHTML = `
+    <div class="quiz-head"><h2 id="quiz">Quiz</h2><span class="tally"></span></div>
+    <p>${qs.length} questions, easy first. Pick an answer to see whether it is right and why. Your answers stay in this browser.</p>
+    <p><button class="btn" type="button" data-reset>Clear my answers</button></p>
+    <ol class="qs"></ol>`;
+  const list = holder.querySelector(".qs");
+  const tally = holder.querySelector(".tally");
+  const updateTally = () => {
+    const done = Object.values(answers);
+    tally.innerHTML = `<b>${done.filter((x) => x.ok).length}</b> right of ${done.length} answered / ${qs.length}`;
+    renderToc(n);
+  };
+
+  qs.forEach((raw, i) => {
+    // Options are shuffled with a fixed seed per chapter + question, so the right answer is not always B, and the
+    // order is the same on every visit (saved answers stay valid).
+    const order = seededOrder(raw.options.length, n * 1000 + i);
+    const q = { ...raw, options: order.map((k) => raw.options[k]), answer: order.indexOf(raw.answer) };
+    const li = document.createElement("li");
+    li.className = "q";
+    li.innerHTML = `<div class="q-top"><span class="kind">${esc(q.kind || "Recall")}</span></div><p class="q-text"></p>`;
+    li.querySelector(".q-text").innerHTML = q.q;
+    if (q.code) li.appendChild(codeFigure(q.code, q.lang || "go", ""));
+    const opts = document.createElement("div");
+    opts.className = "opts";
+    q.options.forEach((o, j) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "opt"; b.id = `q${n}-${i}-${j}`;
+      b.innerHTML = `<span class="l">${LETTERS[j]}</span><span>${o}</span>`;
+      b.addEventListener("click", () => choose(j));
+      opts.appendChild(b);
+    });
+    li.appendChild(opts);
+    const actions = document.createElement("div");
+    actions.className = "q-actions";
+    actions.innerHTML = `<button class="btn" type="button">Reveal the answer</button>`;
+    actions.firstChild.addEventListener("click", () => choose(-1));
+    li.appendChild(actions);
+    const why = document.createElement("div");
+    why.className = "why"; why.hidden = true;
+    li.appendChild(why);
+    list.appendChild(li);
+
+    function paint(picked) {
+      opts.querySelectorAll(".opt").forEach((b, j) => {
+        b.disabled = true;
+        if (j === q.answer) b.classList.add("right");
+        if (j === picked && picked !== q.answer) b.classList.add("wrong");
+      });
+      const verdict = picked === -1 ? `<span class="verdict">Answer: ${LETTERS[q.answer]}.</span>`
+        : picked === q.answer ? `<span class="verdict ok">Right.</span>` : `<span class="verdict no">Not quite - it is ${LETTERS[q.answer]}.</span>`;
+      why.innerHTML = `${verdict} ${q.why}`;
+      why.hidden = false;
+      actions.hidden = true;
+    }
+    function choose(j) {
+      if (answers[i]) return;
+      answers[i] = { picked: j, ok: j === q.answer };
+      store.set(answersKey(n), answers);
+      paint(j);
+      updateTally();
+    }
+    if (answers[i]) paint(answers[i].picked);
+  });
+
+  holder.querySelector("[data-reset]").addEventListener("click", () => {
+    store.del(answersKey(n));
+    show(`chapter-${n}`, true);
+  });
+  updateTally();
+}
+
+function outline() {
+  const cards = CHAPTERS.map((c) => {
+    const tag = c.ready ? "a" : "div";
+    const href = c.ready ? ` href="#chapter-${c.n}"` : "";
+    return `<${tag} class="card ${c.ready ? "" : "soon"}"${href}><span class="n">Chapter ${pad(c.n)}${c.ready ? "" : " - after the code lands"}</span><span class="t">${c.title}</span><span class="b">${c.blurb}</span></${tag}>`;
+  }).join("");
+  return `
+  <article class="chapter">
+    <p class="eyebrow">COURSE OUTLINE</p>
+    <h1>Learn Go by rebuilding one real endpoint</h1>
+    <p class="lede">Boli's public API answers <code>POST /v1/chat/completions</code> in TypeScript inside apps/main. This course rebuilds it in Go, in <code>apps/gateway-go</code> on port 3110, and teaches the language as each piece lands.</p>
+    <p>You start from zero. Chapters 0 to 2 are the primer: the tools, the syntax and how Go code is organised. From Chapter 3 on, each chapter is one piece of the service, in the order it is built. A chapter opens only after its code exists, compiles and passes its tests, so every snippet you read is real code from the service.</p>
+    <figure class="diagram">
+      <svg viewBox="0 0 900 250" role="img" aria-label="The request path through the gateway, with the chapter that builds each step">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#222"/></marker></defs>
+        <g font-family="Instrument Sans, system-ui, sans-serif" font-size="13" fill="#000">
+          <rect x="10" y="20" width="110" height="56" rx="10" fill="#eef0f3" stroke="#555"/>
+          <text x="65" y="44" text-anchor="middle" font-weight="600">Client</text><text x="65" y="62" text-anchor="middle" font-size="11">openai SDK, curl</text>
+          <rect x="160" y="20" width="110" height="56" rx="10" fill="#e3f4f8" stroke="#00708c"/>
+          <text x="215" y="44" text-anchor="middle" font-weight="600">Read key</text><text x="215" y="62" text-anchor="middle" font-size="11">Ch 7, 8</text>
+          <rect x="310" y="20" width="110" height="56" rx="10" fill="#e3f4f8" stroke="#00708c"/>
+          <text x="365" y="44" text-anchor="middle" font-weight="600">Rate limit</text><text x="365" y="62" text-anchor="middle" font-size="11">30/min, Ch 8</text>
+          <rect x="460" y="20" width="110" height="56" rx="10" fill="#e3f4f8" stroke="#00708c"/>
+          <text x="515" y="44" text-anchor="middle" font-weight="600">Balance</text><text x="515" y="62" text-anchor="middle" font-size="11">Ch 8</text>
+          <rect x="610" y="20" width="110" height="56" rx="10" fill="#e3f4f8" stroke="#00708c"/>
+          <text x="665" y="44" text-anchor="middle" font-weight="600">Validate</text><text x="665" y="62" text-anchor="middle" font-size="11">Ch 3, 4</text>
+          <rect x="760" y="20" width="130" height="56" rx="10" fill="#fff4dc" stroke="#9a6a00"/>
+          <text x="825" y="44" text-anchor="middle" font-weight="600">llama-server</text><text x="825" y="62" text-anchor="middle" font-size="11">Ch 6, 9</text>
+          <line x1="120" y1="48" x2="158" y2="48" stroke="#222" stroke-width="1.5" marker-end="url(#ah)"/>
+          <line x1="270" y1="48" x2="308" y2="48" stroke="#222" stroke-width="1.5" marker-end="url(#ah)"/>
+          <line x1="420" y1="48" x2="458" y2="48" stroke="#222" stroke-width="1.5" marker-end="url(#ah)"/>
+          <line x1="570" y1="48" x2="608" y2="48" stroke="#222" stroke-width="1.5" marker-end="url(#ah)"/>
+          <line x1="720" y1="48" x2="758" y2="48" stroke="#222" stroke-width="1.5" marker-end="url(#ah)"/>
+          <rect x="560" y="150" width="190" height="60" rx="10" fill="#e4f4ea" stroke="#1d7443"/>
+          <text x="655" y="175" text-anchor="middle" font-weight="600">Charge (one batch)</text><text x="655" y="194" text-anchor="middle" font-size="11">inference_request + ledger, Ch 8</text>
+          <rect x="300" y="150" width="200" height="60" rx="10" fill="#e3f4f8" stroke="#00708c"/>
+          <text x="400" y="175" text-anchor="middle" font-weight="600">Answer: JSON or SSE</text><text x="400" y="194" text-anchor="middle" font-size="11">Ch 9, 10</text>
+          <path d="M825 76 L825 180 L752 180" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#ah)"/>
+          <line x1="560" y1="180" x2="502" y2="180" stroke="#222" stroke-width="1.5" marker-end="url(#ah)"/>
+          <path d="M300 180 L65 180 L65 78" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#ah)"/>
+          <text x="180" y="236" text-anchor="middle" font-size="11">any failure: OpenAI error JSON (Ch 4)</text>
+        </g>
+      </svg>
+      <figcaption>The path every request takes, and the chapter that builds each step. Same order as the TypeScript route.</figcaption>
+    </figure>
+    <h2>How each chapter works</h2>
+    <p>Every chapter has the same five parts: a plain explanation, the real code from the service, a TypeScript vs Go comparison (you already know the TS version), the traps that catch people, and a quiz of 20 to 30 questions that gets harder from top to bottom. Read the chapter, take the quiz, then say <strong>next</strong> in the chat and the next piece gets built.</p>
+    <h2>Chapters</h2>
+    <div class="cards">${cards}</div>
+  </article>`;
+}
+
+const cache = {};
+async function show(hash, force) {
+  const main = document.getElementById("main");
+  const m = /^chapter-(\d+)$/.exec(hash || "");
+  if (!m) { renderToc("outline"); main.innerHTML = outline(); return; }
+  const n = Number(m[1]);
+  const c = CHAPTERS.find((x) => x.n === n);
+  renderToc(n);
+  if (!c || !c.ready) { main.innerHTML = outline(); return; }
+  main.innerHTML = `<p class="loading">Loading chapter ${n}...</p>`;
+  try {
+    if (!cache[n] || force) {
+      const r = await fetch(`chapters/ch${pad(n)}.html`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      cache[n] = await r.text();
+    }
+  } catch (e) {
+    main.innerHTML = `<p class="failed">Chapter ${n} could not load (${esc(e.message)}). Reload the page to try again.</p>`;
+    return;
+  }
+  const art = document.createElement("article");
+  art.className = "chapter";
+  art.innerHTML = cache[n];
+  upgradeCode(art);
+  const prev = CHAPTERS.find((x) => x.n === n - 1);
+  const next = CHAPTERS.find((x) => x.n === n + 1);
+  const pager = document.createElement("nav");
+  pager.className = "pager";
+  pager.innerHTML = `${prev ? `<a href="#chapter-${prev.n}">Back: ${prev.title}</a>` : `<a href="#outline">Course outline</a>`}
+    ${next ? (next.ready ? `<a href="#chapter-${next.n}">Next: ${next.title}</a>` : `<span style="color:var(--muted)">Next: ${next.title} (after its code lands)</span>`) : ""}`;
+  art.appendChild(pager);
+  main.innerHTML = "";
+  main.appendChild(art);
+  renderQuiz(art, n);
+  if (!force) window.scrollTo(0, 0);
+  if (window.matchMedia("(max-width: 880px)").matches) document.getElementById("tocbox").open = false;
+}
+
+window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+if (window.matchMedia("(max-width: 880px)").matches) document.getElementById("tocbox").open = false;
+show(location.hash.slice(1));
+</script>

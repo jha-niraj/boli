@@ -1,0 +1,141 @@
+<p class="eyebrow">CHAPTER 00 - PRIMER</p>
+<h1>Setup and the go tool</h1>
+<p class="lede">What is now on your Mac, the one command that does nearly everything, and the first program in the service.</p>
+<div class="lands"><span>go.mod</span><span>cmd/gateway/main.go</span></div>
+
+<h2>What Go is, in one paragraph</h2>
+<p>Go is a compiled, statically typed language from Google (2009). <strong>Compiled</strong> means your source becomes one native executable before it runs: no Node, no runtime to install on the server. <strong>Statically typed</strong> means every variable has a type known at compile time, like TypeScript, except the types are not erased: the compiler uses them to lay out memory. It has a garbage collector, so you never free memory yourself. And concurrency is built into the language (goroutines and channels, Chapter 11).</p>
+<p>Why it suits a gateway like ours: an HTTP server in Go is a few lines of the standard library, each request runs in its own cheap goroutine, the whole service ships as one file of a few MB, and it starts in milliseconds.</p>
+
+<h2>What got installed</h2>
+<p>Homebrew installed Go 1.27.4. These are the commands that were run and what they printed:</p>
+<script type="text/plain" data-lang="bash" data-caption="terminal">
+$ brew install go
+==> Pouring go--1.27.4.arm64_tahoe.bottle.tar.gz
+/opt/homebrew/Cellar/go/1.27.4: 15,597 files, 240.2MB
+
+$ go version
+go version go1.27.4 darwin/arm64
+
+$ go env GOROOT GOPATH GOMODCACHE GOOS GOARCH
+/opt/homebrew/Cellar/go/1.27.4/libexec
+/Users/nirajjha/go
+/Users/nirajjha/go/pkg/mod
+darwin
+arm64
+</script>
+<div class="tablewrap"><table class="map">
+<tr><th>Name</th><th>What it is</th><th>Do you touch it?</th></tr>
+<tr><td><code>GOROOT</code></td><td>Where Go itself lives: the compiler and the standard library source (you can read <code>net/http</code>'s real code there).</td><td>Never. Homebrew owns it.</td></tr>
+<tr><td><code>GOPATH</code></td><td><code>~/go</code>. Holds the module cache and binaries you install with <code>go install</code> (<code>~/go/bin</code>). Before 2018 all your code had to live here; not any more.</td><td>Rarely. Add <code>~/go/bin</code> to PATH if you install tools.</td></tr>
+<tr><td><code>GOMODCACHE</code></td><td><code>~/go/pkg/mod</code>: downloaded dependencies (pgx will land here). Like a global, read-only <code>node_modules</code> shared by every project.</td><td>Never edit. <code>go clean -modcache</code> wipes it.</td></tr>
+<tr><td><code>GOOS / GOARCH</code></td><td>The target the compiler builds for. Change them to cross-compile: <code>GOOS=linux GOARCH=amd64 go build</code> makes a Linux binary on your Mac.</td><td>Only when building for a server.</td></tr>
+</table></div>
+<div class="note"><strong>Your editor.</strong> In VS Code install the official <em>Go</em> extension (by the Go team). It installs <code>gopls</code>, the language server: autocomplete, go to definition, and it runs <code>gofmt</code> on save. Open the <code>apps/gateway-go</code> folder itself so gopls finds <code>go.mod</code>.</div>
+
+<h2>One command: <code>go</code></h2>
+<p>In TypeScript you juggle node, pnpm, tsc, eslint, prettier and vitest. Go ships one binary with subcommands, and the community uses them as they are, with no config files.</p>
+<div class="tablewrap"><table class="map">
+<tr><th>Go</th><th>Does</th><th>Closest in the TS world</th></tr>
+<tr><td><code>go mod init &lt;path&gt;</code></td><td>Starts a module (writes <code>go.mod</code>)</td><td><code>pnpm init</code></td></tr>
+<tr><td><code>go run ./cmd/gateway</code></td><td>Compiles to a temp file and runs it</td><td><code>tsx src/index.ts</code></td></tr>
+<tr><td><code>go build ./cmd/gateway</code></td><td>Compiles a binary you keep</td><td><code>tsc</code> + a bundler</td></tr>
+<tr><td><code>go test ./...</code></td><td>Runs every <code>*_test.go</code> in every package</td><td><code>vitest run</code></td></tr>
+<tr><td><code>go vet ./...</code></td><td>Finds likely bugs the compiler allows (wrong printf verbs, copied locks)</td><td>eslint (a small, strict subset)</td></tr>
+<tr><td><code>gofmt -l .</code> / <code>go fmt ./...</code></td><td>Lists / rewrites badly formatted files. One style, no options.</td><td>prettier, with every option removed</td></tr>
+<tr><td><code>go get pkg@v</code> / <code>go mod tidy</code></td><td>Add a dependency / sync go.mod with your imports</td><td><code>pnpm add</code> / prune</td></tr>
+<tr><td><code>go doc pkg Name</code></td><td>Prints the doc comment of anything</td><td>hover in the editor</td></tr>
+</table></div>
+<p><code>./...</code> means "this folder and every folder below it". It is the pattern you will type most.</p>
+
+<h2>The first program, and the real run</h2>
+<p>Gate 1 of the service is a small program that prints Boli's price list. It lives at <code>cmd/gateway/main.go</code>. You will read every line of it properly in Chapter 1; for now look at the shape.</p>
+<script type="text/plain" data-lang="go" data-caption="cmd/gateway/main.go">
+// Command gateway is Boli's OpenAI-compatible API in Go (an experiment next to apps/main).
+package main
+
+import (
+	"fmt"
+
+	"bolihq.com/gateway/internal/boli"
+)
+
+func main() {
+	for _, m := range boli.Models {
+		fmt.Printf("%s (%s), context %d tokens\n", m.ID, m.Label, m.ContextTokens)
+		fmt.Printf("  price: %d input / %d output credits per 1M tokens\n", m.PricePerMillion.Input, m.PricePerMillion.Output)
+		cost := boli.CostMicro(m, 38, 61)
+		fmt.Printf("  a 38-in / 61-out call costs %d micro-credits = %.6f credits\n", cost, float64(cost)/float64(boli.MicroPerCredit))
+	}
+}
+</script>
+<script type="text/plain" data-lang="bash" data-caption="terminal, inside apps/gateway-go">
+$ go run ./cmd/gateway
+boli-chat (Gemma 4 E4B, 4-bit), context 8192 tokens
+  price: 2 input / 6 output credits per 1M tokens
+  a 38-in / 61-out call costs 442 micro-credits = 0.000442 credits
+
+$ go build -o gateway ./cmd/gateway && ls -l gateway
+-rwxr-xr-x  2430194  gateway        # 2.4 MB, a Mach-O arm64 executable, nothing else needed to run it
+
+$ go vet ./... && go test ./...
+?   	bolihq.com/gateway/cmd/gateway	[no test files]
+ok  	bolihq.com/gateway/internal/boli	0.314s
+</script>
+<p>Three things to notice. Every Go program starts at <code>func main()</code> in <code>package main</code>. The import <code>bolihq.com/gateway/internal/boli</code> is our own package (Chapter 2 explains the path). And 2.4 MB is the whole program including the parts of the standard library it uses: copy that file to any arm64 Mac and it runs.</p>
+
+<h2>TypeScript vs Go: the toolchain</h2>
+<div class="vs">
+<script type="text/plain" data-lang="bash" data-caption="apps/main (TypeScript)">
+pnpm install            # node_modules per project
+pnpm --filter main dev  # next dev --webpack, port 3100
+pnpm lint               # eslint + config file
+tsc --noEmit            # types only; JS still runs
+# deploy: a bundled Worker, needs the workerd runtime
+</script>
+<script type="text/plain" data-lang="bash" data-caption="apps/gateway-go (Go)">
+go mod download         # into ~/go/pkg/mod, shared
+go run ./cmd/gateway    # later: listens on :3110
+go vet ./...            # no config file
+go build ./...          # types are checked here; no build = no run
+# deploy: one binary, needs nothing
+</script>
+</div>
+<p>The big mental shift: in TypeScript the type checker is optional (code with type errors still runs as JavaScript). In Go, a type error means there is no program at all.</p>
+
+<h2>Traps</h2>
+<ol class="traps">
+<li><strong>Unused imports and unused local variables are compile errors</strong>, not warnings. While experimenting, assign to the blank identifier (<code>_ = x</code>) or delete the line. gopls removes unused imports on save.</li>
+<li><strong><code>go run main.go</code> compiles only that one file.</strong> If the package has other files, you get "undefined" errors. Run the package: <code>go run .</code> or <code>go run ./cmd/gateway</code>.</li>
+<li><strong>gofmt uses tabs</strong> for indentation and aligns comments and struct fields with spaces. Do not fight it, and do not configure your editor to convert tabs in .go files.</li>
+<li><strong>Run commands from the module folder</strong> (<code>apps/gateway-go</code>, where <code>go.mod</code> is). From the repo root you get "go: cannot find main module".</li>
+<li><strong>GOPATH is not where your code goes any more.</strong> Old tutorials say to put projects under <code>~/go/src</code>. With modules (every project since Go 1.16) your code lives anywhere.</li>
+<li><strong>The module cache is read-only.</strong> Do not "fix" a dependency by editing it under <code>~/go/pkg/mod</code>; use a <code>replace</code> line in go.mod if you ever must.</li>
+</ol>
+
+<div data-quiz></div>
+<script type="application/json" class="quiz">
+[
+ {"kind":"Recall","q":"What does it mean that Go is <em>compiled</em>?","options":["The source is turned into a native executable before it runs","The source is interpreted line by line by a Go runtime you install on the server","Types are checked, then removed, and the code runs as JavaScript","It runs inside a virtual machine like Java's JVM"],"answer":0,"why":"<code>go build</code> produces a machine-code binary for one OS and CPU. Nothing extra has to be installed where it runs."},
+ {"kind":"Recall","q":"Which command printed <code>go version go1.27.4 darwin/arm64</code>, and what do the last two words mean?","options":["<code>go env</code>; the module name and package","<code>go version</code>; the OS (darwin = macOS) and CPU (arm64 = Apple Silicon)","<code>brew info go</code>; the Homebrew tap and bottle","<code>go version</code>; the editor and the shell"],"answer":1,"why":"GOOS=darwin and GOARCH=arm64 are the default target: the machine you are on."},
+ {"kind":"Recall","q":"Where do downloaded dependencies like pgx end up?","options":["In a <code>node_modules</code> folder inside apps/gateway-go","In GOROOT, next to the standard library","In GOMODCACHE (<code>~/go/pkg/mod</code>), shared by every Go project","Inside the compiled binary only; nothing is kept on disk"],"answer":2,"why":"The module cache is global and read-only. Each version is downloaded once and reused by every project."},
+ {"kind":"Recall","q":"What does the pattern <code>./...</code> mean in <code>go test ./...</code>?","options":["Only the current folder","Every package in the current folder and all folders below it","Every Go project on the machine","The parent folder"],"answer":1,"why":"Three dots is a wildcard over subdirectories. <code>go test ./internal/...</code> tests only what is under internal."},
+ {"kind":"Recall","q":"Which pair is right?","options":["<code>go run</code> keeps a binary; <code>go build</code> runs and deletes it","<code>go run</code> compiles to a temporary file and runs it; <code>go build</code> writes a binary you keep","Both only type-check","<code>go build</code> is for libraries only"],"answer":1,"why":"<code>go run</code> is for development. <code>go build -o gateway ./cmd/gateway</code> is what you would ship."},
+ {"kind":"Recall","q":"What is <code>go vet</code> for?","options":["Formatting code","Downloading dependencies","Finding likely bugs the compiler accepts, such as a printf verb that does not match its argument","Running benchmarks"],"answer":2,"why":"vet is a set of static checks. Example: <code>fmt.Printf(\"%d\", \"text\")</code> compiles, but vet flags it."},
+ {"kind":"Recall","q":"How do you configure gofmt to use 2-space indentation?","options":["Add <code>.gofmt.json</code>","Pass <code>-indent=2</code>","You can't. gofmt has no style options; tabs are the one style","Set <code>GOINDENT=2</code>"],"answer":2,"why":"That is the point of gofmt: every Go file in the world looks the same, so there is nothing to argue about in review."},
+ {"kind":"Read the code","q":"Every Go executable needs which two things?","options":["<code>package main</code> and a <code>func main()</code>","A <code>main.go</code> file name and a <code>go.mod</code> in the same folder","<code>package app</code> and <code>func start()</code>","An <code>init()</code> and a <code>Makefile</code>"],"answer":0,"why":"The file name does not matter. The package must be named <code>main</code> and contain <code>func main()</code>, which takes no arguments and returns nothing."},
+ {"kind":"Predict","q":"You add <code>import \"os\"</code> to main.go but never use <code>os</code>. What happens on <code>go run</code>?","options":["A warning, then the program runs","It runs; unused imports are removed silently","Compile error: <code>\"os\" imported and not used</code>","Runtime panic when main starts"],"answer":2,"why":"Unused imports are errors in Go. The idea is that dead dependencies never pile up."},
+ {"kind":"Predict","q":"Inside <code>main()</code> you write <code>total := 5</code> and never read <code>total</code>. What happens?","options":["Compile error: <code>declared and not used: total</code>","It compiles; total is optimised away","A vet warning only","A runtime panic"],"answer":0,"why":"Unused LOCAL variables are compile errors. Unused package-level variables and unused function parameters are allowed."},
+ {"kind":"Predict","q":"From the repo root (<code>boli/</code>) you run <code>go test ./...</code>. What happens?","options":["It tests apps/gateway-go","It tests every Go module in the repo","It fails: there is no go.mod in boli/ (\"go: cannot find main module\")","It tests the TypeScript code too"],"answer":2,"why":"The go command looks for go.mod in the current folder and upwards. Ours is in apps/gateway-go, so run from there."},
+ {"kind":"Read the code","q":"The binary was 2.4 MB. What is inside it?","options":["Only our two files; the standard library is loaded at run time","Our code, the parts of the standard library it uses, and the Go runtime (garbage collector, scheduler)","A copy of Node.js","The source code, compiled on first run"],"answer":1,"why":"Go links statically by default: one self-contained file. That is why it runs on any arm64 Mac without installing Go."},
+ {"kind":"Recall","q":"How would you build a Linux x86-64 binary on your Mac?","options":["You cannot; build on Linux","<code>GOOS=linux GOARCH=amd64 go build ./cmd/gateway</code>","<code>go build --target=linux</code>","Install Docker first, always"],"answer":1,"why":"Cross-compiling is built in: set the two env variables. It works as long as the code does not use C (cgo)."},
+ {"kind":"Recall","q":"In TypeScript, code with a type error still runs as JavaScript. In Go...","options":["the same: types are hints","a type error means no binary is produced, so nothing runs","type errors become runtime panics","type errors are only reported by go vet"],"answer":1,"why":"The type checker is part of the compiler. This is the biggest habit change coming from TS."},
+ {"kind":"Spot the bug","q":"The package has two files, main.go and server.go (both <code>package main</code>). This fails with <code>undefined: startServer</code>. Why?","code":"$ go run main.go\n./main.go:9:2: undefined: startServer","lang":"bash","options":["startServer must be exported","<code>go run main.go</code> compiled only main.go; run the package with <code>go run .</code>","server.go needs its own func main","Files must be listed in go.mod"],"answer":1,"why":"Naming a file compiles just that file. Naming a directory (<code>.</code> or <code>./cmd/gateway</code>) compiles the whole package."},
+ {"kind":"Recall","q":"What does gopls do in VS Code?","options":["It is the Go compiler","It is the language server: completion, go to definition, diagnostics, format on save","It downloads Go versions","It runs tests in the background"],"answer":1,"why":"The Go extension installs gopls. Open the folder that has go.mod so it finds the module."},
+ {"kind":"Recall","q":"Where should the Go source for this service live?","options":["Under <code>~/go/src</code>, or Go cannot find it","Anywhere: it is a module (has go.mod), so <code>apps/gateway-go</code> is fine","Under GOROOT","Next to node_modules"],"answer":1,"why":"Since modules (Go 1.11, default from 1.16), GOPATH/src is no longer required. Old tutorials still say otherwise."},
+ {"kind":"Spot the bug","q":"A dependency has a bug, so you edit its file under <code>~/go/pkg/mod/github.com/...</code>. What goes wrong?","options":["Nothing; that is the normal way","The files are read-only, the edit is not tracked, and a cache clean or another machine silently undoes it","Go refuses to compile any project afterwards","It changes the dependency for every user in the world"],"answer":1,"why":"The cache must stay a pristine copy (go.sum checks it). To patch a dependency, point go.mod at your copy with a <code>replace</code> directive."},
+ {"kind":"Read the code","q":"Which flag on <code>go build</code> picks the output file name?","options":["<code>-name</code>","<code>-out</code>","<code>-o</code>","<code>--file</code>"],"answer":2,"why":"<code>go build -o gateway ./cmd/gateway</code>. Without -o the binary is named after the folder (here also <code>gateway</code>)."},
+ {"kind":"Predict","q":"<code>go test ./...</code> printed <code>?   bolihq.com/gateway/cmd/gateway [no test files]</code>. What does that line mean?","options":["The tests for cmd/gateway failed","The package compiled, but it has no *_test.go files, so nothing ran there","cmd/gateway is excluded from the module","The question mark means the tests are flaky"],"answer":1,"why":"Each package gets one line: <code>ok</code>, <code>FAIL</code>, or <code>?</code> when there are no tests. It is still compiled, so compile errors would show."},
+ {"kind":"Recall","q":"Why is Go a good fit for an API gateway in particular? Pick the best reason.","options":["It has the biggest npm ecosystem","The standard library has a production HTTP server, each request gets its own cheap goroutine, and it ships as one small binary","It runs inside the browser","It has no types, so it is quick to write"],"answer":1,"why":"net/http is what many production Go servers use directly, and goroutines make one-request-per-goroutine cheap (a few KB each)."}
+]
+</script>
