@@ -3,14 +3,15 @@
 /**
  * The /contact form. Public on purpose (no session): anyone can write to us. Input is parsed with the
  * shared zod schema; a filled honeypot field is answered with a normal success and nothing is stored, so a bot learns
- * nothing. At most CONTACT_PER_HOUR messages an hour from one IP (owner, 2026-11-24); only a hash of the IP is kept.
+ * nothing. The Jawaf topic also carries what a demo needs (business, website, type, city, sector, phone) in `details`.
+ * At most CONTACT_PER_HOUR messages an hour from one IP (owner, 2026-11-24); only a hash of the IP is kept.
  */
 import { headers } from "next/headers"
 import { and, count, db, eq, gte } from "@repo/db"
 import { contactMessage } from "@repo/db/schema"
 import { sha256Hex } from "@repo/crypto"
 import { fail, failWith, ok, type ActionResult } from "@repo/errors"
-import { contactSchema, type ContactInput } from "@/schemas/contact"
+import { contactDetails, contactSchema, type ContactInput } from "@/schemas/contact"
 
 const CONTACT_PER_HOUR = 5
 
@@ -35,7 +36,7 @@ export async function submitContactMessage(input: ContactInput): Promise<ActionR
         if ((recent?.n ?? 0) >= CONTACT_PER_HOUR) {
             return failWith("ratelimit", "You have sent several messages in the last hour. Please wait a little and try again, or email us directly.")
         }
-        await db.insert(contactMessage).values({ name: data.name, email: data.email, topic: data.topic, message: data.message, ipHash })
+        await db.insert(contactMessage).values({ name: data.name, email: data.email, topic: data.topic, message: data.message, details: contactDetails(parsed.data), ipHash })
         return ok({ received: true })
     } catch (err) {
         return fail(err)

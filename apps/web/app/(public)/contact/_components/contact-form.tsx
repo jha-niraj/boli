@@ -1,19 +1,33 @@
 "use client"
 
-import { useRef, useState, useTransition, type FormEvent, type KeyboardEvent, type ReactNode } from "react"
+import { useState, useTransition, type FormEvent, type ReactNode } from "react"
 import { CheckCircle2 } from "lucide-react"
 import { Button } from "@repo/ui/components/ui/button"
+import { ComboSelect } from "@repo/ui/components/ui/combo-select"
 import { Input } from "@repo/ui/components/ui/input"
 import { Label } from "@repo/ui/components/ui/label"
 import { Spinner } from "@repo/ui/components/ui/spinner"
-import { cn } from "@repo/ui/lib/utils"
 import { Textarea } from "@repo/ui/components/ui/textarea"
 import { PillButton } from "@repo/brand/pill-button"
 import { DISPLAY } from "@repo/brand/type"
+import { JAWAF_BUSINESS_TYPE_INFO, JAWAF_BUSINESS_TYPES, jawafSectorOptions, type JawafBusinessType } from "@repo/boli/jawaf"
+import { nepalCityOptions } from "@repo/core/geo/nepal"
 import { submitContactMessage } from "@/actions/contact.action"
-import { CONTACT_MESSAGE_MAX, CONTACT_TOPICS, contactSchema, type ContactTopic } from "@/schemas/contact"
+import {
+    CONTACT_BUSINESS_MAX, CONTACT_CITY_MAX, CONTACT_MESSAGE_MAX, CONTACT_SECTOR_MAX, CONTACT_TOPICS, CONTACT_WEBSITE_MAX, contactSchema, JAWAF_PILOT_TOPIC, type ContactInput, type ContactTopic,
+} from "@/schemas/contact"
 
-type Errors = Partial<Record<"name" | "email" | "topic" | "message" | "form", string>>
+const FIELDS = ["name", "email", "topic", "message", "businessName", "businessWebsite", "businessType", "city", "sector", "phone"] as const
+type FieldKey = (typeof FIELDS)[number]
+type Errors = Partial<Record<FieldKey | "form", string>>
+
+const CITY_OPTIONS = nepalCityOptions()
+const BUSINESS_TYPE_OPTIONS = JAWAF_BUSINESS_TYPES.map((t) => ({ value: t, label: JAWAF_BUSINESS_TYPE_INFO[t].label }))
+const SECTOR_OPTIONS = jawafSectorOptions()
+
+function isField(k: unknown): k is FieldKey {
+    return FIELDS.some((f) => f === k)
+}
 
 /** One line under each topic, so people pick the right one. */
 const TOPIC_HINT: Record<ContactTopic, string> = {
@@ -25,14 +39,21 @@ const TOPIC_HINT: Record<ContactTopic, string> = {
     Press: "Stories and interviews",
     Other: "Anything else",
 }
+const TOPIC_OPTIONS = CONTACT_TOPICS.map((t) => ({ value: t, label: t, hint: TOPIC_HINT[t] }))
 
 /**
  * The contact form (/contact): the topic first (pill choices), then name, email and message, plus a hidden honeypot.
+ * The Jawaf topic also asks what a demo bot needs - business name, website, kind of business, city and phone - so the
+ * admin can build the demo straight from the request (plan/admin/jawaf/admin-v1.md, Inbox).
  * Checked here and again on the server (actions/contact.action.ts keeps the honeypot and the hourly limit).
  */
 export function ContactForm({ initialTopic }: { initialTopic?: ContactTopic }) {
     const [topic, setTopic] = useState<ContactTopic | "">(initialTopic ?? "")
+    const [businessType, setBusinessType] = useState<JawafBusinessType | "">("")
+    const [city, setCity] = useState("")
+    const [sector, setSector] = useState("")
     const [message, setMessage] = useState("")
+    const pilot = topic === JAWAF_PILOT_TOPIC
     const [errors, setErrors] = useState<Errors>({})
     const [sent, setSent] = useState(false)
     const [pending, startTransition] = useTransition()
@@ -40,19 +61,30 @@ export function ContactForm({ initialTopic }: { initialTopic?: ContactTopic }) {
     function onSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault()
         const form = new FormData(e.currentTarget)
-        const input = {
-            name: String(form.get("name") ?? ""),
-            email: String(form.get("email") ?? ""),
+        const text = (k: string) => String(form.get(k) ?? "")
+        const input: ContactInput = {
+            name: text("name"),
+            email: text("email"),
             topic: topic as ContactTopic,
             message,
-            website: String(form.get("website") ?? ""),
+            website: text("website"),
+            ...(pilot
+                ? {
+                      businessName: text("businessName"),
+                      businessWebsite: text("businessWebsite"),
+                      businessType: businessType || undefined,
+                      city,
+                      sector,
+                      phone: text("phone"),
+                  }
+                : {}),
         }
         const parsed = contactSchema.safeParse(input)
         if (!parsed.success) {
             const next: Errors = {}
             for (const issue of parsed.error.issues) {
                 const key = issue.path[0]
-                if ((key === "name" || key === "email" || key === "topic" || key === "message") && !next[key]) next[key] = issue.message
+                if (isField(key) && !next[key]) next[key] = issue.message
             }
             setErrors(next)
             return
@@ -65,7 +97,9 @@ export function ContactForm({ initialTopic }: { initialTopic?: ContactTopic }) {
                 return
             }
             const fe = res.fieldErrors ?? {}
-            setErrors({ name: fe.name, email: fe.email, topic: fe.topic, message: fe.message, form: res.error })
+            const next: Errors = { form: res.error }
+            for (const k of FIELDS) if (fe[k]) next[k] = fe[k]
+            setErrors(next)
         })
     }
 
@@ -76,14 +110,41 @@ export function ContactForm({ initialTopic }: { initialTopic?: ContactTopic }) {
                 <p className="mt-4 text-3xl leading-tight text-boli-ink" style={DISPLAY.h3}>
                     Dhanyabad. Message received.
                 </p>
-                <p className="mt-2 text-sm text-boli-text">We read every message and reply by email.</p>
+                <p className="mt-2 text-sm text-boli-text">
+                    {pilot ? "We will build a demo bot from your website and send you the link to try it." : "We read every message and reply by email."}
+                </p>
             </div>
         )
     }
 
     return (
         <form onSubmit={onSubmit} noValidate className="relative space-y-5 rounded-3xl border border-boli-line bg-white p-5 font-sans sm:p-8">
-            <TopicChoices value={topic} onChange={setTopic} error={errors.topic} />
+            {/* A selector, not a wall of pills (owner, 2026-11-25): each topic keeps its one-line hint. */}
+            <Field id="contact-topic" label="What is it about?" error={errors.topic}>
+                <ComboSelect
+                    id="contact-topic"
+                    value={topic}
+                    onValueChange={(v) => setTopic(v as typeof topic)}
+                    options={TOPIC_OPTIONS}
+                    placeholder="Choose a topic"
+                    searchPlaceholder="Search topics"
+                    emptyMessage="No topic matches"
+                    className="bg-white"
+                    aria-invalid={!!errors.topic}
+                    aria-describedby={errors.topic ? "contact-topic-error" : undefined}
+                />
+            </Field>
+            {pilot ? (
+                <PilotFields
+                    errors={errors}
+                    businessType={businessType}
+                    onBusinessType={setBusinessType}
+                    city={city}
+                    onCity={setCity}
+                    sector={sector}
+                    onSector={setSector}
+                />
+            ) : null}
             <div className="grid gap-5 sm:grid-cols-2">
                 <Field id="contact-name" label="Name" error={errors.name}>
                     <Input id="contact-name" name="name" autoComplete="name" required aria-invalid={!!errors.name} aria-describedby={errors.name ? "contact-name-error" : undefined} />
@@ -93,7 +154,7 @@ export function ContactForm({ initialTopic }: { initialTopic?: ContactTopic }) {
                 </Field>
             </div>
 
-            <Field id="contact-message" label="Message" error={errors.message} hint={`${message.length.toLocaleString()} / ${CONTACT_MESSAGE_MAX.toLocaleString()}`}>
+            <Field id="contact-message" label={pilot ? "What should the bot answer?" : "Message"} error={errors.message} hint={`${message.length.toLocaleString()} / ${CONTACT_MESSAGE_MAX.toLocaleString()}`}>
                 <Textarea
                     id="contact-message"
                     name="message"
@@ -101,6 +162,7 @@ export function ContactForm({ initialTopic }: { initialTopic?: ContactTopic }) {
                     value={message}
                     maxLength={CONTACT_MESSAGE_MAX}
                     onChange={(e) => setMessage(e.target.value)}
+                    placeholder={pilot ? "The questions customers ask you most - fees, timings, prices, delivery - and anything we should know." : undefined}
                     aria-invalid={!!errors.message}
                     aria-describedby={errors.message ? "contact-message-error" : undefined}
                     className="min-h-36"
@@ -127,67 +189,103 @@ export function ContactForm({ initialTopic }: { initialTopic?: ContactTopic }) {
     )
 }
 
-/** The topics as a radio group of pills: arrow keys move between them, the chosen one is ink. */
-function TopicChoices({ value, onChange, error }: { value: ContactTopic | ""; onChange: (t: ContactTopic) => void; error?: string }) {
-    const refs = useRef<Record<string, HTMLButtonElement | null>>({})
-    function onKey(e: KeyboardEvent<HTMLDivElement>) {
-        const keys = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"]
-        if (!keys.includes(e.key)) return
-        e.preventDefault()
-        const i = value ? CONTACT_TOPICS.indexOf(value) : -1
-        const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1
-        const next = CONTACT_TOPICS[(i + step + CONTACT_TOPICS.length) % CONTACT_TOPICS.length]
-        if (!next) return
-        onChange(next)
-        refs.current[next]?.focus()
-    }
+/**
+ * The Jawaf pilot's extra fields: what a demo bot needs. Business name, kind and city are required; website and phone
+ * are optional (a website makes the demo better, a phone makes the reply faster).
+ */
+function PilotFields({ errors, businessType, onBusinessType, city, onCity, sector, onSector }: {
+    errors: Errors
+    businessType: JawafBusinessType | ""
+    onBusinessType: (t: JawafBusinessType) => void
+    city: string
+    onCity: (v: string) => void
+    sector: string
+    onSector: (v: string) => void
+}) {
+    const invalid = (k: FieldKey) => ({ "aria-invalid": !!errors[k], "aria-describedby": errors[k] ? `contact-${k}-error` : undefined })
     return (
-        <fieldset className="space-y-2">
-            <legend id="contact-topic-label" className="text-sm text-boli-ink">
-                What is it about?
-            </legend>
-            <div
-                role="radiogroup"
-                aria-labelledby="contact-topic-label"
-                aria-invalid={!!error}
-                aria-describedby={error ? "contact-topic-error" : undefined}
-                onKeyDown={onKey}
-                className="grid grid-cols-2 gap-2 sm:grid-cols-3"
-            >
-                {CONTACT_TOPICS.map((t, i) => {
-                    const on = t === value
-                    return (
-                        <Button
-                            key={t}
-                            ref={(el) => {
-                                refs.current[t] = el
-                            }}
-                            type="button"
-                            role="radio"
-                            aria-checked={on}
-                            tabIndex={on || (!value && i === 0) ? 0 : -1}
-                            variant="ghost"
-                            onClick={() => onChange(t)}
-                            className={cn(
-                                "h-auto min-h-14 cursor-pointer flex-col items-start justify-center gap-0 border px-5 py-2 text-left font-normal whitespace-normal",
-                                on ? "border-boli-ink bg-boli-ink text-white hover:bg-boli-ink hover:text-white" : "border-boli-line bg-white text-boli-ink hover:bg-boli-ground",
-                            )}
-                        >
-                            <span className="text-sm font-[450]">{t}</span>
-                            <span className={cn("text-xs", on ? "text-white/70" : "text-boli-muted")}>{TOPIC_HINT[t]}</span>
-                        </Button>
-                    )
-                })}
-            </div>
-            {error ? (
-                <p id="contact-topic-error" className="text-xs text-boli-crimson-ink">
-                    {error}
+        <section aria-labelledby="contact-pilot-title" className="space-y-5 rounded-2xl border border-boli-line bg-boli-ground p-4 sm:p-5">
+            <div>
+                <p id="contact-pilot-title" className="text-[22px] leading-tight text-boli-ink" style={DISPLAY.card}>
+                    For your demo bot
                 </p>
-            ) : null}
-        </fieldset>
+                <p className="mt-1 text-sm text-boli-text">We build a demo from your website, free, and send you the link to try.</p>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2">
+                <Field id="contact-businessName" label="Business name" error={errors.businessName}>
+                    <Input id="contact-businessName" name="businessName" autoComplete="organization" maxLength={CONTACT_BUSINESS_MAX} required className="bg-white" {...invalid("businessName")} />
+                </Field>
+                <Field id="contact-businessWebsite" label="Website" hint="Optional" error={errors.businessWebsite}>
+                    <Input
+                        id="contact-businessWebsite"
+                        name="businessWebsite"
+                        type="url"
+                        inputMode="url"
+                        autoComplete="url"
+                        placeholder="example.com.np"
+                        maxLength={CONTACT_WEBSITE_MAX}
+                        className="bg-white"
+                        {...invalid("businessWebsite")}
+                    />
+                </Field>
+            </div>
+            <Field id="contact-businessType" label="What kind of business?" error={errors.businessType}>
+                <ComboSelect
+                    id="contact-businessType"
+                    value={businessType}
+                    onValueChange={(v) => onBusinessType(v as JawafBusinessType)}
+                    options={BUSINESS_TYPE_OPTIONS}
+                    placeholder="Choose the kind of business"
+                    searchPlaceholder="Search"
+                    emptyMessage="No match"
+                    className="bg-white"
+                    {...invalid("businessType")}
+                />
+            </Field>
+            <div className="grid gap-5 sm:grid-cols-2">
+                <Field id="contact-city" label="City" error={errors.city}>
+                    <ComboSelect
+                        id="contact-city"
+                        value={city}
+                        onValueChange={onCity}
+                        options={CITY_OPTIONS}
+                        allowOther
+                        otherMaxLength={CONTACT_CITY_MAX}
+                        placeholder="Choose your city"
+                        searchPlaceholder="Search cities or districts"
+                        emptyMessage="No city matches"
+                        otherPlaceholder="Your town and district"
+                        className="bg-white"
+                        {...invalid("city")}
+                    />
+                </Field>
+                <Field id="contact-sector" label="Sector" hint="Optional" error={errors.sector}>
+                    <ComboSelect
+                        id="contact-sector"
+                        value={sector}
+                        onValueChange={onSector}
+                        options={SECTOR_OPTIONS}
+                        allowOther
+                        otherMaxLength={CONTACT_SECTOR_MAX}
+                        placeholder="Choose a sector"
+                        searchPlaceholder="Search sectors"
+                        emptyMessage="No sector matches"
+                        otherPlaceholder="What your business does"
+                        className="bg-white"
+                        {...invalid("sector")}
+                    />
+                </Field>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2">
+                <Field id="contact-phone" label="Phone" hint="Optional, helps us reach you faster" error={errors.phone}>
+                    <Input id="contact-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="98XXXXXXXX" maxLength={20} className="bg-white" {...invalid("phone")} />
+                </Field>
+            </div>
+        </section>
     )
 }
 
+/** A radio group of pills: arrow keys move between them, the chosen one is ink. Used for the topic and the business kind. */
 function Field({ id, label, error, hint, children }: { id: string; label: string; error?: string; hint?: string; children: ReactNode }) {
     return (
         <div className="space-y-1.5">
