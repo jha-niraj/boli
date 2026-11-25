@@ -52,6 +52,8 @@ export interface UsageDay {
     day: string
     kura: UsageTotals
     api: UsageTotals
+    /** Jawaf's answers that day (jawaf_message). Only the Home overview fills it; Usage is Kura and the API. */
+    jawafMicro?: number
 }
 
 export interface KeyBreakdownRow {
@@ -131,6 +133,8 @@ export interface HomeData {
     recent: ActivityItem[]
     /** The Get started checklist, from real rows: any API key ever made, any API call, any Kura reply. */
     started: { key: boolean; apiCall: boolean; kura: boolean }
+    /** Jawaf in this workspace: bots (all, live) and its answers in the last 30 Nepal days. */
+    jawaf: { bots: number; live: number; answers30: number; costMicro30: number }
 }
 
 export type LedgerKind = "grant" | "purchase" | "refund" | "expiry" | "spend"

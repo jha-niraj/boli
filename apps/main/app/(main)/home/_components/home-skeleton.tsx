@@ -4,11 +4,11 @@ import { GetStartedSkeleton } from "./get-started"
 import { LaunchersSkeleton } from "./launchers"
 
 export const HOME_TITLE = "Home"
-export const HOME_DESCRIPTION = "Your credits, usage and recent activity at a glance."
+export const HOME_DESCRIPTION = "Credits and spending across every product in this workspace."
 
 const CARD = "rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
 
-/** /home's body: launchers, Get started, the band, the chart beside recent activity, then the API pointer. Shared by loading.tsx. */
+/** /home's body: the product cards, Get started, the band, the chart beside recent activity. Shared by loading.tsx. */
 export function HomeSkeleton() {
     return (
         <div className="flex min-w-0 flex-col gap-4 pb-6">
@@ -29,7 +29,6 @@ export function HomeSkeleton() {
                     </div>
                 </div>
             </div>
-            <Skeleton className="h-[3.75rem] w-full rounded-2xl" />
         </div>
     )
 }

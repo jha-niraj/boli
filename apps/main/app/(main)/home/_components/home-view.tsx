@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { useQuery } from "@tanstack/react-query"
-import { ArrowRight, Coins, KeyRound, MessagesSquare, Sigma, Terminal, Zap } from "lucide-react"
+import { CalendarRange, Coins, MessagesSquare, Terminal, Zap } from "lucide-react"
+import { JawafIcon } from "@repo/brand/product-icons"
 import { AppLink } from "@repo/ui/components/app-link"
 import { ChartPanel } from "@repo/ui/components/charts/panel-charts"
 import { Button } from "@repo/ui/components/ui/button"
@@ -18,14 +19,13 @@ import { BoliEmpty } from "@/components/empty/boli-empty"
 import { RequestDetailRows } from "@/components/platform/request-detail"
 import { SKY_LINK } from "@/components/platform/sky"
 import { SpendChart } from "@/components/platform/spend-chart"
-import { formatCredits, MAX_API_KEYS } from "@repo/boli"
-import { formatTokens } from "@/lib/format"
+import { formatCredits } from "@repo/boli"
 import { ROUTES } from "@/lib/navigation"
 import { addTotals, formatFullDateTime, PLATFORM_KEYS, TIME_ZONE } from "@/lib/platform-display"
 import type { ActivityItem, HomeData } from "@/types/platform"
 import { GetStarted } from "./get-started"
 import { HOME_DESCRIPTION, HOME_TITLE } from "./home-skeleton"
-import { Launchers } from "./launchers"
+import { Launchers, type LauncherStats } from "./launchers"
 
 export function HomeView({ initialData, startedHidden }: { initialData: HomeData; startedHidden: boolean }) {
     const { data } = useQuery({
@@ -40,18 +40,27 @@ export function HomeView({ initialData, startedHidden }: { initialData: HomeData
     const [selected, setSelected] = React.useState<ActivityItem | null>(null)
     const [sheetOpen, setSheetOpen] = React.useState(false)
 
+    // Every product in this workspace: Kura and the API from inference_request, Jawaf from its own answers.
     const today = addTotals(data.buckets.kura.today, data.buckets.api.today)
-    const week = addTotals(data.buckets.kura.last7, data.buckets.api.last7)
+    const jawafToday = data.daily[data.daily.length - 1]?.jawafMicro ?? 0
+    const spent30 = data.buckets.kura.last30.costMicro + data.buckets.api.last30.costMicro + data.jawaf.costMicro30
     const items: StatBandItem[] = [
         {
             key: "credits", icon: Coins, label: "Credits left", value: formatCredits(data.balanceMicro), href: ROUTES.billing,
             hint: data.balanceMicro <= 0 ? "add credits to keep going" : "1 credit = Rs 1", tone: data.balanceMicro <= 0 ? "rose" : undefined,
         },
-        { key: "today", icon: Zap, label: "Requests today", value: today.requests.toLocaleString("en-US"), hint: `${formatCredits(today.costMicro)} credits`, href: ROUTES.usage },
-        { key: "tokens", icon: Sigma, label: "Tokens this week", value: formatTokens(week.inputTokens + week.outputTokens), hint: "last 7 days, in + out", href: ROUTES.usage },
-        { key: "keys", icon: KeyRound, label: "Active API keys", value: data.activeKeys.toLocaleString("en-US"), hint: `of ${MAX_API_KEYS}`, href: ROUTES.keys },
+        { key: "today", icon: Zap, label: "Spent today", value: formatCredits(today.costMicro + jawafToday), hint: "credits, Nepal time" },
+        { key: "month", icon: CalendarRange, label: "Spent, last 30 days", value: formatCredits(spent30), hint: "Kura, API and Jawaf", href: ROUTES.billing },
+        {
+            key: "jawaf", icon: JawafIcon, label: "Jawaf answers", value: data.jawaf.answers30.toLocaleString("en-US"),
+            hint: data.jawaf.bots === 0 ? "no bot yet" : "last 30 days", href: data.jawaf.bots === 0 ? ROUTES.jawafSetup : ROUTES.jawaf,
+        },
     ]
-
+    const stats: LauncherStats = {
+        kura: plural(data.buckets.kura.last7.requests, "reply", "replies", "this week"),
+        api: data.activeKeys === 0 ? "Create your first key" : plural(data.buckets.api.today.requests, "call", "calls", "today"),
+        jawaf: data.jawaf.bots === 0 ? "Set up your first bot" : `${data.jawaf.live} of ${data.jawaf.bots} ${data.jawaf.bots === 1 ? "bot" : "bots"} live`,
+    }
 
     function open(item: ActivityItem) {
         setSelected(item)
@@ -66,12 +75,12 @@ export function HomeView({ initialData, startedHidden }: { initialData: HomeData
             body="page"
         >
             <div className="flex min-w-0 flex-col gap-4 pb-6">
-                <Launchers />
+                <Launchers stats={stats} />
                 <GetStarted started={data.started} hidden={startedHidden} />
                 <StatBand items={items} />
 
                 <div className="grid min-w-0 gap-3 lg:grid-cols-2">
-                    <ChartPanel title="Credits spent per day" hint="Last 30 days, Kura and API" href={ROUTES.usage}>
+                    <ChartPanel title="Credits spent per day" hint="Last 30 days, every product" href={ROUTES.billing}>
                         <SpendChart days={data.daily} emptyMessage="Nothing spent in the last 30 days" />
                     </ChartPanel>
 
@@ -123,8 +132,6 @@ export function HomeView({ initialData, startedHidden }: { initialData: HomeData
                     </section>
                 </div>
 
-                {/* Start building (quickstart + coding-agent prompt) moved to the API product's Home, /api. */}
-                <ApiCallout />
             </div>
 
             <ActivitySheet item={selected} open={sheetOpen} onOpenChange={setSheetOpen} onExitComplete={() => setSelected(null)} />
@@ -132,21 +139,9 @@ export function HomeView({ initialData, startedHidden }: { initialData: HomeData
     )
 }
 
-/** A one-line pointer to the API's Home, where Start building now lives. */
-function ApiCallout() {
-    return (
-        <AppLink
-            href={ROUTES.api}
-            className="group flex min-w-0 cursor-pointer items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3 outline-none transition-colors hover:border-neutral-300 focus-visible:ring-2 focus-visible:ring-neutral-400 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700"
-        >
-            <Terminal className="h-4 w-4 shrink-0 text-neutral-500 dark:text-neutral-400" />
-            <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-neutral-900 dark:text-white">Start building with the API</span>
-                <span className="block truncate text-xs text-neutral-600 dark:text-neutral-400">The quickstart in five languages and a prompt for your coding agent</span>
-            </span>
-            <ArrowRight className="h-4 w-4 shrink-0 text-neutral-500 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" />
-        </AppLink>
-    )
+/** "3 replies this week": the count with its noun, then the window. */
+function plural(n: number, one: string, many: string, window: string): string {
+    return `${n.toLocaleString("en-US")} ${n === 1 ? one : many} ${window}`
 }
 
 /** One activity item in the keep-open right sheet: a Kura chat's totals, or an API call's every field. */

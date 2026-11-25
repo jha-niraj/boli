@@ -577,7 +577,14 @@ Bars: >=85% correct, >=90% correct refusals, >=95% right script, 0 invented pric
 - [ ] **10. Conversations (two-pane), Contacts, Insights, notifications (email, digest, bell, push).**
   - Verified:
 - [ ] **11. Homes redesign** (Boli overview, Jawaf Home, API Home).
-  - Verified:
+  - Boli overview (/home) done 2026-11-25:
+    - product cards for every rail product (Kura, API, Jawaf; Kagaj and Swar "Later"), each with a Dhaka edge and a live line from the workspace
+    - band: Credits left / Spent today / Spent, last 30 days (Kura, API and Jawaf) / Jawaf answers
+    - credits-per-day chart with a Jawaf series; the y axis sized to its labels (0.0075 was clipped)
+    - the API pointer removed (it lives on /api)
+    - Home added to the top of the rail, lit on /home
+    - Jawaf Home and API Home still to do.
+  - Verified: main typecheck (scoped) clean; Chrome on /home light and dark: cards aligned, chart axis readable, Home active in the rail.
 - [ ] **12. Admin Jawaf**: demo bots, claim transfer, all bots, demo pipeline.
   - Verified:
 - [ ] **13. Typecheck + full Chrome pass + quality bar run.**

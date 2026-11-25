@@ -1,7 +1,7 @@
 import {
     BookOpen, Boxes, ChartLine, ChartNoAxesColumn, Contact, FlaskConical, House, Inbox, KeyRound, Library, Settings, Share2,
 } from "lucide-react"
-import { ApiIcon, DocumentAiIcon, JawafIcon, KuraIcon, SpeechIcon } from "@repo/brand/product-icons"
+import { ApiIcon, DocumentAiIcon, HomeIcon, JawafIcon, KuraIcon, SpeechIcon } from "@repo/brand/product-icons"
 import type { ShellNavSection, ShellProduct } from "@repo/ui/lib/shell"
 import { activeProductId } from "@repo/ui/lib/shell"
 import { LANDING_HOMES, START_ROUTE } from "./landing"
@@ -188,8 +188,12 @@ export const PRODUCTS: Product[] = [
     },
 ]
 
-/** The rail's entries (the shell's shape). */
-export const RAIL_PRODUCTS: ShellProduct[] = PRODUCTS.map((p) => ({ id: p.id, label: p.label, icon: p.icon, href: p.href, soon: p.soon }))
+/** The rail's entries (the shell's shape): Home (the account overview, /home) on top, then every product (owner, 2026-11-25). */
+export const RAIL_HOME_ID = "home"
+export const RAIL_PRODUCTS: ShellProduct[] = [
+    { id: RAIL_HOME_ID, label: "Home", icon: HomeIcon, href: ROUTES.dashboard },
+    ...PRODUCTS.map((p) => ({ id: p.id, label: p.label, icon: p.icon, href: p.href, soon: p.soon })),
+]
 
 /** The product a path belongs to, or null for an account page. */
 export function productForPath(pathname: string): Product | null {

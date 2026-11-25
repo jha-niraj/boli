@@ -1,7 +1,7 @@
 import "server-only"
 
 import { and, count, db, desc, eq, gt, gte, ne, sql, type SQL } from "@repo/db"
-import { aiConversations, apiKey, billingAccount, creditLedger, inferenceRequest as ir, payment, user } from "@repo/db/schema"
+import { aiConversations, apiKey, billingAccount, creditLedger, inferenceRequest as ir, jawafBot, jawafMessage, payment, user } from "@repo/db/schema"
 import { formatDayKey, nepalDayKeys, nepalDayStart, REQUEST_LOG_PAGE_SIZE, windowDays, EMPTY_TOTALS, NEPAL_OFFSET_MS } from "@/lib/platform-display"
 import type {
     ActivityItem, BillingData, BillingHistoryRow, BillingPaymentRow, HomeData, KeyBreakdownRow, KuraActivity, LedgerKind,
@@ -251,7 +251,10 @@ export async function getHomeOverview(workspaceId: string, userId: string): Prom
         ) from ${ir} where ${ir.conversationId} = ${aiConversations.id} and ${ir.workspaceId} = ${workspaceId}
     )`.mapWith(toTotals)
 
-    const [balanceMicro, [buckets, daily, [active], convs, calls, [started]]] = await Promise.all([
+    // Jawaf's answers are charged on jawaf_message, not inference_request: its numbers come from there.
+    const JAWAF_DAY = sql<string>`to_char(${jawafMessage.createdAt} + interval '5 hours 45 minutes', 'YYYY-MM-DD')`
+    const jawafAnswers = and(eq(jawafMessage.workspaceId, workspaceId), eq(jawafMessage.role, "assistant"), gte(jawafMessage.createdAt, since30))
+    const [balanceMicro, [buckets, daily, [active], convs, calls, [started], [bots], jawafDaily]] = await Promise.all([
         getBalanceMicro(workspaceId),
         db.batch([
             bucketsQuery(workspaceId, now),
@@ -270,8 +273,16 @@ export async function getHomeOverview(workspaceId: string, userId: string): Prom
                 apiCall: sql<boolean>`exists (select 1 from ${ir} where ${ir.workspaceId} = ${workspaceId} and ${ir.source} = 'api')`.mapWith(Boolean),
                 kura: sql<boolean>`exists (select 1 from ${ir} where ${ir.workspaceId} = ${workspaceId} and ${ir.source} = 'kura')`.mapWith(Boolean),
             }).from(user).where(eq(user.id, userId)).limit(1),
+            db.select({
+                total: sql<number>`count(*)`.mapWith(Number),
+                live: sql<number>`count(*) filter (where ${jawafBot.status} = 'live')`.mapWith(Number),
+            }).from(jawafBot).where(eq(jawafBot.workspaceId, workspaceId)),
+            db.select({ day: JAWAF_DAY, answers: sql<number>`count(*)`.mapWith(Number), costMicro: sql<number>`coalesce(sum(${jawafMessage.costMicro}), 0)`.mapWith(Number) })
+                .from(jawafMessage).where(jawafAnswers).groupBy(sql`1`),
         ]),
     ])
+    const jawafByDay = new Map(jawafDaily.map((r) => [r.day, r]))
+    const days = shapeDaily(daily, 30, now).map((d) => ({ ...d, jawafMicro: jawafByDay.get(d.day)?.costMicro ?? 0 }))
 
     const kura: ActivityItem[] = convs.map((c): KuraActivity => ({
         kind: "kura",
@@ -291,8 +302,14 @@ export async function getHomeOverview(workspaceId: string, userId: string): Prom
         balanceMicro: num(balanceMicro),
         buckets: shapeBuckets(buckets),
         activeKeys: active?.n ?? 0,
-        daily: shapeDaily(daily, 30, now),
+        daily: days,
         recent,
+        jawaf: {
+            bots: bots?.total ?? 0,
+            live: bots?.live ?? 0,
+            answers30: jawafDaily.reduce((n, r) => n + r.answers, 0),
+            costMicro30: jawafDaily.reduce((n, r) => n + r.costMicro, 0),
+        },
         started: { key: !!started?.key, apiCall: !!started?.apiCall, kura: !!started?.kura },
     }
 }

@@ -22,7 +22,7 @@ import { KuraCompact, KuraSidebar, type KuraHistorySeed } from "@/components/kur
 import { JawafSidebarSwitcher } from "@/components/jawaf/bot-switcher"
 import { BRAND, formatCredits } from "@repo/boli"
 import { LAST_PRODUCT_COOKIE, isLandingProduct } from "@/lib/landing"
-import { MAIN_RAIL_COOKIE, RAIL_PRODUCTS, ROUTES, productForPath, type Product } from "@/lib/navigation"
+import { MAIN_RAIL_COOKIE, RAIL_HOME_ID, RAIL_PRODUCTS, ROUTES, productForPath, type Product } from "@/lib/navigation"
 
 /**
  * The signed-in shell: the shared AppShell in its PRODUCT RAIL mode (plan/main/jawaf/jawaf-v1.md "Names and
@@ -184,7 +184,8 @@ export function MainShell({ user, initialPinned, initialRailWidth, kuraHistory, 
                 nav={product?.sidebar ?? []}
                 productRail={{
                     products: RAIL_PRODUCTS,
-                    activeProductId: productId,
+                    // Home lights up on /home (an account page, so no product claims it).
+                    activeProductId: productId ?? (pathname === ROUTES.dashboard || pathname.startsWith(`${ROUTES.dashboard}/`) ? RAIL_HOME_ID : null),
                     workspaces,
                     onSwitchWorkspace,
                     onCreateWorkspace,
