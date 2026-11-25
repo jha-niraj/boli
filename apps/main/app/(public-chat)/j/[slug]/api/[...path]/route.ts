@@ -11,7 +11,8 @@
 //   GET  /j/<slug>/api/qr.png     the same as a PNG (?scale=4..32)
 //   GET  /j/<slug>/api/image/<key> an image of the bot's PUBLISHED look on a private bucket -> redirect to a signed URL
 //
-// Rate limits: lib/jawaf/public.ts PUBLIC_LIMITS. The bot must be live or a demo (draft bots 404).
+// Rate limits: lib/jawaf/public.ts PUBLIC_LIMITS (exact through boli-jobs' RateLimiter Durable Object when
+// JOBS_RUNNER=workflow; database / per-isolate memory otherwise). The bot must be live or a demo (draft bots 404).
 import { AppError, errorResponse, isAppError } from '@repo/errors'
 import { getDownloadUrl, isStorageConfigured } from '@repo/storage'
 import { isSarvamConfigured, speechToText, STT_MAX_SECONDS } from '@repo/sarvamai'
@@ -40,6 +41,8 @@ function secure(req: Request): boolean {
 async function botOr404(slug: string) {
     const bot = await loadPublicBotRow(slug)
     if (!bot) throw new AppError('notfound', 'This page could not be found.')
+    // Paused by the Boli team: the page shows "This assistant is paused"; the routes answer nothing either.
+    if (bot.paused) throw new AppError('forbidden', 'This assistant is paused.')
     return bot
 }
 
@@ -137,7 +140,7 @@ async function rate(req: Request, slug: string): Promise<Response> {
 async function speech(req: Request, slug: string): Promise<Response> {
     await botOr404(slug)
     if (!isSarvamConfigured()) throw new AppError('network', 'Voice is not available right now. Type your question instead.')
-    checkSpeechLimits(visitorFromRequest(req), await ipKey(req))
+    await checkSpeechLimits(visitorFromRequest(req), await ipKey(req))
     const len = Number(req.headers.get('content-length') ?? 0)
     if (len > MAX_AUDIO_BYTES + 10_000) throw new AppError('validation', `Keep voice messages under ${STT_MAX_SECONDS} seconds.`)
     const form = await req.formData().catch(() => null)

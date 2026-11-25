@@ -32,7 +32,7 @@ async function setIncluded(botId: string, ids: string[], included: boolean) {
 
 /**
  * Step 3 - Pick pages. Maps the website first (a few seconds; Firecrawl + robots.txt) and lists every page found,
- * useful ones pre-ticked up to the bot's limit. Search, select all / none, and the cost in plain numbers: the first
+ * the best ones pre-ticked up to the free allowance (blog / news / legal pages start unticked; @repo/jawaf crawl.ts). Search, select all / none, and the cost in plain numbers: the first
  * 20 pages are free, every page after that is a credit (read once - re-reads never charge). Start reading saves the
  * ticks and starts the background read.
  */
@@ -111,7 +111,7 @@ export function SetupPages({ bot, initialPages, onStarted, onSkip }: {
             <div className="flex flex-col gap-2">
                 <h2 className="text-3xl text-neutral-900 sm:text-4xl dark:text-white" style={DISPLAY.h3}>Pick the pages to read</h2>
                 <p className="max-w-[64ch] text-sm text-neutral-600 dark:text-neutral-400">
-                    We ticked the pages that answer questions best - about, fees, services, contact. Untick anything that does not help a customer.
+                    We ticked the {JAWAF_PRICES.freePagesPerBot} pages that answer questions best - home, fees, about, contact, services - so reading them is free. Blog, news and legal pages start unticked; tick any you want.
                 </p>
             </div>
 

@@ -13,10 +13,11 @@ const AUTH_ONLY = ['/signin', '/signup', '/forgotpassword', '/resetpassword']
 /**
  * Open to everyone, signed in or not. `/verifyemail` stays reachable while signed in (the link lands there). `/join`
  * shows a workspace invitation before sign-in (it reads only; accepting needs the session). `/j/<slug>` is a business's
- * public Jawaf chat page (no login; its routes under /j/<slug>/api check the bot themselves). The public site (landing,
+ * public Jawaf chat page (no login; its routes under /j/<slug>/api check the bot themselves). `/claim/<token>` shows a
+ * demo bot's claim link before sign-in (claiming needs the session). The public site (landing,
  * about, contact, docs, legal) lives in apps/web on its own origin.
  */
-const PUBLIC = ['/verifyemail', '/join', '/j']
+const PUBLIC = ['/verifyemail', '/join', '/j', '/claim']
 
 export function middleware(request: NextRequest) {
     const { pathname, searchParams } = request.nextUrl

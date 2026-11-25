@@ -422,6 +422,38 @@ Bars: >=85% correct, >=90% correct refusals, >=95% right script, 0 invented pric
   - Open: the other 4 sites; a learned reranker (bge-reranker-v2-m3) would let the gate tighten; follow-ups in a
     conversation are weak (history of 2 turns sometimes pulls the old topic); real transliteration (IndicXlit on the
     GPU box) not done.
+- [ ] **6b. Engine fixes from the staging e2e on gurukulhq.com (agent, 2026-11-25)** - code done, not typechecked, eval
+  NOT re-run (boli-chat and the embed server were both off: `/health` on :8080 and :8081 did not answer).
+  - [ ] Drafting never fails the read: `llm.ts` sends the schema as `response_format` json_schema AND llama.cpp's
+    top-level `json_schema` (grammar-constrained; checked against the llama.cpp server docs), reads the reply with
+    `parseJsonReply` (as is -> fences stripped -> first balanced object -> a reply cut off at max_tokens closed at its
+    last complete row); `draft.ts draftJson` retries ONCE with a stricter "only one JSON object" turn and 1.5x tokens,
+    then leaves THAT section empty with a note (`DraftStepResult.note`, collected in the job cursor `draftNotes`).
+    `steps.ts draftOneSection` (read + draft jobs): non-outage errors skip the section with a note; outages retry 4x
+    with a growing wait (`cursor.retryAt`, both runners). Prices max 25 rows, 1400 tokens. Copy-not-invent + number
+    check unchanged. Cause seen: the read failed on section 3 (prices) - likely a truncated reply.
+    Verified so far: `parseJsonReply` on 7 sample replies (plain, fenced, prose-wrapped, truncated rows / lines kept,
+    junk -> null); live draft not run (boli-chat off).
+  - [ ] A read always settles: `rows.ts settleEndedRead` runs from `finishJob` (failed / cancelled) and `failIfActive`
+    (dead Workflow): sources leave "reading" (ready if any page read, else failed with the sentence) and setup
+    "reading" -> "review". Staging `gurukul-hq` repaired with `pnpm --filter @repo/db jawaf:stuck-reads --slug
+    gurukul-hq --apply` (new `packages/db/scripts/jawaf-stuck-reads.mjs`): "1 bot(s) moved to review, 1 source(s)
+    out of reading"; second run "Stuck bots: 0". It has 2 drafted sections (prices never drafted) - press Draft
+    again once boli-chat is up.
+  - [ ] Pre-tick only the free 20: `crawl.ts rankLinks` ranks home, pricing / fees, about, contact, services /
+    products / features, admission / booking, FAQ / help (round robin across these so 30 feature pages cannot push
+    FAQ out), then the rest; blog / news / changelog / legal / author / tag / dated pages last and never pre-ticked
+    (author / tag / category are now listed instead of dropped). `map.ts` pre-ticks up to `JAWAF_PRICES.freePagesPerBot`.
+    Setup copy says so. Verified: 56 sample URLs -> 20 ticked, none of blog / terms / privacy / refund / tag / author.
+  - [ ] Price questions: `answer.ts priceIntent` (price words in English / Romanized / Devanagari; "kati" / "कति"
+    only when the next word is not a count like din / jana / बजे; निःशुल्क is not a price) -> the approved Prices and
+    fees section leads the facts (and passes the gate alone, gate "prices"), blog / news / guide pages (`isArticleUrl`)
+    drop to the end of the excerpts, a per-turn rule says prices only from that section; with NO approved prices no
+    amount is ever quoted (money or price word + number sentences dropped, not streamed) -> not-found / contact line.
+    Verified: priceIntent on the 41 eval questions (price ones flagged; ro-02, de-02, de-07, rf-06, rf-07 not).
+    Note: reordering the facts for a price question changes the profile block, so llama-server re-reads that prefix.
+  - [ ] Re-run `ml/jawaf-eval` on gurukulhq (previous: 93.9% correct, 100% refusals, 97.6% script, 0 invented) once
+    the model servers are up.
 - [ ] **7. Jawaf dashboard: onboarding, Knowledge, Playground, Settings.**
   - Built (agent, 2026-11-25; NOT typechecked, no dev server, no browser - the lead runs the scoped tsc and the Chrome
     pass):

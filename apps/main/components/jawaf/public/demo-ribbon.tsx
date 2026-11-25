@@ -1,13 +1,14 @@
 import { ArrowRight } from "lucide-react"
 import { BoliMark } from "@repo/brand/boli-mark"
-import { AUTH_ROUTES } from "@/lib/auth-routes"
+import { WEB } from "@/lib/web-links"
 
 /**
- * The slim ribbon on a demo bot (built by the Boli team from public information for a prospect). "Claim it" goes to
- * sign-up with the claim intent; the claim flow itself (one-time code, transfer) is Wave 4 (plan task 12).
+ * The slim ribbon on a demo bot (built by the Boli team from public information for a prospect). "Claim it" reaches the
+ * Boli team through the site's Jawaf pilot form: the real hand-over is a one-time claim link an admin sends
+ * (/claim/<token>, plan/admin/jawaf/admin-v1.md), so a visitor can never take a bot just by finding its page.
  */
-export function claimHref(slug: string): string {
-    return `${AUTH_ROUTES.signUp}?intent=claim&bot=${encodeURIComponent(slug)}`
+export function claimHref(_slug: string): string {
+    return WEB.contactAbout("Jawaf")
 }
 
 export function DemoRibbon({ slug }: { slug: string }) {

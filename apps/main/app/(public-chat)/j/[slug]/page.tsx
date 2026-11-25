@@ -7,6 +7,7 @@ import { JawafCover } from "@/components/jawaf/public/cover"
 import { DemoRibbon } from "@/components/jawaf/public/demo-ribbon"
 import { PublicChat } from "@/components/jawaf/public/public-chat"
 import { JawafThemeRoot } from "@/components/jawaf/public/theme-root"
+import { BoliStatus } from "@repo/brand/status/status-screen"
 
 /**
  * A business's public Jawaf page: app.bolihq.com/j/<slug> (plan/main/jawaf/jawaf-v1.md, task 8). No login, no app shell
@@ -37,6 +38,18 @@ export default async function JawafPublicPage({ params, searchParams }: Props) {
     const [{ slug }, sp, jar] = await Promise.all([params, searchParams, cookies()])
     const row = await loadPublicBotRow(slug)
     if (!row) notFound()
+    // Paused by the Boli team (admin Jawaf > All bots): no chat, one plain screen. Nothing about the bot is read.
+    if (row.paused) {
+        return (
+            <BoliStatus
+                kind="resting"
+                fullScreen
+                eyebrow="Paused"
+                title="This assistant is paused"
+                description={`${row.name}'s answer assistant is not taking questions right now. Please contact the business directly, or try again later.`}
+            />
+        )
+    }
     const [bot, restore] = await Promise.all([loadPublicBot(slug), restoreConversation(row, readVisitorId(jar.get(VISITOR_COOKIE)?.value))])
     if (!bot) notFound()
     const src = (Array.isArray(sp.src) ? sp.src[0] : sp.src) === "qr" ? "qr" : "link"

@@ -87,8 +87,8 @@ the dashboard, Kura and the API.
   - No hover-peek in either state: the button or the shortcut. Transitions are transform / width, 200ms, off under
     reduced motion. The choice is the cookie `MAIN_RAIL_COOKIE` (`boli_rail_hidden`, "1" = collapsed), read by the
     (main) layout -> `initialPinned` (true = expanded), so the first frame is right. On an account page (no sidebar)
-    the state does not apply and the shortcut does nothing. Phone (bottom bar + Products sheet) and apps/admin (the
-    classic AppShell) are unchanged.
+    the state does not apply and the shortcut does nothing. Phone (bottom bar + Products sheet) is unchanged. apps/admin uses
+    the same product-rail shell with its MODULES in the rail (apps/admin/CLAUDE.md "Layout").
 - `lib/navigation.ts` holds `ROUTES` and `PRODUCTS` (id, label, icon, home, route prefixes, sidebar items). To add a
   page to a product: a folder under `app/(main)/`, a route constant, an item in that product's `sidebar` (`tab: true`
   for the phone bottom bar). To add a product: an entry in `PRODUCTS` (+ `LANDING_HOMES` in `lib/landing.ts` once live).
