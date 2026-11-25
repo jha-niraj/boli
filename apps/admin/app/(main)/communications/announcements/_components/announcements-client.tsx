@@ -279,7 +279,7 @@ export function AnnouncementsClient({ initial, initialTab, initialOpen }: { init
                         </div>
                         <div className="space-y-1.5">
                             <Label>Message</Label>
-                            <RichTextEditor value={draft.content} onChange={(html) => setDraft((d) => ({ ...d, content: html }))} placeholder="Write the announcement" minHeight="220px" />
+                            <RichTextEditor value={draft.content} onChange={(html) => setDraft((d) => ({ ...d, content: html }))} placeholder="Write the announcement" minHeight="300px" />
                         </div>
                     </>
                 )}

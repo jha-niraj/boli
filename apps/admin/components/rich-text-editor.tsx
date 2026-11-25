@@ -59,7 +59,7 @@ export function RichTextEditor({
     onChange,
     placeholder = "Start writing...",
     className,
-    minHeight = "200px",
+    minHeight = "280px",
     maxHeight,
 }: RichTextEditorProps) {
     const editor = useEditor({
