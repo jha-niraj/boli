@@ -1,0 +1,563 @@
+<title>Building Kagaj</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap">
+<style>
+/* Layout: third chapter of the document-intelligence series. One reading column with a sticky contents rail; every step is a card with the same four parts; diagrams on a fixed light paper panel with black text on light fills. */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --ink: #15171c;
+  --muted: #4a5060;
+  --line: #dce0e7;
+  --accent: #1d4fb8;      /* ink-stamp blue, shared with chapter one */
+  --accent-soft: #e6edfb;
+  --stamp: #b3261e;       /* seal red, used sparingly */
+  --good: #1f7a45;
+  --good-soft: #e3f3e9;
+  --bad-soft: #fbe7e5;
+  --code-bg: #eff1f5;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-deva: "Noto Sans Devanagari", "Kohinoor Devanagari", "Mangal", sans-serif;
+  --paper: #ffffff;       /* diagram panels stay light in both themes */
+  --paper-ink: #000000;
+  --paper-line: #c9cdd6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111317; --surface: #191c22; --ink: #e8eaef; --muted: #a9b0be; --line: #2c313b;
+    --accent: #8fb1ff; --accent-soft: #1d2740; --stamp: #ff8a80; --good: #7fd6a0; --good-soft: #17301f;
+    --bad-soft: #3a1f1d; --code-bg: #20242c; --paper: #f4f5f7; --paper-line: #9aa1ad; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111317; --surface: #191c22; --ink: #e8eaef; --muted: #a9b0be; --line: #2c313b;
+  --accent: #8fb1ff; --accent-soft: #1d2740; --stamp: #ff8a80; --good: #7fd6a0; --good-soft: #17301f;
+  --bad-soft: #3a1f1d; --code-bg: #20242c; --paper: #f4f5f7; --paper-line: #9aa1ad; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.62; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 32px 96px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; }
+@media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; } .toc { display: none; } }
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 13px; }
+.toc p { font-family: var(--font-display); font-weight: 600; margin: 0 0 8px; color: var(--muted); letter-spacing: .05em; font-size: 12px; text-transform: uppercase; }
+.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.toc a { display: block; padding: 4px 8px; border-radius: 6px; color: var(--muted); text-decoration: none; }
+.toc a:hover, .toc a:focus-visible { background: var(--accent-soft); color: var(--ink); }
+main { min-width: 0; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.2; }
+h1 { font-size: clamp(2rem, 4.5vw, 3rem); margin: 0 0 12px; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.6rem; margin: 72px 0 12px; font-weight: 700; padding-top: 8px; }
+h3 { font-size: 1.15rem; margin: 32px 0 8px; font-weight: 600; }
+p, li { max-width: 70ch; }
+ul, ol { padding-left: 1.3em; }
+li + li { margin-top: 4px; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; color: var(--stamp); text-transform: uppercase; margin: 0 0 8px; }
+.lede { font-size: 1.15rem; color: var(--muted); max-width: 64ch; }
+.deva { font-family: var(--font-deva); }
+code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+:not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+pre { font-family: var(--font-mono); font-size: 13px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; overflow-x: auto; line-height: 1.55; margin: 12px 0 16px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.tablebox { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); margin: 12px 0 20px; }
+.tablebox table { min-width: 760px; }
+.tablebox.narrow table { min-width: 560px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+th { font-family: var(--font-display); font-weight: 600; font-size: 13px; background: var(--code-bg); }
+tr:last-child td { border-bottom: 0; }
+td.num, .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
+.tag.yes { background: var(--good-soft); border-color: transparent; color: var(--good); }
+.tag.no { background: var(--bad-soft); border-color: transparent; color: var(--stamp); }
+.tag.maybe { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+.note { border-left: 3px solid var(--stamp); background: var(--surface); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; max-width: 78ch; }
+.note.blue { border-left-color: var(--accent); }
+.note > strong:first-child { color: var(--stamp); }
+.note.blue > strong:first-child { color: var(--accent); }
+.defs { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin: 16px 0; }
+.def { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+.def b { font-family: var(--font-display); display: block; margin-bottom: 2px; }
+/* diagram paper */
+.fig { background: var(--paper); color: var(--paper-ink); border: 1px solid var(--paper-line); border-radius: 12px; margin: 20px 0 8px; overflow-x: auto; }
+.fig svg { display: block; width: 100%; height: auto; }
+.fig.wide svg { min-width: 820px; }
+.fig.mid svg { min-width: 640px; }
+.figcap { font-size: 13px; color: var(--muted); margin: 0 0 20px; max-width: 78ch; }
+/* scoreboard */
+.score { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 20px 0; }
+.score > div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+.score .who { font-family: var(--font-display); font-weight: 600; font-size: 14px; }
+.score .big { font-family: var(--font-display); font-size: 1.7rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; margin: 6px 0 4px; }
+.score .big.good { color: var(--good); }
+.score .big.bad { color: var(--stamp); }
+.score .what { font-size: 13px; color: var(--muted); }
+/* digit strip */
+.digits { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+.pair { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; font-family: var(--font-deva); font-size: 1.6rem; line-height: 1.2; }
+.pair small { display: block; font-family: var(--font-body); font-size: 12px; color: var(--muted); }
+/* phases */
+.phases { display: grid; gap: 14px; margin: 16px 0; }
+.phase { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; min-width: 0; }
+.phase h3 { margin: 0 0 4px; }
+.phase .meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.phase ul { margin: 6px 0; }
+.phase .done { font-size: 14px; color: var(--muted); margin: 8px 0 0; }
+/* quiz */
+.quiz { display: grid; gap: 14px; margin: 16px 0; counter-reset: q; }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.q p.ask { margin: 0 0 10px; font-weight: 600; }
+.q p.ask::before { counter-increment: q; content: "Q" counter(q) ". "; font-family: var(--font-mono); color: var(--stamp); font-weight: 500; }
+.opts { display: grid; gap: 6px; }
+.opts button { text-align: left; font: inherit; font-size: 15px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.opts button:hover { border-color: var(--accent); }
+.opts button.right { background: var(--good-soft); border-color: var(--good); }
+.opts button.wrong { background: var(--bad-soft); border-color: var(--stamp); }
+.why { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+.qbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 14px; color: var(--muted); }
+.qbar button { font: inherit; font-size: 14px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.src { font-size: 14px; }
+.src li { max-width: 90ch; }
+.back { display: inline-flex; gap: 8px; align-items: center; font-size: 14px; background: var(--accent-soft); color: var(--ink); padding: 6px 12px; border-radius: 999px; text-decoration: none; margin: 4px 0 8px; }
+.back:hover { text-decoration: underline; }
+@media (prefers-reduced-motion: no-preference) { .opts button { transition: background-color .15s, border-color .15s; } }
+</style>
+<style>.phase{scroll-margin-top:16px}.phase h3{font-size:1.2rem}.phases{gap:18px}</style>
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <p>Contents</p>
+  <ol>
+    <li><a href="#what">1. What Kagaj is</a></li>
+    <li><a href="#today">2. Where we stand</a></li>
+    <li><a href="#map">3. The whole build</a></li>
+    <li><a href="#m1">M1. Freeze the output</a></li>
+    <li><a href="#m2">M2. The router</a></li>
+    <li><a href="#m3">M3. The hybrid reader</a></li>
+    <li><a href="#m4">M4. The gold set</a></li>
+    <li><a href="#m5">M5. The bake-off</a></li>
+    <li><a href="#m6">M6. Fine-tune, if needed</a></li>
+    <li><a href="#m7">M7. The gate</a></li>
+    <li><a href="#where">4. Where it runs</a></li>
+    <li><a href="#p1">P1. How the pieces connect</a></li>
+    <li><a href="#p2">P2. The tables</a></li>
+    <li><a href="#p3">P3. One job, step by step</a></li>
+    <li><a href="#p4">P4. The screens</a></li>
+    <li><a href="#p5">P5. The API</a></li>
+    <li><a href="#p6">P6. Privacy</a></li>
+    <li><a href="#p7">P7. Kagaj inside Jawaf</a></li>
+    <li><a href="#next">5. What I will ask you</a></li>
+    <li><a href="#quiz">6. Quiz</a></li>
+  </ol>
+</nav>
+
+<main>
+<p class="eyebrow">Boli document intelligence, chapter three - 25 November 2026</p>
+<h1>Building Kagaj</h1>
+<p class="lede">The step-by-step plan for <b>Kagaj</b> (<span class="deva">कागज</span>, paper), Boli's document product: what we build, in what order, why each step exists, and the traps inside each one. The model comes first, then the platform. No code to read; every step says what it produces and how we will know it is done.</p>
+<p>
+  <a class="back" href="https://claude.ai/artifact/BCNpzCs5MvyyabdXPGZSmG">Chapter one: what document intelligence is</a>
+  <a class="back" href="https://claude.ai/artifact/FpAa2DhyXB8kc3QJWd3JcU">Chapter two: how a document model is trained</a>
+</p>
+<div class="note blue"><strong>How this chapter differs.</strong> Chapters one and two were the map: every option, every model, how others did it. This one is the route: the choices are made, the order is fixed, and each step has a check. Where something is still your decision, it says so and the question waits for section 5.</div>
+
+<h2 id="what">1. What Kagaj is, and what version one is not</h2>
+<p><b>The promise:</b> upload a Nepali or English document (a PDF, a scan or a phone photo) and get back its text in the right reading order, its tables as tables, and the fields you ask for as clean data. On Boli's own open models, from the app or the API.</p>
+<div class="tablebox narrow"><table>
+<thead><tr><th>In version one</th><th>Not in version one</th></tr></thead>
+<tbody>
+<tr><td>Printed Nepali (Unicode and old Preeti-font documents), English, and pages that mix them</td><td>Handwriting. It is a different, much harder job and needs its own data.</td></tr>
+<tr><td>Digital PDFs, scanned PDFs, phone photos of one page</td><td>Checking whether a document is genuine (fraud, tampering)</td></tr>
+<tr><td>Two outputs: <b>Read</b> (the whole page as typed blocks) and <b>Extract</b> (fields into a JSON shape you choose)</td><td>Long books. A cap of about 20 pages a file at first.</td></tr>
+<tr><td>Bills, invoices, notices, letters, certificates, statements, forms</td><td>Translation and summaries as separate products. Once the text is clean, Kura or the API already do those.</td></tr>
+</tbody></table></div>
+<p>That last row is the most important planning fact in this chapter. <b>Writing is already solved on Boli; reading is not.</b> Every hard step below is about getting the characters, the digits and the order right.</p>
+
+<h2 id="today">2. Where we stand, in our own numbers</h2>
+<p>On 24 November we ran Stage 0 on 39 real, public Nepal government documents (IRD, MoF, NEB, NTA, DoHS and others: 11 digital PDFs, 16 scans, 5 photos, 7 degraded copies). Mac M5, Gemma 4 E4B with its vision add-on, Tesseract 5 with Nepali. The full report is <code>ml/docintel/testset/REPORT.md</code>. Six numbers carry the whole plan:</p>
+<div class="score">
+  <div><div class="who">Digits, vision only</div><div class="big bad">71.7%</div><div class="what">right on digital PDFs. Most misses are dropped digits; 1 in 13 is a real misread.</div></div>
+  <div><div class="who">Reading, Tesseract vs vision</div><div class="big">0.21 vs 0.29</div><div class="what">character error rate (lower is better). The old OCR engine reads characters better.</div></div>
+  <div><div class="who">Dates on scans</div><div class="big good">13 / 16</div><div class="what">with the hybrid. Vision alone: 5 of 16. Tesseract alone: 12 of 16.</div></div>
+  <div><div class="who">Speed per page</div><div class="big">19 s vs 1 s</div><div class="what">vision transcription vs Tesseract, on the Mac. One run looped for 92 s.</div></div>
+  <div><div class="who">PDF text layers</div><div class="big bad">10 of 11</div><div class="what">digital PDFs whose own text was wrong: Preeti gibberish (3) or broken Word exports (7).</div></div>
+  <div><div class="who">Scans with junk OCR</div><div class="big bad">7 of 16</div><div class="what">scanners added a Latin-letter "text layer" to a Devanagari page.</div></div>
+</div>
+<p>Three lessons fall out, and each becomes a step:</p>
+<ol>
+  <li><b>No single reader is good enough.</b> The vision model understands the page but misreads and drops digits. Tesseract reads characters well but knows nothing about layout. So version one is a <b>hybrid</b> that uses each for what it is good at (step M3).</li>
+  <li><b>A PDF's own text cannot be trusted.</b> Most people would assume "digital PDF = exact text". On Nepal government PDFs that is false 10 times out of 11. So every file goes through a <b>router</b> first (step M2).</li>
+  <li><b>Digits fail silently.</b> <span class="deva">०.१९</span> became <span class="deva">०.११</span>; the VAT Act year <span class="deva">२०५२</span> became <span class="deva">२०७२</span>; a crore-sized amount changed in the middle. The text still looks perfect. So every number the model writes must be <b>checked against a second reader</b> before we return it (step M3), and our scoring measures digits on their own (step M4).</li>
+</ol>
+
+<h2 id="map">3. The whole build on one page</h2>
+<p>Two tracks. The model track decides <i>how well</i> Kagaj reads; the platform track decides <i>how people use it</i>. The model track goes first because its answers change the platform: how long a page takes decides whether the screens can wait or must run a background job, and what the reader returns decides what the screens show.</p>
+<div class="fig wide"><svg viewBox="0 0 980 330" role="img" aria-labelledby="mapT">
+<title id="mapT">The Kagaj build: model track M1 to M7, a gate, then platform track P1 to P7</title>
+<style>.b{fill:#e6edfb;stroke:#1d4fb8;stroke-width:1.2}.g{fill:#e3f3e9;stroke:#1f7a45;stroke-width:1.2}.y{fill:#fff4d6;stroke:#a87400;stroke-width:1.2}.t{font:600 13px Archivo,Arial,sans-serif;fill:#000}.s{font:12px Inter,Arial,sans-serif;fill:#000}.l{font:700 12px Archivo,Arial,sans-serif;fill:#000;letter-spacing:.06em}</style>
+<text class="l" x="20" y="28">MODEL TRACK - how well it reads</text>
+<rect class="b" x="20" y="40" width="124" height="70" rx="10"/><text class="t" x="32" y="64">M1 Freeze</text><text class="s" x="32" y="84">the output</text><text class="s" x="32" y="100">shape</text>
+<rect class="b" x="156" y="40" width="124" height="70" rx="10"/><text class="t" x="168" y="64">M2 Router</text><text class="s" x="168" y="84">which reader</text><text class="s" x="168" y="100">for this file</text>
+<rect class="b" x="292" y="40" width="124" height="70" rx="10"/><text class="t" x="304" y="64">M3 Hybrid</text><text class="s" x="304" y="84">OCR + vision</text><text class="s" x="304" y="100">+ digit check</text>
+<rect class="b" x="428" y="40" width="124" height="70" rx="10"/><text class="t" x="440" y="64">M4 Gold set</text><text class="s" x="440" y="84">300 pages,</text><text class="s" x="440" y="100">frozen, scored</text>
+<rect class="b" x="564" y="40" width="124" height="70" rx="10"/><text class="t" x="576" y="64">M5 Bake-off</text><text class="s" x="576" y="84">every candidate</text><text class="s" x="576" y="100">on the gold set</text>
+<rect class="y" x="700" y="40" width="124" height="70" rx="10" stroke-dasharray="5 4"/><text class="t" x="712" y="64">M6 Fine-tune</text><text class="s" x="712" y="84">only if the</text><text class="s" x="712" y="100">hybrid stalls</text>
+<rect class="g" x="836" y="40" width="124" height="70" rx="10"/><text class="t" x="848" y="64">M7 The gate</text><text class="s" x="848" y="84">numbers say</text><text class="s" x="848" y="100">ship or not</text>
+<path d="M144 75h12M280 75h12M416 75h12M552 75h12M688 75h12M824 75h12" stroke="#000" stroke-width="1.4" fill="none"/>
+<path d="M898 110 V160 H80 V205" stroke="#000" stroke-width="1.4" fill="none" marker-end="url(#ar)"/>
+<text class="s" x="360" y="152">the gate passes: the reader is fixed, so build around it</text>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#000"/></marker></defs>
+<text class="l" x="20" y="200">PLATFORM TRACK - how people use it</text>
+<rect class="g" x="20" y="212" width="124" height="70" rx="10"/><text class="t" x="32" y="236">P1 Pieces</text><text class="s" x="32" y="256">app, jobs,</text><text class="s" x="32" y="272">reader service</text>
+<rect class="g" x="156" y="212" width="124" height="70" rx="10"/><text class="t" x="168" y="236">P2 Tables</text><text class="s" x="168" y="256">document,</text><text class="s" x="168" y="272">page, result</text>
+<rect class="g" x="292" y="212" width="124" height="70" rx="10"/><text class="t" x="304" y="236">P3 The job</text><text class="s" x="304" y="256">per-page steps</text><text class="s" x="304" y="272">with retries</text>
+<rect class="g" x="428" y="212" width="124" height="70" rx="10"/><text class="t" x="440" y="236">P4 Screens</text><text class="s" x="440" y="256">upload, read,</text><text class="s" x="440" y="272">extract</text>
+<rect class="g" x="564" y="212" width="124" height="70" rx="10"/><text class="t" x="576" y="236">P5 API</text><text class="s" x="576" y="256">/v1/documents,</text><text class="s" x="576" y="272">per-page price</text>
+<rect class="g" x="700" y="212" width="124" height="70" rx="10"/><text class="t" x="712" y="236">P6 Privacy</text><text class="s" x="712" y="256">retention,</text><text class="s" x="712" y="272">no silent training</text>
+<rect class="g" x="836" y="212" width="124" height="70" rx="10"/><text class="t" x="848" y="236">P7 Jawaf</text><text class="s" x="848" y="256">replaces Sarvam</text><text class="s" x="848" y="272">for files</text>
+<path d="M144 247h12M280 247h12M416 247h12M552 247h12M688 247h12M824 247h12" stroke="#000" stroke-width="1.4" fill="none"/>
+<text class="s" x="20" y="318">Blue: model work. Yellow, dashed: only if needed. Green: shipping work.</text>
+</svg></div>
+<p class="figcap">The order is the plan. M6 is optional on purpose: if the hybrid passes the gate, fine-tuning moves to "later, to make it faster and cheaper" instead of "now, to make it work".</p>
+
+<h3>The model track, step by step</h3>
+<p>Every step below has the same four parts: <b>what we do</b>, <b>what it produces</b>, <b>the nuance</b> (the part that is easy to get wrong), and <b>done when</b> (the check that lets us move on).</p>
+
+<div class="phases">
+<section class="phase" id="m1">
+  <h3>M1. Freeze the output shape</h3>
+  <div class="meta"><span class="tag">1 to 2 days</span><span class="tag maybe">decides everything after it</span></div>
+  <p><b>What we do.</b> Write down, exactly, what Kagaj returns. Two outputs, always in this order:</p>
+  <ul>
+    <li><b>Read:</b> the page as a list of typed blocks in reading order: <code>title</code>, <code>heading</code>, <code>paragraph</code>, <code>list</code>, <code>table</code>, <code>key_value</code>, <code>stamp</code>, <code>signature</code>, <code>footer</code>. Each block has its text and a rough position on the page (a box). Tables keep rows, columns, header and total rows.</li>
+    <li><b>Extract:</b> named fields from those blocks into a JSON shape. Either one of our templates (bill, invoice, notice, certificate) or a shape the user writes.</li>
+  </ul>
+  <p><b>What it produces.</b> A one-page spec and three hand-made example outputs. The gold set (M4), the scorer and the screens (P4) all read this spec.</p>
+  <p><b>The nuance: copy, never correct.</b> The model writes what is printed, exactly: Nepali digits stay Nepali, a Bikram Sambat date stays BS, <span class="deva">रु. १,२४०.००</span> stays as printed. <b>Our code</b>, not the model, then adds the normalised values next to the printed ones: ASCII digits, the AD date, the amount in paisa. Why? A model asked to convert a BS date to AD will sometimes do the arithmetic wrong and you cannot tell. Code is either right every time or wrong every time, and a test catches it once.</p>
+<pre>{ "field": "due_date",
+  "printed": "२०८२/०८/१५",      // what the page says, copied
+  "value":   "2082-08-15",      // our code: digits converted
+  "ad":      "2025-12-01",      // our code: BS calendar to AD
+  "verified": true,             // M3: the OCR reader agrees on every digit
+  "page": 1, "box": [412, 188, 140, 22] }</pre>
+  <p class="done"><b>Done when</b> you have read the spec and the three examples and said "yes, this is what a customer gets".</p>
+</section>
+
+<section class="phase" id="m2">
+  <h3>M2. The router: which reader for this file</h3>
+  <div class="meta"><span class="tag">3 to 5 days</span><span class="tag no">fixes 3 traps we measured</span></div>
+  <p><b>What we do.</b> A small piece of plain code that every page passes through first. It looks at the file and picks the route. No model, under a second.</p>
+  <div class="fig mid"><svg viewBox="0 0 760 330" role="img" aria-labelledby="rT">
+  <title id="rT">The router's decision tree</title>
+  <style>.q{fill:#fff4d6;stroke:#a87400;stroke-width:1.2}.r{fill:#e3f3e9;stroke:#1f7a45;stroke-width:1.2}.x{fill:#fbe7e5;stroke:#b3261e;stroke-width:1.2}.t2{font:600 13px Archivo,Arial,sans-serif;fill:#000}.s2{font:12px Inter,Arial,sans-serif;fill:#000}</style>
+  <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#000"/></marker></defs>
+  <rect class="q" x="20" y="20" width="210" height="50" rx="10"/><text class="t2" x="34" y="42">Does the page have a</text><text class="t2" x="34" y="60">text layer?</text>
+  <rect class="x" x="290" y="20" width="200" height="50" rx="10"/><text class="t2" x="304" y="42">No: image route</text><text class="s2" x="304" y="60">scan or photo, go to M3</text>
+  <path d="M230 45h58" stroke="#000" stroke-width="1.4" marker-end="url(#ar2)"/><text class="s2" x="244" y="38">no</text>
+  <path d="M125 70v30" stroke="#000" stroke-width="1.4" marker-end="url(#ar2)"/><text class="s2" x="132" y="90">yes</text>
+  <rect class="q" x="20" y="102" width="210" height="50" rx="10"/><text class="t2" x="34" y="124">Is it Preeti gibberish?</text><text class="s2" x="34" y="142">g]kfn ;/sf/ for नेपाल सरकार</text>
+  <rect class="r" x="290" y="102" width="200" height="50" rx="10"/><text class="t2" x="304" y="124">Convert Preeti to</text><text class="t2" x="304" y="142">Unicode, then check</text>
+  <path d="M230 127h58" stroke="#000" stroke-width="1.4" marker-end="url(#ar2)"/><text class="s2" x="244" y="120">yes</text>
+  <path d="M125 152v30" stroke="#000" stroke-width="1.4" marker-end="url(#ar2)"/><text class="s2" x="132" y="172">no</text>
+  <rect class="q" x="20" y="184" width="210" height="50" rx="10"/><text class="t2" x="34" y="206">Mostly Latin letters on</text><text class="t2" x="34" y="224">a Devanagari page?</text>
+  <rect class="x" x="290" y="184" width="200" height="50" rx="10"/><text class="t2" x="304" y="206">Junk OCR layer:</text><text class="s2" x="304" y="224">ignore it, image route</text>
+  <path d="M230 209h58" stroke="#000" stroke-width="1.4" marker-end="url(#ar2)"/><text class="s2" x="244" y="202">yes</text>
+  <path d="M125 234v30" stroke="#000" stroke-width="1.4" marker-end="url(#ar2)"/><text class="s2" x="132" y="254">no</text>
+  <rect class="q" x="20" y="266" width="210" height="50" rx="10"/><text class="t2" x="34" y="288">Does it agree with a</text><text class="t2" x="34" y="306">quick Tesseract read?</text>
+  <rect class="r" x="290" y="266" width="200" height="50" rx="10"/><text class="t2" x="304" y="288">Yes: text route</text><text class="s2" x="304" y="306">exact text, fast, cheap</text>
+  <path d="M230 291h58" stroke="#000" stroke-width="1.4" marker-end="url(#ar2)"/><text class="s2" x="244" y="284">yes</text>
+  <rect class="x" x="540" y="266" width="200" height="50" rx="10"/><text class="t2" x="554" y="288">No: broken Word export</text><text class="s2" x="554" y="306">keep its digits, image route</text>
+  <path d="M125 316v8H640v-10" stroke="#000" stroke-width="1.4" fill="none" marker-end="url(#ar2)"/><text class="s2" x="250" y="326">no</text>
+  </svg></div>
+  <p class="figcap">Green boxes trust the PDF's text; red boxes do not. A route is chosen per page, because one PDF can mix a typed letter with a scanned attachment.</p>
+  <p><b>What it produces.</b> For each page: the route, the reason, and (for text routes) the cleaned text. This reason is stored and shown in the admin, so when a page reads badly we know which door it came through.</p>
+  <p><b>The nuance.</b> The broken Word export is the sneaky one. Its text looks like Nepali (<span class="deva">ववभाग</span> for <span class="deva">विभाग</span>, <span class="deva">सूचर्ना</span> for <span class="deva">सूचना</span>), so a script check passes it. Only comparing it with an independent read catches it: we measured its error rate at 15 to 24%, worse than Tesseract on the same page. But its <b>digits</b> were right in both hand checks, so the router keeps them as a second opinion for M3's digit check. Also: those PDFs store ASCII <code>2053</code> while the page shows <span class="deva">२०५३</span>, because the font draws ASCII digits as Nepali ones. Comparing digits by value, not by character, is what makes this a match instead of an error.</p>
+  <p class="done"><b>Done when</b> the router picks the right route on all 39 test documents, and we can say why for each one.</p>
+</section>
+
+<section class="phase" id="m3">
+  <h3>M3. The hybrid reader (what ships first)</h3>
+  <div class="meta"><span class="tag">1 to 2 weeks</span><span class="tag yes">already proven on one bill</span></div>
+  <p><b>What we do.</b> Three readers work on the same page, each for what it does best, and a referee decides:</p>
+  <div class="tablebox narrow"><table>
+  <thead><tr><th>Reader</th><th>Good at</th><th>Bad at</th><th>Its job in Kagaj</th></tr></thead>
+  <tbody>
+  <tr><td>Tesseract (OCR, about 1 s)</td><td>Exact characters and digits</td><td>Layout, tables, reading order, stamps</td><td>The witness for every character and digit</td></tr>
+  <tr><td>Gemma 4 E4B with vision (about 19 s)</td><td>Layout, reading order, tables, what a number means</td><td>Nepali digits; can drop lines or invent text</td><td>Writes the typed blocks, given Tesseract's text as a hint</td></tr>
+  <tr><td>The PDF's own text (when the router trusts it)</td><td>Exact text, free</td><td>Often broken (M2)</td><td>Replaces Tesseract as the witness when available</td></tr>
+  <tr><td><b>The referee</b> (our code)</td><td colspan="3">Checks every number the model wrote against the witness. Marks fields verified or not. Never invents a fix it cannot justify.</td></tr>
+  </tbody></table></div>
+  <p><b>How the digit check works.</b> Take every number in the model's output. Look for the same value in the witness text, in the same region of the page (the box). Three outcomes:</p>
+  <ul>
+    <li><b>Found:</b> the field is <code>verified: true</code>.</li>
+    <li><b>Not found, but the witness has a number of the same shape in that box</b> (the model wrote <span class="deva">०.११</span>, OCR has <span class="deva">०.१९</span> in the same place): use the witness's value, mark it <code>corrected_by_ocr</code>, and lower the confidence.</li>
+    <li><b>Nothing close:</b> keep the model's value but mark it <code>verified: false</code>. The screen shows it in amber and the API says so. We never pretend.</li>
+  </ul>
+  <p><b>The nuance: a fluent mistake is worse than a garbled one.</b> If Tesseract writes nonsense, everyone can see it is wrong. If the vision model writes a perfect-looking Nepali sentence that is not on the page, nobody notices. This is why the referee stays in production <i>even after</i> a fine-tuned model ships: a second reader is the cheapest insurance there is. Second nuance: loops. One page repeated a sentence until it hit the 3,000-token cap. The reader stops a page whose output starts repeating and retries it once at a lower token budget.</p>
+  <p class="done"><b>Done when</b> on the test set the hybrid gets dates and amounts at least as right as Tesseract alone, writes no invented fields, and every unverified field is marked.</p>
+</section>
+
+<section class="phase" id="m4">
+  <h3>M4. The gold set and the scorer</h3>
+  <div class="meta"><span class="tag">2 to 3 weeks, mostly people's time</span><span class="tag maybe">the asset that outlives every model</span></div>
+  <p><b>What we do.</b> Grow the 39 test documents into about 300 pages with a hand-checked answer for each, then <b>freeze</b> it with a date. Mix: digital PDFs, scans, phone photos (crumpled, angled, shadowed), Preeti documents, tables, bills, letters, notices. Two Nepali readers check every answer; where they disagree, a third decides.</p>
+  <p><b>What it produces.</b> A folder that never changes after the freeze, and one script that scores any reader on it and prints one row. Every decision from here on is "which row is better".</p>
+  <div class="defs">
+    <div class="def"><b>CER</b>Character error rate: how many characters must change to turn the output into the answer, divided by the answer's length. 0.05 means 5 wrong in 100.</div>
+    <div class="def"><b>Digit accuracy</b>Only the digits, in reading order, compared by value (<span class="deva">४</span> = 4). Scored on its own because a wrong digit costs more than a wrong letter.</div>
+    <div class="def"><b>Field accuracy</b>Of the fields we asked for, how many came back exactly right after normalising. The number a customer feels.</div>
+    <div class="def"><b>TEDS</b>Tree edit distance similarity for tables: did the rows, columns and merged cells come out the same shape?</div>
+    <div class="def"><b>Script slips</b>Characters in a script that should not be there (Bengali inside a Nepali table: PaddleOCR-VL did this). Target: zero.</div>
+    <div class="def"><b>Invented fields</b>A value with no source on the page. Target: zero. This is the one that loses customers.</div>
+  </div>
+  <p><b>The nuance: leakage.</b> If two pages of the same gazette go one to training and one to the gold set, the model has seen that layout and that font, and the score lies. Split by document and by publisher, never by page. Second nuance: <b>privacy</b>. Only public documents and documents people give us with written consent; names and numbers of private people are blacked out before anyone labels them.</p>
+  <p class="done"><b>Done when</b> 300 pages are frozen, two readers signed off, and the scorer prints a row for Tesseract, vision-only and the hybrid.</p>
+</section>
+
+<section class="phase" id="m5">
+  <h3>M5. The bake-off</h3>
+  <div class="meta"><span class="tag">about 1 week</span></div>
+  <p><b>What we do.</b> Run every candidate reader over the frozen gold set and fill one table: the hybrid with Gemma 4 E4B, the hybrid with a bigger open vision model, Qwen3-VL at 4B and 8B, PaddleOCR-VL, Tesseract alone. Sarvam goes in as an outside reference only, so we know the gap.</p>
+  <p><b>The nuance: the licence register.</b> Before a model goes in the table, we write down the licence of the <i>exact checkpoint</i>. The trap from chapter two: one model family's 7B is Apache 2.0 while its 3B is research-only, and a fine-tune inherits the licence. A model we cannot sell is not a candidate, however well it scores. Second nuance: score the model <b>quantised the way we would run it</b> (4-bit or 8-bit), not the full-size version from the paper.</p>
+  <p class="done"><b>Done when</b> the table is full and one row is the clear winner on field accuracy with zero invented fields.</p>
+</section>
+
+<section class="phase" id="m6">
+  <h3>M6. Fine-tune, only if the hybrid stalls</h3>
+  <div class="meta"><span class="tag">6 to 10 weeks</span><span class="tag maybe">optional at first</span></div>
+  <p><b>When.</b> If the best hybrid misses the gate (M7) and the misses are the model's knowledge (it does not know Nepali digit shapes), not its eyesight. Chapter two covers how in full; in one line: render tens of thousands of synthetic Nepali pages in many fonts including Preeti, add real pages with consent, label them with an open teacher plus human checks, and train a LoRA adapter on a rented GPU for a few hundred dollars a run.</p>
+  <p><b>The nuance.</b> Even when the hybrid passes, fine-tuning comes back later for a different reason: <b>speed and cost</b>. A specialist that reads well on its own can drop the second reader on easy pages and answer in 3 to 5 seconds instead of 20.</p>
+  <p class="done"><b>Done when</b> a checkpoint beats the hybrid on the gold set and stops improving between runs.</p>
+</section>
+
+<section class="phase" id="m7">
+  <h3>M7. The gate</h3>
+  <div class="meta"><span class="tag">a day</span><span class="tag yes">no gate, no platform</span></div>
+  <p><b>What we do.</b> Agree the pass marks <b>before</b> seeing the results, so the bar does not drift to whatever we got. A starting proposal, yours to change:</p>
+  <div class="tablebox narrow"><table>
+  <thead><tr><th>Check on the gold set</th><th>Proposed bar</th></tr></thead>
+  <tbody>
+  <tr><td>Invented fields</td><td class="num">0</td></tr>
+  <tr><td>Script slips</td><td class="num">0</td></tr>
+  <tr><td>Field accuracy, clean digital and scanned pages</td><td class="num">95% or more</td></tr>
+  <tr><td>Field accuracy, phone photos</td><td class="num">85% or more</td></tr>
+  <tr><td>Digit accuracy</td><td class="num">at least Tesseract's</td></tr>
+  <tr><td>Unverified fields that are actually wrong, but not marked</td><td class="num">0</td></tr>
+  <tr><td>Seconds per page on the target GPU</td><td class="num">under 10</td></tr>
+  </tbody></table></div>
+  <p class="done"><b>Done when</b> the winner passes every row. Then the reader is fixed, and the platform track starts.</p>
+</section>
+</div>
+
+<h2 id="where">4. Where Kagaj runs, and why not on Cloudflare</h2>
+<p>Everything Boli serves today runs on Cloudflare Workers. Kagaj's reader cannot, for three reasons you should know:</p>
+<ul>
+  <li><b>Workers cannot run programs.</b> Tesseract and the PDF renderer (<code>pdftoppm</code>) are native programs. A Worker runs JavaScript only.</li>
+  <li><b>The model needs a GPU.</b> On the Mac a page takes about 19 seconds; a GPU brings that to a few seconds. Chat is the same story, which is why boli-chat already runs on its own server.</li>
+  <li><b>Pages are big.</b> A 200 dpi page image is a few megabytes; a 20-page PDF is too much to pass around inside one request.</li>
+</ul>
+<p>So the reader lives in a <b>reader service</b> next to the chat model on the GPU host: one small private web service that takes a page and returns blocks. The Cloudflare side (the app, the API and the jobs Worker) stores files, keeps the records, runs the step-by-step job and talks to the reader service. This is the same split as chat: the app on Cloudflare, the model on our own box.</p>
+<div class="note"><strong>The cost question this raises.</strong> The Mac is fine for building and for the gold set. Selling Kagaj needs an always-on GPU host. That is the same host the chat model needs to leave the Mac, so it is one decision, not two. It is the first question in section 5.</div>
+
+<h3>The platform track, step by step</h3>
+
+<div class="phases">
+<section class="phase" id="p1">
+  <h3>P1. How the pieces connect</h3>
+  <div class="fig wide"><svg viewBox="0 0 980 260" role="img" aria-labelledby="pT">
+  <title id="pT">Kagaj's pieces: app, file store, database, jobs Worker, reader service</title>
+  <style>.c{fill:#e6edfb;stroke:#1d4fb8;stroke-width:1.2}.d{fill:#ffffff;stroke:#000;stroke-width:1.2}.h{fill:#fff4d6;stroke:#a87400;stroke-width:1.2}.t3{font:600 13px Archivo,Arial,sans-serif;fill:#000}.s3{font:12px Inter,Arial,sans-serif;fill:#000}</style>
+  <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#000"/></marker></defs>
+  <rect class="d" x="20" y="90" width="140" height="70" rx="10"/><text class="t3" x="34" y="116">You</text><text class="s3" x="34" y="136">the app, or your</text><text class="s3" x="34" y="152">code via the API</text>
+  <rect class="c" x="210" y="90" width="160" height="70" rx="10"/><text class="t3" x="224" y="116">Boli app (main)</text><text class="s3" x="224" y="136">checks credits, stores</text><text class="s3" x="224" y="152">the file, starts the job</text>
+  <rect class="c" x="210" y="10" width="160" height="56" rx="10"/><text class="t3" x="224" y="34">R2 file store</text><text class="s3" x="224" y="52">the file and page images</text>
+  <rect class="c" x="210" y="186" width="160" height="56" rx="10"/><text class="t3" x="224" y="210">Database</text><text class="s3" x="224" y="228">documents, pages, results</text>
+  <rect class="c" x="430" y="90" width="170" height="70" rx="10"/><text class="t3" x="444" y="116">Jobs Worker</text><text class="s3" x="444" y="136">one Workflow per file,</text><text class="s3" x="444" y="152">one step per page</text>
+  <rect class="h" x="660" y="70" width="300" height="110" rx="10"/><text class="t3" x="676" y="96">Reader service (GPU host, private)</text><text class="s3" x="676" y="118">render page - router - Tesseract</text><text class="s3" x="676" y="136">vision model - referee - fields</text><text class="s3" x="676" y="160">same box as boli-chat</text>
+  <path d="M160 125h48" stroke="#000" stroke-width="1.4" marker-end="url(#ar3)"/>
+  <path d="M290 90V68" stroke="#000" stroke-width="1.4" marker-end="url(#ar3)"/>
+  <path d="M290 160v24" stroke="#000" stroke-width="1.4" marker-end="url(#ar3)"/>
+  <path d="M370 125h58" stroke="#000" stroke-width="1.4" marker-end="url(#ar3)"/>
+  <path d="M600 125h58" stroke="#000" stroke-width="1.4" marker-end="url(#ar3)"/>
+  <path d="M515 160v54H372" stroke="#000" stroke-width="1.4" fill="none" marker-end="url(#ar3)"/><text class="s3" x="400" y="232">writes progress and results</text>
+  <path d="M515 90V38H372" stroke="#000" stroke-width="1.4" fill="none" marker-end="url(#ar3)"/><text class="s3" x="400" y="30">reads the file</text>
+  </svg></div>
+  <p class="figcap">Black text on light boxes. Blue runs on Cloudflare; yellow runs on our GPU host. The page in your browser asks the database every few seconds how far the job has got.</p>
+  <p><b>Why a background job.</b> Boli's rule (AGENTS.md section 5): anything that can take more than about 30 seconds, must survive a closed tab, or must retry is a long job. A 10-page scan is minutes. So the app answers at once with "received", the jobs Worker does the work page by page, and the screen shows progress. This is the same machinery Jawaf already uses to read websites.</p>
+</section>
+
+<section class="phase" id="p2">
+  <h3>P2. The tables</h3>
+  <p>Three new tables, each carrying the workspace id like everything else in Boli:</p>
+  <div class="tablebox narrow"><table>
+  <thead><tr><th>Table</th><th>One row per</th><th>Holds</th></tr></thead>
+  <tbody>
+  <tr><td><code>kagaj_document</code></td><td>uploaded file</td><td>name, the R2 key of the file, page count, status (queued, reading, done, failed, partly done), credits charged, who uploaded it, when it will be deleted</td></tr>
+  <tr><td><code>kagaj_page</code></td><td>page of a file</td><td>route and reason (M2), status, attempts, seconds taken, the typed blocks (Read), the R2 key of the page image</td></tr>
+  <tr><td><code>kagaj_extract</code></td><td>extraction request</td><td>the template or JSON shape asked for, the fields with printed value, normalised value, verified flag and page box</td></tr>
+  </tbody></table></div>
+  <p><b>The nuance.</b> The file itself never goes in the database, only its R2 <b>key</b> (Boli's rule: store keys, not URLs). And "partly done" is a real status: if page 7 of 10 fails three times, you still get the other nine, with page 7 clearly marked.</p>
+</section>
+
+<section class="phase" id="p3">
+  <h3>P3. One job, step by step</h3>
+  <ol>
+    <li><b>Upload.</b> The browser sends the file straight to R2 with a short-lived signed link (big files never pass through the app). The app checks the size, type and page count, and that the workspace has credits for every page.</li>
+    <li><b>Start.</b> A <code>kagaj_document</code> row is written and a Workflow starts. The app returns at once.</li>
+    <li><b>Split.</b> The reader service counts pages and renders each to an image at 200 dpi, stored in R2. One <code>kagaj_page</code> row each.</li>
+    <li><b>Read each page</b>, as its own step: route (M2), read (M3), store the blocks. A Workflow step retries on its own (up to 3 times, waiting longer each time) and is <b>idempotent</b>: running it twice gives the same row, never two.</li>
+    <li><b>Extract</b>, if asked: one more step over all pages' blocks with the chosen shape.</li>
+    <li><b>Charge and finish.</b> Credits are charged for the pages actually read, once, in the same write that marks the document done. A failed page is not charged.</li>
+  </ol>
+  <p><b>The nuance: charging.</b> Charge at the end, per page read, never up front for the whole file. If we charged at upload and the job died, the person pays for nothing; if we charged per step, a retry could charge twice. One charge at the finish, keyed to the document, cannot double.</p>
+</section>
+
+<section class="phase" id="p4">
+  <h3>P4. The screens</h3>
+  <p>Kagaj gets its place on the product rail next to Kura, API and Jawaf, with its own sidebar:</p>
+  <ul>
+    <li><b>Read:</b> drop a file, watch pages tick through. Then a split view: the page image on the left, the blocks on the right. Hover a block and its box lights up on the page. Copy as Markdown, HTML or JSON.</li>
+    <li><b>Extract:</b> pick a template (bill, invoice, notice, certificate) or describe the fields. Each field shows its printed value, the clean value, and a quiet mark: verified, corrected by the second reader, or not verified (amber).</li>
+    <li><b>Files:</b> everything read in this workspace, searchable, with when each will be deleted.</li>
+    <li><b>Code:</b> the same request as an API call in five languages, like Kura's Code tab.</li>
+  </ul>
+  <p><b>The nuance.</b> The verified mark is the product. Anyone can show text next to a picture. Showing which numbers a person must double-check, and which they can trust, is what makes a business rely on it.</p>
+</section>
+
+<section class="phase" id="p5">
+  <h3>P5. The API</h3>
+<pre>POST /v1/documents          # a file, or a URL; options: extract template or JSON schema
+  -> 202 { "id": "doc_...", "status": "queued", "pages": 4 }
+
+GET  /v1/documents/doc_...  # poll until done
+  -> { "status": "done", "pages": [ { "blocks": [...], "route": "image" } ],
+       "fields": { ... }, "usage": { "pages": 4, "credits": ... } }</pre>
+  <p><b>The nuance.</b> This is not the OpenAI format: OpenAI has no document endpoint, and forcing a 10-page job into a chat call would time out. Same keys, same credits, a different shape. Webhooks (we call your server when it is done) come after polling works. The price per page is yours to set (section 5); it must cover the GPU time of about 20 seconds a page today, less after M6.</p>
+</section>
+
+<section class="phase" id="p6">
+  <h3>P6. Privacy</h3>
+  <p>Documents are the most sensitive thing Boli will ever hold: citizenship cards, bank statements, salary letters. So, by default:</p>
+  <ul>
+    <li><b>Deleted after a set time</b> (proposal: 30 days), the file, page images and results, with a "delete now" button.</li>
+    <li><b>Never used for training</b> unless the workspace owner turns on a clearly worded opt-in, and even then names and ID numbers are blacked out first.</li>
+    <li><b>Never logged.</b> Logs carry ids and timings, never text from a page.</li>
+    <li><b>Reachable only by the workspace</b>, checked on every read like every other Boli table.</li>
+  </ul>
+</section>
+
+<section class="phase" id="p7">
+  <h3>P7. Kagaj inside Jawaf</h3>
+  <p>Today Jawaf reads a business's uploaded files with Sarvam, as an allowed stopgap. Once Kagaj passes its gate, Jawaf's file step calls Kagaj instead. Two wins: Boli is open models end to end again, and Jawaf gets the verified marks for prices and fees, which is exactly where a wrong digit hurts most.</p>
+</section>
+</div>
+
+<h2 id="next">5. What I will ask you before we plan</h2>
+<p>Read, come back with your questions, then I will ask these with the picker, one group at a time. They are here so you can think about them first. Nothing below is decided.</p>
+<h3>The model</h3>
+<ul>
+  <li>The GPU host: which provider and budget, and whether chat moves to it at the same time.</li>
+  <li>The gate's pass marks (M7): keep the proposal, or stricter for money fields?</li>
+  <li>The first three document types to optimise for (bills? IRD notices? bank statements?).</li>
+  <li>Who checks the gold set: paid Nepali readers, people you know, or you?</li>
+  <li>Bake-off candidates: anything to add or remove?</li>
+</ul>
+<h3>The platform</h3>
+<ul>
+  <li>Price per page, and whether Read and Extract cost different amounts.</li>
+  <li>The limits: pages per file, file size, files per day on the free credits.</li>
+  <li>Retention: 30 days, 7 days, or the workspace chooses?</li>
+  <li>Opt-in training: offer it at launch, or later?</li>
+  <li>Kagaj on the public site: a landing page like Kura and Jawaf from day one, or after the pilot?</li>
+</ul>
+
+<h2 id="quiz">6. Quiz</h2>
+<p>Tap an answer to see why.</p>
+<div class="quiz" id="quiz-list"></div>
+<div class="qbar"><span id="qscore">Score: 0 of 12 answered</span><button type="button" id="qreset">Reset quiz</button></div>
+
+<h2 id="sources">Sources</h2>
+<ul class="src">
+  <li>Boli's Stage 0 test on 39 public Nepal government documents: <code>ml/docintel/testset/REPORT.md</code> (24 November 2026), with <code>ml/docintel/read_doc.py</code> and <code>ml/docintel/score.py</code>.</li>
+  <li>Chapter one, Boli Document Intelligence, and chapter two, Building Boli's Document Model (both 24 November 2026), for the models, the licences and the training pipeline.</li>
+  <li>Boli's own rules: AGENTS.md section 5 (long jobs), section 6 (database), section 8 (files as keys, money as integers).</li>
+</ul>
+</main>
+</div>
+
+<script>
+(function () {
+  var Q = [
+    { q: "Why does Kagaj go through a router before any model reads a page?",
+      o: ["To pick a price", "10 of our 11 digital PDFs had wrong text layers (Preeti, broken Word exports), so the PDF's own text cannot be trusted blindly", "Models are slow, so the router skips them", "The router translates the page"], a: 1,
+      w: "The router decides per page whether the PDF's text is usable, needs converting, or must be ignored in favour of reading the image." },
+    { q: "A Word-exported PDF shows ववभाग for विभाग. Which check catches it?",
+      o: ["Comparing the layer with an independent quick Tesseract read", "Counting the pages", "Looking at the file size", "A script check: is it Devanagari?"], a: 0,
+      w: "It is valid Devanagari, so a script check passes it. Only a second, independent read shows it disagrees." },
+    { q: "The vision model wrote ०.११ where the page says ०.१९, and Tesseract read ०.१९ in the same box. What does the referee do?",
+      o: ["Use the witness's value, mark it corrected_by_ocr and lower its confidence", "Keep the model's value: it understands the page", "Fail the whole document", "Delete the field"], a: 0,
+      w: "Same shape, same place, different value: the character reader is the better witness for digits, and the change is recorded, not hidden." },
+    { q: "Why does the model copy a BS date as printed instead of converting it to AD?",
+      o: ["It saves tokens", "AD dates are not needed", "The model cannot read dates", "Conversion in code is right every time or wrong every time, so one test catches it; a model's arithmetic fails silently now and then"], a: 3,
+      w: "Copy, never correct. The model reads; our code normalises digits, dates and money." },
+    { q: "Two pages of the same gazette: one in training, one in the gold set. What is the problem?",
+      o: ["Gazettes are not allowed", "None, they are different pages", "Leakage: the model has seen that layout and font, so the score is too high", "The gold set must be synthetic"], a: 2,
+      w: "Split by document and publisher, never by page." },
+    { q: "Which gold-set number should be zero before shipping?",
+      o: ["Number of tables", "CER", "Seconds per page", "Invented fields: values with no source on the page"], a: 3,
+      w: "An invented but plausible value is the mistake customers cannot see, so it is the one that ends trust." },
+    { q: "Why can't the reader run on Cloudflare Workers like the rest of Boli?",
+      o: ["Workers run JavaScript only, cannot run Tesseract or a PDF renderer, and have no GPU", "Cloudflare forbids documents", "Workers cannot store files", "Workers are too expensive"], a: 0,
+      w: "So the reader is a small private service on the GPU host, and Cloudflare runs the app, the job and the storage." },
+    { q: "Why is reading a 10-page scan a background job instead of a normal request?",
+      o: ["Background jobs are cheaper", "To make it look busier", "Requests cannot carry PDFs", "It takes minutes, must survive a closed tab and must retry failed pages"], a: 3,
+      w: "AGENTS.md section 5: 30 seconds or more, survives a closed tab, or retries means a long job (a Workflow)." },
+    { q: "Page 7 of 10 fails three times. What does the person get?",
+      o: ["The other nine pages, with page 7 clearly marked; only nine pages charged", "All ten pages charged and empty", "Nothing: the document failed", "An automatic refund email"], a: 0,
+      w: "Partly done is a real status, and credits are charged once, at the end, for pages actually read." },
+    { q: "Why charge credits once at the end instead of per step?",
+      o: ["A retried step could charge twice, and an up-front charge bills for work that may never happen", "Steps cannot read credits", "Customers prefer surprises", "It is simpler to code"], a: 0,
+      w: "One charge keyed to the document cannot double and never bills a failed page." },
+    { q: "When does fine-tuning (M6) happen if the hybrid already passes the gate?",
+      o: ["Only for handwriting", "Never", "Later, to make reading faster and cheaper by dropping the second reader on easy pages", "Immediately, always"], a: 2,
+      w: "If the hybrid passes, fine-tuning moves from 'make it work' to 'make it fast'." },
+    { q: "What makes Kagaj's Extract screen worth paying for, beyond showing text?",
+      o: ["Exporting to Word", "The verified, corrected and not-verified marks that say which numbers to double-check", "A dark mode", "Bigger fonts"], a: 1,
+      w: "Trust is the product: people can rely on green fields and check the amber ones." }
+  ];
+  var list = document.getElementById("quiz-list");
+  var scoreEl = document.getElementById("qscore");
+  var state = Q.map(function () { return null; });
+  function render() {
+    list.innerHTML = "";
+    Q.forEach(function (item, i) {
+      var box = document.createElement("div"); box.className = "q";
+      var p = document.createElement("p"); p.className = "ask"; p.textContent = item.q; box.appendChild(p);
+      var opts = document.createElement("div"); opts.className = "opts";
+      item.o.forEach(function (txt, j) {
+        var b = document.createElement("button"); b.type = "button"; b.id = "q" + i + "o" + j; b.textContent = txt;
+        if (state[i] !== null) {
+          if (j === item.a) b.className = "right";
+          else if (j === state[i]) b.className = "wrong";
+        }
+        b.addEventListener("click", function () { state[i] = j; render(); });
+        opts.appendChild(b);
+      });
+      box.appendChild(opts);
+      if (state[i] !== null) {
+        var w = document.createElement("p"); w.className = "why";
+        w.textContent = (state[i] === item.a ? "Right. " : "Not quite. ") + item.w;
+        box.appendChild(w);
+      }
+      list.appendChild(box);
+    });
+    var answered = state.filter(function (s) { return s !== null; }).length;
+    var right = state.filter(function (s, i) { return s === Q[i].a; }).length;
+    scoreEl.textContent = "Score: " + right + " right, " + answered + " of " + Q.length + " answered";
+  }
+  document.getElementById("qreset").addEventListener("click", function () { state = Q.map(function () { return null; }); render(); });
+  render();
+})();
+</script>

@@ -5,20 +5,19 @@ export const ENTRIES: readonly ContentEntry[] = [
     {
         "kind": "changelog",
         "slug": "workspaces-and-jawaf-pilot",
-        "title": "Workspaces, a product rail and Jawaf in pilot",
+        "title": "Workspaces for teams, and Jawaf in pilot",
         "date": "2026-11-25",
-        "summary": "Every account is now a workspace you can share with your team, the app has a product rail, and Jawaf - answers for a business's customers - starts its pilot.",
+        "summary": "Every account is now a workspace you can share with your team, and Jawaf - answers for a business's customers from its own content - starts its pilot.",
         "author": "boli-team",
         "draft": true,
         "tags": [
             "Account",
-            "Kura",
             "Jawaf"
         ],
         "topics": [],
         "takeaways": [],
         "faqs": [],
-        "words": 168,
+        "words": 127,
         "readingMinutes": 1,
         "toc": []
     },
@@ -37,24 +36,6 @@ export const ENTRIES: readonly ContentEntry[] = [
         "takeaways": [],
         "faqs": [],
         "words": 66,
-        "readingMinutes": 1,
-        "toc": []
-    },
-    {
-        "kind": "changelog",
-        "slug": "api-fixes",
-        "title": "Smaller fixes from testing",
-        "date": "2026-11-24",
-        "summary": "max_tokens can now go as low as 1, failed calls show as failed in Usage, and the usage chart says when nothing was spent.",
-        "author": "boli-team",
-        "draft": true,
-        "tags": [
-            "API"
-        ],
-        "topics": [],
-        "takeaways": [],
-        "faqs": [],
-        "words": 39,
         "readingMinutes": 1,
         "toc": []
     },
@@ -341,44 +322,6 @@ export const ENTRIES: readonly ContentEntry[] = [
     },
     {
         "kind": "changelog",
-        "slug": "loaders-and-states",
-        "title": "Clearer loading and empty screens",
-        "date": "2026-11-24",
-        "summary": "Pages show their shape while they load, and empty, missing and error screens say what happened.",
-        "author": "boli-team",
-        "draft": true,
-        "tags": [
-            "Kura",
-            "Site"
-        ],
-        "topics": [],
-        "takeaways": [],
-        "faqs": [],
-        "words": 44,
-        "readingMinutes": 1,
-        "toc": []
-    },
-    {
-        "kind": "changelog",
-        "slug": "new-look",
-        "title": "A new look",
-        "date": "2026-11-24",
-        "summary": "New type, a sky-blue accent, a new logo and pixel art of the valley across the site and the app.",
-        "author": "boli-team",
-        "draft": true,
-        "tags": [
-            "Site",
-            "Kura"
-        ],
-        "topics": [],
-        "takeaways": [],
-        "faqs": [],
-        "words": 39,
-        "readingMinutes": 1,
-        "toc": []
-    },
-    {
-        "kind": "changelog",
         "slug": "platform-v0",
         "title": "Boli runs on its own open model",
         "date": "2026-11-24",
@@ -561,24 +504,6 @@ export const ENTRIES: readonly ContentEntry[] = [
         "takeaways": [],
         "faqs": [],
         "words": 49,
-        "readingMinutes": 1,
-        "toc": []
-    },
-    {
-        "kind": "changelog",
-        "slug": "sign-in-and-welcome",
-        "title": "Sign in, sign up and a short welcome",
-        "date": "2026-11-23",
-        "summary": "New sign-in and sign-up pages, a live password checklist and a four-step welcome.",
-        "author": "boli-team",
-        "draft": true,
-        "tags": [
-            "Account"
-        ],
-        "topics": [],
-        "takeaways": [],
-        "faqs": [],
-        "words": 51,
         "readingMinutes": 1,
         "toc": []
     }

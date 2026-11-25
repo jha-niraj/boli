@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { ArrowRight, Brain, Pencil, Search, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react"
+import { ArrowRight, Brain } from "lucide-react"
 import { AppLink } from "@repo/ui/components/app-link"
 import { cn } from "@repo/ui/lib/utils"
 import { KuraScene } from "@repo/brand/art/kura/kura-scene"
@@ -15,8 +15,7 @@ import { CtaBand } from "@/app/_landing/cta-band"
 import { JsonLd } from "@/components/json-ld"
 import { FaqSection } from "@/components/public/faq-section"
 import { LanguageExchanges, type Exchange } from "@/components/public/language-exchanges"
-import { PixelIcon, PixelIconTile } from "@/components/public/pixel-icon"
-import type { PixelIconId } from "@/components/public/pixel-icon-sprites"
+import { PixelIcon } from "@/components/public/pixel-icon"
 import { exampleTurn } from "@/components/public/pricing"
 import { PricingPacks } from "@/components/public/pricing-packs"
 import { DhakaBand, ProductHero } from "@/components/public/product-hero"
@@ -30,8 +29,9 @@ import { pageMeta } from "@/lib/seo"
 /*
  * /kura (owner, 2026-11-25, round 2 "show, don't tell"): Kura's landing page - the /jawaf treatment, shorter. A
  * full-screen hero with the elder and the student talking by the stupa, then: the exchanges per script, Think mode as a
- * mock reply, settings as a mock panel beside the code tabs, your chats as a mock history, pricing as one card plus the
- * packs, FAQ and the ask. Kura is LIVE: Service JSON-LD (kuraServiceSchema) + BreadcrumbList + FAQPage. Prices from
+ * mock reply, settings as a mock panel beside the code tabs (the two end at the same bottom), how it is built (the open
+ * model and what we add, as a model card - owner 2026-11-25: replaces the "your chats" mock, which read too light),
+ * pricing as one card plus the packs, FAQ and the ask. Kura is LIVE: Service JSON-LD (kuraServiceSchema) + BreadcrumbList + FAQPage. Prices from
  * @repo/boli only.
  */
 
@@ -79,15 +79,21 @@ const SLIDERS: readonly { name: string; value: string; pct: number; low: string;
     { name: "Top-k", value: String(KURA_DEFAULTS.topK), pct: at(KURA_DEFAULTS.topK, KURA_LIMITS.topK), low: "Few words", high: "Many" },
 ]
 
-const HISTORY: readonly { group: string; chats: readonly string[] }[] = [
-    { group: "Today", chats: ["Exam pachi k garne", "Team lai meeting message"] },
-    { group: "Yesterday", chats: ["API key in two sentences"] },
+/** The model card in "How it is built": facts only, every value from @repo/boli. */
+const MODEL_ROWS: readonly { k: string; v: string; mono?: boolean }[] = [
+    { k: "Base", v: "Gemma 4 E4B, instruction-tuned" },
+    { k: "Weights", v: `Open, ${BOLI_CHAT.licence}` },
+    { k: "Precision", v: "4-bit, quantized" },
+    { k: "Context", v: `${BOLI_CHAT.contextTokens.toLocaleString("en-US")} tokens` },
+    { k: "Languages", v: BOLI_CHAT.languages.join(", ") },
+    { k: "Interface", v: "OpenAI-compatible /v1" },
 ]
 
-const CHAT_POINTS: readonly { icon: PixelIconId; label: string }[] = [
-    { icon: "clock", label: "Saved, with their settings" },
-    { icon: "ask", label: "Search, rename, delete" },
-    { icon: "thumb", label: "Like or dislike, with a reason" },
+/** What Boli adds on top of the open weights - each one true of Kura today. */
+const BUILD_POINTS: readonly { title: string; line: string }[] = [
+    { title: "Open weights, nothing closed", line: "Every Kura reply comes from an open model. No closed AI company sits behind it." },
+    { title: "Hosted by us", line: "We serve the model ourselves, so your chats stay between you and Boli." },
+    { title: "Tuned for how Nepal types", line: "Instructions tested on Romanized Nepali keep replies in the script you wrote in." },
 ]
 
 const KURA_FAQ: readonly { q: string; a: string }[] = [
@@ -235,7 +241,8 @@ export default function KuraPage() {
                     <span id="code-title">Tune it, then take it into your code</span>
                 </SectionTitle>
                 <Lead>Settings apply to the next message. The Code tab turns your chat into an API call.</Lead>
-                <div className="mt-12 grid gap-4 sm:mt-14 lg:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] lg:items-start lg:gap-6">
+                {/* The settings card sets the row's height; the code fills it and scrolls inside, so both end at the same bottom. */}
+                <div className="mt-12 grid gap-4 sm:mt-14 lg:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] lg:items-stretch lg:gap-6">
                     <div data-reveal="1" className={cn("min-w-0 rounded-3xl border border-boli-line bg-white p-5 font-sans sm:p-6", CARD_SHADOW)}>
                         <div className="flex items-center justify-between gap-3">
                             <p className="text-sm font-[450] text-boli-ink">Settings</p>
@@ -245,7 +252,7 @@ export default function KuraPage() {
                             <p className="text-xs text-boli-muted">Instructions</p>
                             <p className="truncate rounded-2xl bg-boli-ground px-3 py-2 text-xs text-boli-ink">Boli&apos;s default - short replies, in your script</p>
                         </div>
-                        <div className="mt-4 grid gap-4">
+                        <div className="mt-4 grid gap-3.5">
                             {SLIDERS.map((s) => (
                                 <div key={s.name} className="grid gap-1.5">
                                     <div className="flex items-baseline justify-between gap-2">
@@ -266,7 +273,7 @@ export default function KuraPage() {
                                 </div>
                             ))}
                         </div>
-                        <div className="mt-6 flex flex-wrap gap-2">
+                        <div className="mt-5 flex flex-wrap gap-2">
                             <PillButton asChild size="sm">
                                 <a href={KEYS_URL}>
                                     Get an API key <ArrowRight aria-hidden />
@@ -277,85 +284,63 @@ export default function KuraPage() {
                             </PillButton>
                         </div>
                     </div>
-                    <div data-reveal="2" className="min-w-0">
-                        <HighlightedCodeTabs samples={samples} className="min-w-0" bodyViewportClassName="h-[19rem] sm:h-[24rem] lg:h-[29rem]" />
+                    {/* lg: the code is absolute inside its cell, so only the settings card sizes the row. */}
+                    <div data-reveal="2" className="min-w-0 lg:relative">
+                        <HighlightedCodeTabs samples={samples} fill className={cn("h-[19rem] min-w-0 rounded-3xl sm:h-[22rem] lg:absolute lg:inset-0 lg:h-auto", CARD_SHADOW)} />
                     </div>
                 </div>
             </Band>
 
-            <Band id="chats" labelledBy="chats-title">
+            <Band id="built" labelledBy="built-title">
                 <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-14">
                     <div className="min-w-0">
-                        <Kicker>Your chats</Kicker>
+                        <Kicker>How it is built</Kicker>
                         <SectionTitle>
-                            <span id="chats-title">Pick up where you left off</span>
+                            <span id="built-title">An open model, run by us</span>
                         </SectionTitle>
-                        <ul data-reveal="2" className="mt-8 grid gap-2">
-                            {CHAT_POINTS.map((p) => (
-                                <li key={p.label} className="flex min-w-0 items-center gap-3 text-sm text-boli-ink">
-                                    <PixelIconTile id={p.icon} className="size-10 rounded-xl" />
-                                    <span className="min-w-0">{p.label}</span>
+                        <Lead>Open weights anyone can inspect, served from our own servers, shaped for Nepali.</Lead>
+                        <ol data-reveal="2" className="mt-8 grid gap-5">
+                            {BUILD_POINTS.map((p, i) => (
+                                <li key={p.title} className="grid min-w-0 grid-cols-[2rem_minmax(0,1fr)] gap-x-3">
+                                    <span className={cn("pt-0.5 font-mono text-xs", SKY_TEXT)}>{String(i + 1).padStart(2, "0")}</span>
+                                    <div className="min-w-0">
+                                        <p className="text-[15px] font-[450] text-boli-ink">{p.title}</p>
+                                        <p className="mt-1 text-sm leading-6 text-boli-text">{p.line}</p>
+                                    </div>
                                 </li>
                             ))}
-                        </ul>
+                        </ol>
                     </div>
-                    <div data-reveal="1" className={cn("grid min-w-0 overflow-hidden rounded-3xl border border-boli-line bg-white font-sans sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]", CARD_SHADOW)}>
-                        <div className="min-w-0 border-b border-boli-line bg-boli-ground/60 p-4 sm:border-b-0 sm:border-r">
-                            <div className="flex h-8 items-center gap-2 rounded-full bg-white px-3 text-xs text-boli-muted ring-1 ring-boli-line">
-                                <Search aria-hidden strokeWidth={1.75} className="size-3.5 shrink-0" />
-                                <span className="truncate">Search chats</span>
+                    <div data-reveal="1" className={cn("min-w-0 overflow-hidden rounded-3xl border border-boli-line bg-white font-sans", CARD_SHADOW)}>
+                        <div className="flex min-w-0 items-center justify-between gap-3 border-b border-boli-line px-5 py-4 sm:px-6" style={{ background: `linear-gradient(140deg, ${SKY.soft}, ${SKY.wash})` }}>
+                            <div className="flex min-w-0 items-center gap-3">
+                                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white ring-1 ring-boli-line">
+                                    <BoliLogo wordmark={false} size={15} />
+                                </span>
+                                <div className="min-w-0">
+                                    <p className="truncate font-mono text-sm text-boli-ink">{BOLI_CHAT.id}</p>
+                                    <p className="truncate text-xs text-boli-text">The model behind {KURA.name} and the API</p>
+                                </div>
                             </div>
-                            {HISTORY.map((h) => (
-                                <div key={h.group} className="mt-4">
-                                    <p className="px-1 text-xs text-boli-muted">{h.group}</p>
-                                    <ul className="mt-1.5 grid gap-1">
-                                        {h.chats.map((c, i) => (
-                                            <li
-                                                key={c}
-                                                className={cn(
-                                                    "flex min-w-0 items-center justify-between gap-2 rounded-xl px-2.5 py-1.5 text-[13px] text-boli-ink",
-                                                    h.group === "Today" && i === 0 && "bg-white ring-1 ring-boli-line",
-                                                )}
-                                            >
-                                                <span className="truncate">{c}</span>
-                                                {h.group === "Today" && i === 0 ? (
-                                                    <span aria-hidden className="flex shrink-0 gap-1.5 text-boli-muted">
-                                                        <Pencil strokeWidth={1.75} className="size-3" />
-                                                        <Trash2 strokeWidth={1.75} className="size-3" />
-                                                    </span>
-                                                ) : null}
-                                            </li>
-                                        ))}
-                                    </ul>
+                            <span className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-white px-2.5 text-xs text-boli-ink ring-1 ring-boli-line">
+                                <span aria-hidden className="size-1.5 rounded-full bg-emerald-600" /> Open weights
+                            </span>
+                        </div>
+                        <dl className="divide-y divide-boli-line">
+                            {MODEL_ROWS.map((r) => (
+                                <div key={r.k} className="grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] gap-3 px-5 py-3 text-sm sm:px-6">
+                                    <dt className="text-boli-muted">{r.k}</dt>
+                                    <dd className={cn("min-w-0 text-boli-ink", r.mono && "font-mono text-[13px]")}>{r.v}</dd>
                                 </div>
                             ))}
-                        </div>
-                        <div className="grid min-w-0 content-start gap-3 p-4 sm:p-5">
-                            <div className="flex justify-end">
-                                <p className="max-w-[85%] rounded-2xl rounded-br-md bg-boli-ground px-3 py-1.5 text-[13px] leading-5 text-boli-ink">mero exam sakiyo, aba k garne?</p>
-                            </div>
-                            <div className="flex items-start gap-2">
-                                <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-white ring-1 ring-boli-line">
-                                    <BoliLogo wordmark={false} size={11} />
-                                </span>
-                                <p className="min-w-0 text-[13px] leading-5 text-boli-ink">Badhai cha! Aaja ek din aaram gara...</p>
-                            </div>
-                            <div className="flex items-center gap-2 pl-8 text-boli-muted" aria-hidden>
-                                <ThumbsUp strokeWidth={1.75} className="size-3.5" />
-                                <span className="inline-flex size-6 items-center justify-center rounded-full bg-boli-ink text-white">
-                                    <ThumbsDown strokeWidth={1.75} className="size-3" />
-                                </span>
-                            </div>
-                            <div className="flex flex-wrap gap-1.5 pl-8">
-                                {["Wrong script or language", "Not true", "Too long"].map((r, i) => (
-                                    <span
-                                        key={r}
-                                        className={cn("inline-flex h-6 items-center rounded-full px-2.5 text-xs", i === 0 ? "bg-boli-ink text-white" : "border border-boli-line text-boli-muted")}
-                                    >
-                                        {r}
-                                    </span>
-                                ))}
-                            </div>
+                        </dl>
+                        <div className="border-t border-boli-line px-5 py-4 sm:px-6">
+                            <AppLink
+                                href={ROUTES.model(BOLI_CHAT.id)}
+                                className={cn("inline-flex cursor-pointer items-center gap-1.5 text-sm font-[450] text-boli-ink underline decoration-1 underline-offset-4", SKY_DECORATION)}
+                            >
+                                Read the model card <ArrowRight aria-hidden strokeWidth={1.75} className="size-3.5" />
+                            </AppLink>
                         </div>
                     </div>
                 </div>

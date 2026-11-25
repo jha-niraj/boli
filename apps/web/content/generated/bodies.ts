@@ -5,18 +5,14 @@ import type { MDXContent } from "mdx/types"
 export const BODIES: Readonly<Record<string, () => Promise<{ default: MDXContent }>>> = {
     "changelog/workspaces-and-jawaf-pilot": () => import("./mdx/changelog/workspaces-and-jawaf-pilot.jsx"),
     "changelog/api-and-keys": () => import("./mdx/changelog/api-and-keys.jsx"),
-    "changelog/api-fixes": () => import("./mdx/changelog/api-fixes.jsx"),
     "changelog/credit-packs": () => import("./mdx/changelog/credit-packs.jsx"),
     "changelog/docs-five-languages": () => import("./mdx/changelog/docs-five-languages.jsx"),
     "guides/first-call-in-five-languages": () => import("./mdx/guides/first-call-in-five-languages.jsx"),
     "blog/how-nepal-types": () => import("./mdx/blog/how-nepal-types.jsx"),
     "blog/introducing-boli": () => import("./mdx/blog/introducing-boli.jsx"),
     "changelog/kura": () => import("./mdx/changelog/kura.jsx"),
-    "changelog/loaders-and-states": () => import("./mdx/changelog/loaders-and-states.jsx"),
-    "changelog/new-look": () => import("./mdx/changelog/new-look.jsx"),
     "changelog/platform-v0": () => import("./mdx/changelog/platform-v0.jsx"),
     "blog/reading-nepali-bills-with-open-models": () => import("./mdx/blog/reading-nepali-bills-with-open-models.jsx"),
     "guides/romanized-nepali-support-bot": () => import("./mdx/guides/romanized-nepali-support-bot.jsx"),
     "changelog/web-split": () => import("./mdx/changelog/web-split.jsx"),
-    "changelog/sign-in-and-welcome": () => import("./mdx/changelog/sign-in-and-welcome.jsx"),
 }

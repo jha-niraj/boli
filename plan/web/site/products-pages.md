@@ -59,3 +59,10 @@ Decisions:
   - Verified: section "Every public page matches the landing (owner, 2026-11-25)" added after Design; grep for en/em
     dashes in the changed files printed nothing.
 - [ ] **8. Lead: typecheck web + brand, browser pass at 1440 and 390**
+
+## Round 3 (owner, 2026-11-25): equal-height pairs, a serious "how it is built", a trimmed changelog
+
+- [x] /kura "Settings and code": the settings card and the code block end at the same bottom, and the pair is shorter (about 594px down to 478px at 1512 wide). `CodeTabs` gained `fill` (the code scrolls inside whatever height the parent gives it). At lg the code is absolute in its cell, so only the settings card sets the row height. Verified: in Chrome both bottoms measured 557.9px.
+- [x] /kura "Your chats" mock (pixel icons, likes) replaced with "How it is built - An open model, run by us": three numbered points (open weights, hosted by us, tuned for how Nepal types) and a model card. Every value in the card comes from `BOLI_CHAT` in @repo/boli. Verified: screenshot in Chrome.
+- [x] Changelog: removed the small entries (api-fixes, loaders-and-states, new-look, sign-in-and-welcome). The workspaces entry no longer mentions the rail, and it no longer claims a website bubble or API for Jawaf (they are "next"). Verified: /changelog lists 7 entries.
+- [-] Other two-panel sections (the landing code section, Jawaf's "Or call it from your code"): left as they are. They pair text with code, not two cards, so equal height does not apply.
